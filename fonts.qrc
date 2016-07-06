@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/fonts/F8X8B.ASM</file>
+        <file>res/fonts/F8X14B.ASM</file>
+        <file>res/fonts/F12X14B.ASM</file>
+        <file>res/fonts/F14X14B.ASM</file>
+        <file>res/fonts/F16X14B.ASM</file>
+        <file>res/fonts/F16X28B.ASM</file>
+        <file>res/fonts/F16X32B.ASM</file>
+        <file>res/fonts/F16X40B.ASM</file>
+    </qresource>
+</RCC>

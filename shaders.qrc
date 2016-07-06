@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/shaders/radar.frag.glsl</file>
+        <file>res/shaders/radar.vert.glsl</file>
+        <file>res/shaders/mask.vert.glsl</file>
+        <file>res/shaders/mask.frag.glsl</file>
+        <file>res/shaders/info.frag.glsl</file>
+        <file>res/shaders/info.vert.glsl</file>
+        <file>res/shaders/control.frag.glsl</file>
+        <file>res/shaders/control.vert.glsl</file>
+    </qresource>
+</RCC>
