@@ -93,6 +93,14 @@ void RLIControlWidget::on_sldGain_valueChanged(int value) {
   emit gainChanged(value);
 }
 
+void RLIControlWidget::on_sldWater_valueChanged(int value) {
+  emit waveChanged(value);
+}
+
+void RLIControlWidget::on_sldRain_valueChanged(int value) {
+  emit rainChanged(value);
+}
+
 void RLIControlWidget::on_btnOnOff3_clicked() {
   if (_reciever != NULL) {
     RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ParallelLines);
@@ -103,6 +111,13 @@ void RLIControlWidget::on_btnOnOff3_clicked() {
 void RLIControlWidget::on_btnMenu_clicked() {
   if (_reciever != NULL) {
     RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Menu);
+    qApp->postEvent(_reciever, e);
+  }
+}
+
+void RLIControlWidget::on_btnTrace1_clicked() {
+  if (_reciever != NULL) {
+    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Back);
     qApp->postEvent(_reciever, e);
   }
 }
@@ -127,3 +142,4 @@ void RLIControlWidget::on_btnTrace6_clicked() {
     qApp->postEvent(_reciever, e);
   }
 }
+

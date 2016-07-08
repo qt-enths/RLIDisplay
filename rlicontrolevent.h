@@ -23,7 +23,8 @@ public:
                          , Menu
                          , Up
                          , Down
-                         , Enter };
+                         , Enter
+                         , Back };
 
   explicit RLIControlEvent(RLIControlButtons b = NoButton
                          , RLIControlSpinners s = NoSpinner

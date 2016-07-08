@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(ui->wgtRLIDisplay, SIGNAL(per_second()), _clck_ctrl, SLOT(second_changed()));
 
   connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
-  startTimer(25);
+  startTimer(33);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "MainWindow construction finish";
 }

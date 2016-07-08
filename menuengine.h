@@ -17,15 +17,33 @@ public:
   RLIMenuItem() { _name = QByteArray(); }
   RLIMenuItem(const QByteArray& name) : _name(name) {}
 
+  virtual ~RLIMenuItem() {  }
+
   virtual QByteArray name() { return _name; }
-  virtual QByteArray value() { return ""; }
+  virtual QByteArray value() { return QByteArray(); }
 
   virtual void up() { }
   virtual void down() { }
 
+  enum RLI_MENU_ITEM_TYPE { MENU, LIST, INT, FLOAT, ACTION};
+
+  virtual RLI_MENU_ITEM_TYPE type() { return _type; }
+
+protected:
+  RLI_MENU_ITEM_TYPE _type;
+
 private:
   QByteArray _name;
 };
+
+class RLIMenuItemAction : public RLIMenuItem {
+public:
+  RLIMenuItemAction(const QByteArray& name);
+  ~RLIMenuItemAction() {}
+
+private:
+};
+
 
 class RLIMenuItemMenu : public RLIMenuItem {
 public:
@@ -39,9 +57,6 @@ public:
   inline int item_count() { return _items.size(); }
   inline void add_item(RLIMenuItem* i) { _items.push_back(i); }
 
-  void up() { }
-  void down() { }
-
 private:
   RLIMenuItemMenu* _parent;
   QVector<RLIMenuItem*> _items;
@@ -50,6 +65,7 @@ private:
 class RLIMenuItemList : public RLIMenuItem {
 public:
   RLIMenuItemList(const QByteArray& name, const QVector<QByteArray>& variants, int def_ind);
+  ~RLIMenuItemList() {}
 
   inline QByteArray value() { return _variants[_index]; }
 
@@ -64,6 +80,7 @@ private:
 class RLIMenuItemInt : public RLIMenuItem {
 public:
   RLIMenuItemInt(const QByteArray& name, int min, int max, int def);
+  ~RLIMenuItemInt() {}
 
   inline QByteArray value() { return QString::number(_value).toLatin1(); }
 
@@ -78,6 +95,7 @@ private:
 class RLIMenuItemFloat : public RLIMenuItem {
 public:
   RLIMenuItemFloat(const QByteArray& name, float min, float max, float def);
+  ~RLIMenuItemFloat() { }
 
   inline QByteArray value() { return QString::number(_value).left(5).toLatin1(); }
 
@@ -117,6 +135,7 @@ public slots:
   void onUp();
   void onDown();
   void onEnter();
+  void onBack();
 
 private:
   void initMenuTree();
@@ -138,6 +157,8 @@ private:
   QString _font_tag;
 
   RLIMenuItemMenu* _menu;
+
+  RLIMenuItemMenu* _main_menu;
 
   int _selected_line;
   bool _selection_active;

@@ -12,7 +12,7 @@ MaskEngine::MaskEngine(const QSize& sz) {
 
   format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
   format.setMipmap(true);
-  format.setSamples(8);
+  format.setSamples(1);
   format.setTextureTarget(GL_TEXTURE_2D);
   format.setInternalTextureFormat(GL_RGBA8);
 

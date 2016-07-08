@@ -98,7 +98,7 @@ RadarEngine::RadarEngine(uint pel_count, uint pel_len) {
 
   _fbo_format.setAttachment(QGLFramebufferObject::Depth);
   _fbo_format.setMipmap(false);
-  _fbo_format.setSamples(1);
+  _fbo_format.setSamples(0);
   _fbo_format.setTextureTarget(GL_TEXTURE_2D);
   _fbo_format.setInternalTextureFormat(GL_RGBA8);
 

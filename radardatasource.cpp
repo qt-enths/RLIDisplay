@@ -192,7 +192,7 @@ void RadarDataSource::worker() {
   int offset = 0;
 
   while(!finish_flag) {
-    qSleep(19);
+    qSleep(24);
 
     emit updateData(offset, BLOCK_TO_SEND, &file_divs[file][offset], &file_amps[file][offset*PELENG_SIZE]);
 

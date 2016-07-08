@@ -29,17 +29,22 @@ private slots:
   void on_btnModeInc_clicked();
 
   void on_sldGain_valueChanged(int value);
+  void on_sldWater_valueChanged(int value);
+  void on_sldRain_valueChanged(int value);
 
   void on_btnOnOff3_clicked();
 
   void on_btnMenu_clicked();
 
+  void on_btnTrace1_clicked();
   void on_btnTrace4_clicked();
   void on_btnTrace5_clicked();
   void on_btnTrace6_clicked();
 
 signals:
   void gainChanged(int val);
+  void waveChanged(int val);
+  void rainChanged(int val);
 
 private:
   int _vn_pos;
