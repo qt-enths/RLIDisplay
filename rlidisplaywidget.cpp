@@ -333,6 +333,10 @@ bool RLIDisplayWidget::event(QEvent* e) {
         if (_menuEngine->visible())
           _menuEngine->onEnter();
         break;
+      case RLIControlEvent::Back:
+        if (_menuEngine->visible())
+          _menuEngine->onBack();
+        break;
       default:
         break;
     }
