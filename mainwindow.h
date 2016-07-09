@@ -31,7 +31,12 @@ private slots:
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
 
-  GainController* _gain_ctrl;
+  ValueBarController* _gain_ctrl;
+  ValueBarController* _water_ctrl;
+  ValueBarController* _rain_ctrl;
+  ValueBarController* _apch_ctrl;
+  ValueBarController* _radiation_ctrl;
+
   CursorController* _curs_ctrl;
   ClockController* _clck_ctrl;
 

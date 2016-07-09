@@ -14,8 +14,16 @@ RLIControlWidget::RLIControlWidget(QWidget *parent) : QWidget(parent), ui(new Ui
   ui->setupUi(this);
 
   ui->sldGain->setMinimum(0);
-  ui->sldGain->setMaximum(40);
+  ui->sldGain->setMaximum(50);
   ui->sldGain->setValue(0);
+
+  ui->sldWater->setMinimum(0);
+  ui->sldWater->setMaximum(50);
+  ui->sldWater->setValue(0);
+
+  ui->sldRain->setMinimum(0);
+  ui->sldRain->setMaximum(50);
+  ui->sldRain->setValue(0);
 
   ui->sldVN->setMinimum(TRIGGERED_SLIDER_MIN);
   ui->sldVN->setMaximum(TRIGGERED_SLIDER_MAX);
@@ -94,7 +102,7 @@ void RLIControlWidget::on_sldGain_valueChanged(int value) {
 }
 
 void RLIControlWidget::on_sldWater_valueChanged(int value) {
-  emit waveChanged(value);
+  emit waterChanged(value);
 }
 
 void RLIControlWidget::on_sldRain_valueChanged(int value) {

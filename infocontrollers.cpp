@@ -17,6 +17,10 @@ void InfoBlockController::onResize(const QSize& size) {
   initBlock(size);
 }
 
+void InfoBlockController::onLanguageChanged(int lang_id) {
+  Q_UNUSED(lang_id);
+}
+
 void InfoBlockController::setupBlock(InfoBlock* b, const QSize& size) {
   _block = b;
   initBlock(size);
@@ -24,43 +28,61 @@ void InfoBlockController::setupBlock(InfoBlock* b, const QSize& size) {
 
 //------------------------------------------------------------------------------
 
-GainController::GainController(QObject* parent) : InfoBlockController(parent) {
-  _gain_rect_id = -1;
+ValueBarController::ValueBarController(const char* name, const QPoint& left_top, int title_width, int def_val, QObject* parent) : InfoBlockController(parent) {
+  _val_rect_id = -1;
+  _val = def_val;
+  _title_width = title_width;
+  _name = enc->fromUnicode(dec->toUnicode(name));
+  _left_top = left_top;
 }
 
-void GainController::initBlock(const QSize& size) {
+void ValueBarController::initBlock(const QSize& size) {
   Q_UNUSED(size);
 
   const QColor txtCol(69, 251, 247);
   const QColor brdCol(35, 255, 103, 255);
   const QColor bckCol(0, 0, 0, 255);
 
-  _block->setGeometry(QRectF(10, 10, 12*8 + 50, 23));
+  _block->setGeometry(QRectF(_left_top.x(), _left_top.y(), 12*_title_width + 60, 23));
   _block->setBackColor(bckCol);
   _block->setBorder(2, brdCol);
 
   InfoRect r;
   r.col = brdCol;
-  r.rect = QRectF(12*8 + 6, 0, 2, 23);
+  r.rect = QRectF(12*_title_width + 6, 0, 2, 23);
   _block->addRect(r);
 
-  r.rect = QRectF(12*8 + 8, 14, 0, 15);
-  _gain_rect_id = _block->addRect(r);
+  r.rect = QRectF(12*_title_width + 8, 14, 0, 15);
+  _val_rect_id = _block->addRect(r);
 
   InfoText t;
-  t.anchor = QPointF(4, 5);
+  t.anchor = QPointF(4 + 6*(_title_width - _name.size()), 5);
   t.font_tag = "12x14";
-
-  t.chars = enc->fromUnicode(dec->toUnicode("УСИЛЕНИЕ"));
-
+  t.chars = _name;
   t.anchor_left = true;
   t.color = txtCol;
-  _block->addText(t);
+  _ttl_text_id = _block->addText(t);
+
+  t.anchor = QPointF(12*_title_width + 9, 5);
+  t.font_tag = "12x14";
+  t.chars = QByteArray();
+  t.anchor_left = true;
+  t.color = txtCol;
+  _val_text_id = _block->addText(t);
+
+  onValueChanged(_val);
 }
 
-void GainController::onGainChanged(int val) {
-  if (_gain_rect_id != -1) {
-    emit setRect(_gain_rect_id, QRectF(12*8 + 8, 4, val, 15));
+void ValueBarController::onValueChanged(int val) {
+  _val = val;
+
+  if (_val_rect_id != -1) {
+    if (_val >= 0)
+      emit setRect(_val_rect_id, QRectF(12*_title_width + 8, 4, val, 15));
+    else {
+      emit setRect(_val_rect_id, QRectF(12*_title_width + 8, 4, 0, 15));
+      emit setText(_val_text_id, enc->fromUnicode(dec->toUnicode("ОТКЛ")));
+    }
   }
 }
 

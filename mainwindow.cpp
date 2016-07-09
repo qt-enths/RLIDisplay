@@ -23,8 +23,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "RadarDS init finish";
 
-  _gain_ctrl = new GainController(this);
-  connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onGainChanged(int)));
+  _gain_ctrl = new ValueBarController("УСИЛЕНИЕ", QPoint(10, 10), 8, 0, this);
+  connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onValueChanged(int)));
+
+  _water_ctrl = new ValueBarController("ВОЛНЫ", QPoint(10, 10+23+4), 8, 0, this);
+  connect(ui->wgtRLIControl, SIGNAL(waterChanged(int)), _water_ctrl, SLOT(onValueChanged(int)));
+
+  _rain_ctrl = new ValueBarController("ДОЖДЬ", QPoint(10, 10+2*(23+4)), 8, 0, this);
+  connect(ui->wgtRLIControl, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
+
+  _apch_ctrl = new ValueBarController("АПЧ", QPoint(10, 10+3*(23+4)), 8, 0, this);
+  _radiation_ctrl = new ValueBarController("ИЗЛУЧЕНИЕ", QPoint(10+12*8+60+6, 10), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
   connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(float,float)), _curs_ctrl, SLOT(cursor_moved(float,float)));
@@ -43,6 +52,9 @@ MainWindow::~MainWindow() {
   delete _radar_ds;
 
   delete _gain_ctrl;
+  delete _water_ctrl;
+  delete _rain_ctrl;
+
   delete _curs_ctrl;
   delete _clck_ctrl;
 }
@@ -53,13 +65,14 @@ void MainWindow::onRLIWidgetInitialized() {
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint,uint,float*,float*)));
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup gain block";
+  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup InfoBlocks";
   setupInfoBlock(_gain_ctrl);
+  setupInfoBlock(_water_ctrl);
+  setupInfoBlock(_rain_ctrl);
+  setupInfoBlock(_apch_ctrl);
+  setupInfoBlock(_radiation_ctrl);
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup cursor block";
   setupInfoBlock(_curs_ctrl);
-
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup clock block";
   setupInfoBlock(_clck_ctrl);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup rliwidget as control reciever";
@@ -96,5 +109,5 @@ void MainWindow::timerEvent(QTimerEvent* e) {
 }
 
 void MainWindow::on_btnClose_clicked() {
-    close();
+  close();
 }

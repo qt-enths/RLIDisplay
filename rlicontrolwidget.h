@@ -43,7 +43,7 @@ private slots:
 
 signals:
   void gainChanged(int val);
-  void waveChanged(int val);
+  void waterChanged(int val);
   void rainChanged(int val);
 
 private:

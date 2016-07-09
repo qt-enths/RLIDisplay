@@ -16,6 +16,7 @@ public:
 
 public slots:
   virtual void onResize(const QSize& size);
+  virtual void onLanguageChanged(int lang_id);
 
 signals:
   void setRect(int rectId, const QRectF& r);
@@ -30,13 +31,13 @@ protected:
 };
 
 
-class GainController : public InfoBlockController {
+class ValueBarController : public InfoBlockController {
   Q_OBJECT
 public:
-  explicit GainController(QObject* parent = 0);
+  explicit ValueBarController(const char* name, const QPoint& left_top, int title_width, int def_val, QObject* parent = 0);
 
 public slots:
-  void onGainChanged(int val);
+  void onValueChanged(int val);
 
 signals:
   void setRect(int rectId, const QRectF& r);
@@ -44,9 +45,17 @@ signals:
 
 private:
   void initBlock(const QSize& size);
-  int _gain_rect_id;
-};
 
+  int _val;
+
+  QByteArray _name;
+  int _title_width;
+  QPoint _left_top;
+
+  int _ttl_text_id;
+  int _val_rect_id;
+  int _val_text_id;
+};
 
 
 class CursorController : public InfoBlockController {
