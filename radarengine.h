@@ -52,7 +52,7 @@ public:
   void resize   (uint pel_count, uint pel_len);
 
   inline uint  getSize()        { return 2*_peleng_len-1; }
-  inline uint  getTextureId ()  { return _texture_fbo->texture(); }
+  inline uint  getTextureId ()  { return _fbo->texture(); }
 
 public slots:
   void clearTexture();
@@ -77,8 +77,7 @@ private:
 
   // Framebuffer vars
   QGLFramebufferObjectFormat _fbo_format;
-  QGLFramebufferObject* _render_fbo;
-  QGLFramebufferObject* _texture_fbo;
+  QGLFramebufferObject* _fbo;
 
   QGLShaderProgram* _prog;
 

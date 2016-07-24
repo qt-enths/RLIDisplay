@@ -99,8 +99,8 @@ RadarEngine::RadarEngine(uint pel_count, uint pel_len) {
   _fbo_format.setAttachment(QGLFramebufferObject::Depth);
   _fbo_format.setMipmap(false);
   _fbo_format.setSamples(0);
-  _fbo_format.setTextureTarget(GL_TEXTURE_2D);
-  _fbo_format.setInternalTextureFormat(GL_RGBA8);
+  //_fbo_format.setTextureTarget(GL_TE);
+  //_fbo_format.setInternalTextureFormat(GL_RGBA8);
 
   _prog  = new QGLShaderProgram();
   _pal = new RadarPalette();
@@ -111,8 +111,7 @@ RadarEngine::RadarEngine(uint pel_count, uint pel_len) {
 RadarEngine::~RadarEngine() {
   if (_initialized) {
     glDeleteBuffers(ATTR_CNT, _vbo_ids);
-    delete _render_fbo;
-    delete _texture_fbo;
+    delete _fbo;
   }
 
   delete _prog;
@@ -123,10 +122,8 @@ void RadarEngine::resize(uint pel_count, uint pel_len) {
   _peleng_len   = pel_len;
 
   if (_initialized) {
-    delete _render_fbo;
-    delete _texture_fbo;
-    _render_fbo = new QGLFramebufferObject(getSize(), getSize(), _fbo_format);
-    _texture_fbo = new QGLFramebufferObject(getSize(), getSize());
+    delete _fbo;
+    _fbo = new QGLFramebufferObject(getSize(), getSize(), _fbo_format);
     clearData();
     clearTexture();
   }
@@ -138,8 +135,7 @@ bool RadarEngine::init(const QGLContext* context) {
 
   initializeGLFunctions(context);
 
-  _render_fbo = new QGLFramebufferObject(getSize(), getSize(), _fbo_format);
-  _texture_fbo = new QGLFramebufferObject(getSize(), getSize());
+  _fbo = new QGLFramebufferObject(getSize(), getSize(), _fbo_format);
 
   glGenBuffers(ATTR_CNT, _vbo_ids);
 
@@ -178,19 +174,13 @@ void RadarEngine::clearTexture() {
     return;
 
   glDepthFunc(GL_ALWAYS);
-  _render_fbo->bind();
+  _fbo->bind();
   glClearColor(1.f, 1.f, 1.f, 0.f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   glClearDepth(-2.f);
   glClear(GL_DEPTH_BUFFER_BIT);
-  _render_fbo->release();
-
-  _texture_fbo->bind();
-  glClearColor(1.f, 1.f, 1.f, 0.f);
-  glClear(GL_COLOR_BUFFER_BIT);
-  _texture_fbo->release();
-
+  _fbo->release();
 }
 
 static double const PI = acos(-1);
@@ -279,7 +269,7 @@ void RadarEngine::updateTexture() {
   if (_draw_circle)
     first_peleng_to_draw = (_last_added_peleng + 1) % _peleng_count;
 
-  _render_fbo->bind();
+  _fbo->bind();
 
   glMatrixMode( GL_PROJECTION );
   glPushMatrix();
@@ -308,10 +298,7 @@ void RadarEngine::updateTexture() {
 
   glFlush();
 
-  _render_fbo->release();
-
-  QRect rect(0, 0, _render_fbo->width(), _render_fbo->height());
-  QGLFramebufferObject::blitFramebuffer(_texture_fbo, rect, _render_fbo, rect);
+  _fbo->release();
 
   _last_drawn_peleng = last_peleng_to_draw;
   _draw_circle = false;
