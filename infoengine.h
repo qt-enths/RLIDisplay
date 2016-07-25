@@ -13,7 +13,7 @@
 
 struct InfoRect {
   QColor col;
-  QRectF  rect;
+  QRect  rect;
 };
 
 
@@ -21,79 +21,92 @@ struct InfoText {
   QByteArray chars;
   QString font_tag;
   QColor color;
-  QPointF anchor;
+  QPoint anchor;
   bool anchor_left;
 
   InfoText() { anchor_left = true; }
 };
 
 
-class InfoBlock : public QObject {
+
+
+class InfoBlock : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
   explicit InfoBlock(QObject* parent = 0);
+  virtual ~InfoBlock();
+
+  bool init(const QGLContext* context);
 
   void clear();
 
-  void setGeometry(const QRectF& r) { _geometry = r; _need_update = true; }
-  inline const QRectF& getGeometry() { return _geometry; }
-  void setBackColor(const QColor& c) { _back_color = c; _need_update = true; }
-  inline const QColor& getBackColor() { return _back_color; }
-  void setBorder(int w, const QColor& c) { _border_width = w; _border_color = c; _need_update = true; }
-  inline const QColor& getBorderColor() { return _border_color; }
-  inline int getBorderWidth() { return _border_width; }
+  void setGeometry(const QRect& r);
+  inline const QRect& getGeometry()         { return _geometry; }
+  void setBackColor(const QColor& c)        { _back_color = c; _need_update = true; }
+  inline const QColor& getBackColor()       { return _back_color; }
+  void setBorder(int w, const QColor& c)    { _border_width = w; _border_color = c; _need_update = true; }
+  inline const QColor& getBorderColor()     { return _border_color; }
+  inline int getBorderWidth()               { return _border_width; }
 
-  inline bool needUpdate() { return _need_update; }
-  inline void discardUpdate() { _need_update = false; }
+  inline bool needUpdate()                  { return _need_update; }
+  inline void discardUpdate()               { _need_update = false; }
 
-  int addRect(const InfoRect& t) { _rects.push_back(t); _need_update = true; return _rects.size() - 1; }
-  int addText(const InfoText& t) { _texts.push_back(t); _need_update = true; return _texts.size() - 1; }
+  int addRect(const InfoRect& t)            { _rects.push_back(t); _need_update = true; return _rects.size() - 1; }
+  int addText(const InfoText& t)            { _texts.push_back(t); _need_update = true; return _texts.size() - 1; }
 
-  inline int getRectCount() { return _rects.size(); }
-  inline const InfoRect& getRect(int i) { return _rects[i]; }
-  inline int getTextCount() { return _texts.size(); }
-  inline const InfoText& getText(int i) { return _texts[i]; }
+  inline int getRectCount()                 { return _rects.size(); }
+  inline const InfoRect& getRect(int i)     { return _rects[i]; }
+  inline int getTextCount()                 { return _texts.size(); }
+  inline const InfoText& getText(int i)     { return _texts[i]; }
+
+  inline GLuint getTextureId()              { return _fbo->texture(); }
+  QGLFramebufferObject* fbo()         { return _fbo; }
 
 public slots:
-  void setRect(int rectId, const QRectF& r) { if (rectId < _rects.size()) _rects[rectId].rect = r; _need_update = true; }
+  void setRect(int rectId, const QRect& r)     { if (rectId < _rects.size()) _rects[rectId].rect = r;  _need_update = true; }
   void setText(int textId, const QByteArray& c) { if (textId < _texts.size()) _texts[textId].chars = c; _need_update = true; }
 
 private:
+  bool _initialized;
+
   QVector<InfoRect> _rects;
   QVector<InfoText> _texts;
 
-  QRectF   _geometry;
+  QRect   _geometry;
   QColor  _back_color;
   QColor  _border_color;
   int     _border_width;
   bool    _need_update;
+
+  // Framebuffer vars
+  QGLFramebufferObject* _fbo;
 };
 
 
-class InfoEngine : public QObject, protected QGLFunctions {
+
+
+class InfoEngine : public QObject, protected QGLFunctions  {
   Q_OBJECT
 public:
-  explicit InfoEngine   (const QSize& sz, QObject* parent = 0);
+  explicit InfoEngine   (QObject* parent = 0);
   virtual ~InfoEngine   ();
 
-  bool init             (const QGLContext* context);
-  void resize           (const QSize& sz);
-
+  bool init(const QGLContext* context);
   inline void setFonts(AsmFonts* fonts) { _fonts = fonts; }
 
-  inline GLuint getTextureId() { return _fbo->texture(); }
-  InfoBlock* addInfoBlock();
+  inline int getBlockCount() { return _blocks.size(); }
+  inline int getBlockTextId(int b_id) { return _blocks[b_id]->getTextureId(); }
+  inline const QRect& getBlockGeometry(int b_id) { return _blocks[b_id]->getGeometry(); }
 
-signals:
-  void send_resize      (const QSize& size);
+  InfoBlock* addInfoBlock();
 
 public slots:
   void update();
 
 private:
-  void drawBlock(InfoBlock* b);
+  void updateBlock(InfoBlock* b);
   inline void drawText(const InfoText& text);
-  inline void drawRect(const QRectF& rect, const QColor& col);
+  inline void drawRect(const QRect& rect, const QColor& col);
 
   AsmFonts* _fonts;
 
@@ -101,12 +114,10 @@ private:
   bool _full_update;
 
   QVector<InfoBlock*> _blocks;
-  QSize _size;
-
-  // Framebuffer vars
-  QGLFramebufferObject* _fbo;
 
   bool initShaders();
+
+  const QGLContext* _context;
 
   // Info shader program
   QGLShaderProgram* _prog;

@@ -13,7 +13,7 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _radarEngine = new RadarEngine(4096, 1024);
   _maskEngine = new MaskEngine(size());
   _maskEngine->setCursorPos(_maskEngine->getCenter());
-  _infoEngine = new InfoEngine(size());
+  _infoEngine = new InfoEngine();
   _menuEngine = new MenuEngine(QSize(12, 14));
 
   _controlsEngine = new ControlsEngine();
@@ -44,7 +44,7 @@ void RLIDisplayWidget::initializeGL() {
   qDebug() << "Shaders: " << (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
   //qDebug() << "Extensions: " << (const char*) glGetString(GL_EXTENSIONS);
 
-  GLint ival[2];
+  /*GLint ival[2];
   glGetIntegerv(GL_MAX_SAMPLES, ival);
   qDebug() << "Max sample count: " << ival[0];
 
@@ -73,7 +73,7 @@ void RLIDisplayWidget::initializeGL() {
   qDebug() << "Smooth line width range: " << (QString::number(ival[0]) + ":" + QString::number(ival[1])).toLatin1();
 
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, ival);
-  qDebug() << "Max combined texture image units: " << ival[0];
+  qDebug() << "Max combined texture image units: " << ival[0];*/
 
 
 
@@ -151,7 +151,6 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
   glViewport(0, 0, w, h);
 
   _maskEngine->resize(QSize(w, h));
-  _infoEngine->resize(QSize(w, h));
 
   _maskEngine->setCursorPos(_maskEngine->getCenter());
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
@@ -160,6 +159,8 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
   glDisable(GL_BLEND);
   _maskEngine->update();
   glEnable(GL_BLEND);
+
+  emit resized(QSize(w, h));
 }
 
 void RLIDisplayWidget::paintGL() {
@@ -228,7 +229,24 @@ void RLIDisplayWidget::paintGL() {
 
   glDisable(GL_MULTISAMPLE);
   fillWithTexture(_maskEngine->getTextureId());
-  fillWithTexture(_infoEngine->getTextureId());
+
+  for (int i = 0; i < _infoEngine->getBlockCount(); i++) {
+    QRectF blockRect = _infoEngine->getBlockGeometry(i);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _infoEngine->getBlockTextId(i));
+
+    glBegin(GL_QUADS);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(blockRect.left(),  blockRect.bottom(), 0.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(blockRect.right(), blockRect.bottom(), 0.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(blockRect.right(), blockRect.top(), 0.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(blockRect.left(),  blockRect.top(), 0.0f);
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
+  //fillWithTexture(_infoEngine->getTextureId());
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, _menuEngine->getTextureId());

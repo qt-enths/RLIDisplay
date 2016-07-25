@@ -29,6 +29,7 @@ signals:
   void initialized();
   void cursor_moved(float peleng, float distance);
   void per_second();
+  void resized(const QSize& s);
 
 protected slots:
   void mousePressEvent(QMouseEvent* e);

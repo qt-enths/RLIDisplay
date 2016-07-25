@@ -83,9 +83,9 @@ void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
   InfoBlock* blck = ui->wgtRLIDisplay->infoEngine()->addInfoBlock();
   ctrl->setupBlock(blck, ui->wgtRLIDisplay->size());
 
-  connect(ctrl, SIGNAL(setRect(int,QRectF)), blck, SLOT(setRect(int,QRectF)));
-  connect(ctrl, SIGNAL(setText(int,QByteArray)), blck, SLOT(setText(int,QByteArray)));
-  connect(ui->wgtRLIDisplay->infoEngine(), SIGNAL(send_resize(QSize)), ctrl, SLOT(onResize(QSize)));
+  connect(ctrl, SIGNAL(setRect(int, QRect)), blck, SLOT(setRect(int, QRect)));
+  connect(ctrl, SIGNAL(setText(int, QByteArray)), blck, SLOT(setText(int, QByteArray)));
+  connect(ui->wgtRLIDisplay, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
 }
 
 void MainWindow::resizeEvent(QResizeEvent* e) {

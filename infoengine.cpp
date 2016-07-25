@@ -6,10 +6,27 @@
 InfoBlock::InfoBlock(QObject* parent) : QObject(parent) {
   clear();
   _need_update = false;
+  _initialized = false;
+}
+
+InfoBlock::~InfoBlock() {
+  delete _fbo;
+}
+
+bool InfoBlock::init(const QGLContext* context) {
+  if (_initialized)
+    return false;
+
+  initializeGLFunctions(context);
+
+  _fbo = new QGLFramebufferObject(_geometry.size());
+
+  _initialized = true;
+  return _initialized;
 }
 
 void InfoBlock::clear() {
-  _geometry = QRectF(0, 0, 0, 0);
+  _geometry = QRect(0, 0, 1, 1);
   _back_color = QColor(1, 1, 1, 0);
   _border_color = QColor(1, 1, 1, 0);
   _border_width = 0;
@@ -18,9 +35,21 @@ void InfoBlock::clear() {
   _rects.clear();
 }
 
-InfoEngine::InfoEngine(const QSize& sz, QObject* parent) : QObject(parent), QGLFunctions() {
+void InfoBlock::setGeometry(const QRect& r) {
+  _geometry = r;
+  _need_update = true;
+
+  if (_initialized) {
+    delete _fbo;
+    _fbo = new QGLFramebufferObject(_geometry.size());
+  }
+}
+
+
+
+
+InfoEngine::InfoEngine(QObject* parent) : QObject(parent), QGLFunctions() {
   _prog = new QGLShaderProgram();
-  _size = sz;
   _initialized = false;
 }
 
@@ -29,7 +58,6 @@ InfoEngine::~InfoEngine() {
     return;
 
   delete _prog;
-  delete _fbo;
   qDeleteAll(_blocks);
   glDeleteBuffers(INFO_ATTR_COUNT, _vbo_ids);
 }
@@ -39,8 +67,8 @@ bool InfoEngine::init(const QGLContext* context) {
     return false;
 
   initializeGLFunctions(context);
+  _context = context;
 
-  _fbo = new QGLFramebufferObject(_size);
   _full_update = true;
 
   glGenBuffers(INFO_ATTR_COUNT, _vbo_ids);
@@ -52,21 +80,9 @@ bool InfoEngine::init(const QGLContext* context) {
   return _initialized;
 }
 
-void InfoEngine::resize(const QSize& sz) {
-  _size = sz;
-
-  if (_initialized) {
-    delete _fbo;
-    _fbo = new QGLFramebufferObject(_size);
-  }
-
-  emit send_resize(_size);
-  _full_update = true;
-}
-
-
 InfoBlock* InfoEngine::addInfoBlock() {
   _blocks.push_back(new InfoBlock(this));
+  _blocks[_blocks.size() - 1]->init(_context);
   return _blocks[_blocks.size() - 1];
 }
 
@@ -75,61 +91,41 @@ void InfoEngine::update() {
   if (!_initialized)
     return;
 
-  _fbo->bind();
+  QVector<InfoBlock*>::const_iterator iter;
+  for (iter = _blocks.begin(); iter != _blocks.end(); iter++) {
+    InfoBlock* block = (*iter);
+    if (_full_update || block->needUpdate()) {
+      block->fbo()->bind();
 
-  if (_full_update) {
-    glClearColor(1.f, 1.f, 1.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+
+
+      QRect geom = block->getGeometry();
+
+      glViewport(0, 0, geom.width(), geom.height());
+
+      glMatrixMode( GL_PROJECTION );
+      glPushMatrix();
+      glLoadIdentity();
+      glOrtho(0, geom.width(), geom.height(), 0, -1, 1 );
+
+      updateBlock(block);
+
+      glMatrixMode( GL_PROJECTION );
+      glPopMatrix();
+
+      block->fbo()->release();
+    }
   }
 
-  glViewport(0, 0, _size.width(), _size.height());
-
-  glMatrixMode( GL_PROJECTION );
-  glPushMatrix();
-  glLoadIdentity();
-  glOrtho(0, _size.width(), _size.height(), 0, -1, 1 );
-
-  QVector<InfoBlock*>::const_iterator iter;
-  for (iter = _blocks.begin(); iter != _blocks.end(); iter++)
-    if (_full_update || (*iter)->needUpdate())
-      drawBlock((*iter));
-
-  // линейка
-  /*for (int i = 0; i < _size.height(); i++) {
-    glBegin(GL_LINES);
-    if (!(i % 2))
-      glColor3f(1.0, 0.0, 0.0);
-    if (!((i - 1) % 2))
-      glColor3f(0.0, 1.0, 0.0);
-
-    glVertex2f(0.5, i + 0.5);
-    glVertex2f(10 + 0.5, i + 0.5);
-
-    if (!((i / 5) % 2))
-      glColor3f(0.2, 0.2, 0.2);
-    if (!(((i / 5) - 1) % 2))
-      glColor3f(1.0, 1.0, 1.0);
-
-    glVertex2f(0, i);
-    glVertex2f(6, i);
-    glEnd();
-    glEnd();
-  }*/
-
-  glMatrixMode( GL_PROJECTION );
-  glPopMatrix();
-
-  _fbo->release();
   _full_update = false;
-
   glFlush();
 }
 
-void InfoEngine::drawBlock(InfoBlock* b) {
+void InfoEngine::updateBlock(InfoBlock* b) {
   QColor bckCol = b->getBackColor();
   QColor brdCol = b->getBorderColor();
   int    brdWid = b->getBorderWidth();
-  QRectF  geom   = b->getGeometry();
+  QRect  geom   = QRect(0, 0, b->getGeometry().width(), b->getGeometry().height());
 
   glShadeModel( GL_FLAT );
 
@@ -138,17 +134,13 @@ void InfoEngine::drawBlock(InfoBlock* b) {
 
   if (brdWid >= 1) {
     drawRect(geom, brdCol);
-    QRectF back(geom.x() + brdWid, geom.y() + brdWid, geom.width() - 2 * brdWid, geom.height() - 2 * brdWid);
+    QRect back(geom.x() + brdWid, geom.y() + brdWid, geom.width() - 2 * brdWid, geom.height() - 2 * brdWid);
     drawRect(back, bckCol);
   } else {
     drawRect(geom, bckCol);
   }
 
   glEnable(GL_BLEND);
-
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-  glTranslatef(geom.x(), geom.y(), -1) ;
 
   for (int i = 0; i < b->getRectCount(); i++)
     drawRect(b->getRect(i).rect, b->getRect(i).col);
@@ -157,9 +149,6 @@ void InfoEngine::drawBlock(InfoBlock* b) {
 
   for (int i = 0; i < b->getTextCount(); i++)
     drawText(b->getText(i));
-
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
 
   _prog->release();
 
@@ -210,7 +199,7 @@ void InfoEngine::drawText(const InfoText& text) {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void InfoEngine::drawRect(const QRectF& rect, const QColor& col) {
+void InfoEngine::drawRect(const QRect& rect, const QColor& col) {
   glBegin(GL_QUADS);
   glColor4f(col.redF(), col.greenF(), col.blueF(), col.alphaF());
   glVertex2f(rect.x(), rect.y());

@@ -19,7 +19,7 @@ public slots:
   virtual void onLanguageChanged(int lang_id);
 
 signals:
-  void setRect(int rectId, const QRectF& r);
+  void setRect(int rectId, const QRect& r);
   void setText(int textId, const QByteArray& c);
 
 protected:
@@ -40,7 +40,7 @@ public slots:
   void onValueChanged(int val);
 
 signals:
-  void setRect(int rectId, const QRectF& r);
+  void setRect(int rectId, const QRect& r);
   void setText(int textId, const QByteArray& c);
 
 private:
@@ -67,7 +67,7 @@ public slots:
   void cursor_moved(float peleng, float distance);
 
 signals:
-  void setRect(int rectId, const QRectF& r);
+  void setRect(int rectId, const QRect& r);
   void setText(int textId, const QByteArray& c);
 
 private:
@@ -87,7 +87,7 @@ public slots:
   void second_changed();
 
 signals:
-  void setRect(int rectId, const QRectF& r);
+  void setRect(int rectId, const QRect& r);
   void setText(int textId, const QByteArray& c);
 
 private:
