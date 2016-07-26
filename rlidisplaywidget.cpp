@@ -210,9 +210,26 @@ void RLIDisplayWidget::paintGL() {
   glBindTexture(GL_TEXTURE_2D, _radarEngine->getTextureId());
 
   float radar_rad = _radarEngine->getSize() / 2.f;
+  int mRadius = _maskEngine->getRadius() + 1;
+  QPoint mCenter = _maskEngine->getCenter();
+
+  int l = -mRadius + (mCenter.x() - center.x());
+  int r = mRadius + (mCenter.x() - center.x());
+  int b = mRadius + (mCenter.y() - center.y());
+  int t = -mRadius + (mCenter.y() - center.y());
+
+  float tl = 0.5 - abs(l) / (2.f * radar_rad);
+  float tr = 0.5 + abs(r) / (2.f * radar_rad);
+  float tb = 0.5 - abs(b) / (2.f * radar_rad);
+  float tt = 0.5 + abs(t) / (2.f * radar_rad);
 
   glBegin(GL_QUADS);
   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+  glTexCoord2f(tl, tb); glVertex3f(l, b, 0.0f);
+  glTexCoord2f(tr, tb); glVertex3f(r, b, 0.0f);
+  glTexCoord2f(tr, tt); glVertex3f(r, t, 0.0f);
+  glTexCoord2f(tl, tt); glVertex3f(l, t, 0.0f);
+
   glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
   glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
   glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
@@ -246,7 +263,6 @@ void RLIDisplayWidget::paintGL() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
   }
-  //fillWithTexture(_infoEngine->getTextureId());
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, _menuEngine->getTextureId());
@@ -289,12 +305,12 @@ void RLIDisplayWidget::fillWithTexture(GLuint texId) {
 }
 
 void RLIDisplayWidget::mousePressEvent(QMouseEvent* e) {
-  //if (QLineF(e->pos() , _maskEngine->getCenter()).length() < 2.0/3.0 * _maskEngine->getRadius())
+  if (QLineF(e->pos() , _maskEngine->getCenter()).length() < _maskEngine->getRadius())
     moveCoursor(e->pos());
 }
 
 void RLIDisplayWidget::mouseMoveEvent(QMouseEvent* e) {
-  //if (QLineF(e->pos() , _maskEngine->getCenter()).length() < 2.0/3.0 * _maskEngine->getRadius())
+  if (QLineF(e->pos() , _maskEngine->getCenter()).length() < _maskEngine->getRadius())
     moveCoursor(e->pos());
 }
 
@@ -319,6 +335,8 @@ void RLIDisplayWidget::mouseReleaseEvent(QMouseEvent* e) {
 bool RLIDisplayWidget::event(QEvent* e) {
   if (e->type() == QEvent::User + 111) {
     RLIControlEvent* re = static_cast<RLIControlEvent*>(e);
+    QPoint cursor_pos;
+
     switch (re->button()) {
       case RLIControlEvent::NoButton:
         break;
@@ -327,11 +345,12 @@ bool RLIDisplayWidget::event(QEvent* e) {
       case RLIControlEvent::ButtonPlus:
         break;
       case RLIControlEvent::CenterShift:
-        //if (QLineF(_cursor_pos , _maskEngine->getCenter()).length() < 2.0/3.0 * _maskEngine->getRadius()) {
-        _maskEngine->setCursorPos(_controlsEngine->getCursorPos());
-        _controlsEngine->setCenterPos(_controlsEngine->getCursorPos());
-        moveCoursor(_controlsEngine->getCursorPos());
-        //}
+        cursor_pos = _controlsEngine->getCursorPos();
+        if (QLineF(cursor_pos, _maskEngine->getCenter()).length() < _maskEngine->getRadius()) {
+          _maskEngine->setCursorPos(cursor_pos);
+          _controlsEngine->setCenterPos(cursor_pos);
+          moveCoursor(cursor_pos);
+        }
         break;
       case RLIControlEvent::ParallelLines:
         _controlsEngine->setPlVisibility(!_controlsEngine->isPlVisible());
