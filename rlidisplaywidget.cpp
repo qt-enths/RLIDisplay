@@ -230,10 +230,12 @@ void RLIDisplayWidget::paintGL() {
   glTexCoord2f(tr, tt); glVertex3f(r, t, 0.0f);
   glTexCoord2f(tl, tt); glVertex3f(l, t, 0.0f);
 
+  /*
   glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
   glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
   glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
   glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
+  */
   glEnd();
 
   glBindTexture(GL_TEXTURE_2D, 0);
