@@ -41,7 +41,8 @@ HEADERS  += mainwindow.h \
     rlicontrolevent.h \
     maskengine.h \
     controlsengine.h \
-    menuengine.h
+    menuengine.h \
+    apctrl.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

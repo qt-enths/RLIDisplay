@@ -1,5 +1,6 @@
 #include "radardatasource.h"
 #include "xpmon_be.h"
+#include "apctrl.h"
 
 #include <QThread>
 #include <fstream>
@@ -26,8 +27,17 @@
 #include <fcntl.h>
 #endif //  Q_OS_WIN
 
-#define WRITE_2SCANS
+//#define WRITE_2SCANS
 //#define PRINTERRORS
+//#define WRITE_WHENSYNC
+//#define GET_MAX_AMPL
+
+#ifdef WRITE_WHENSYNC
+FILE * scanlog = NULL;
+#endif // WRITE_WHENSYNC
+#ifdef GET_MAX_AMPL
+uint32_t gmax = 0;
+#endif // GET_MAX_AMPL
 
 
 void qSleep(int ms) {
@@ -44,8 +54,8 @@ RadarDataSource::RadarDataSource()
     : file_curr(0)
     , syncstate(RDSS_NOTSYNC)
     , bufpool(NULL)
-    , nextbuf(0)
-    , rdpool(NULL)
+    , bufpoolsize(0) //nextbuf(0)
+    //, rdpool(NULL)
     , rdpnext(0)
     , rdpqueued(0)
     , activescan(0)
@@ -64,6 +74,11 @@ RadarDataSource::~RadarDataSource() {
   finish_flag = true;
   while(workerThread.isRunning());
   if(fd != -1) {
+    int ret = ioctl(fd, APCTRL_IOCTL_STOP);
+    if (-1 == ret) {
+        fprintf(stderr, "Failed to stop APCTRL: %s\n", strerror(errno));
+        //return 17;
+    }
 #ifdef Q_OS_WIN
     _close(fd);
 #else
@@ -79,15 +94,22 @@ RadarDataSource::~RadarDataSource() {
     }
   }
 
-  if(rdpool) {
-    delete [] rdpool;
-    rdpool = NULL;
-  }
-
   if(bufpool) {
     delete [] bufpool;
-    bufpool = NULL;
+    bufpool     = NULL;
+    bufpoolsize = 0;
   }
+
+#ifdef WRITE_WHENSYNC
+  if(scanlog)
+  {
+      fclose(scanlog);
+      scanlog = NULL;
+  }
+#endif // WRITE_WHENSYNC
+#ifdef GET_MAX_AMPL
+  fprintf(stderr, "gmax = %u\n", gmax);
+#endif // GET_MAX_AMPL
 }
 
 void RadarDataSource::start() {
@@ -99,100 +121,151 @@ void RadarDataSource::start() {
 }
 
 void RadarDataSource::start(const char * radarfn) {
-  if(!radarfn)
-    return;
-  if (workerThread.isRunning())
-    return;
+    struct apctrl_caps caps;
+    int ret;
 
-  if(!bufpool) {
-    bufpool = new BearingBuffer[BEARINGS_PER_CYCLE * (RDS_MAX_SCANS + 1)];
-
-    if(!bufpool) {
-#ifdef PRINTERRORS
-      fprintf(stderr, "%s: failed to create bearing buffer pool\n", __func__);
-#endif // PRINTERRORS
+    if(!radarfn)
       return;
-    }
-
-    for(int brgidx = 0; brgidx < BEARINGS_PER_CYCLE * (RDS_MAX_SCANS + 1); brgidx++) {
-      bufpool[brgidx].create();
-      bufpool[brgidx].align();
-    }
-
-    nextbuf = 0;
-  }
-
-  if(!rdpool) {
-    rdpool = new BearingBuffer * [RDS_RDPOOL_SIZE];
-
-    if(!rdpool) {
-#ifdef PRINTERRORS
-      fprintf(stderr, "%s: failed to create read pool\n", __func__);
-#endif // PRINTERRORS
+    if (workerThread.isRunning())
       return;
-    }
 
-    memset(rdpool, 0, sizeof(BearingBuffer *) * RDS_RDPOOL_SIZE);
     rdpnext   = 0;
     rdpqueued = 0;
-  }
 
-  for(int scanidx = 0; scanidx < RDS_MAX_SCANS; scanidx++) {
-    if(!scans[scanidx]) {
-      //scans[scanidx] = new BearingBuffer * [BEARINGS_PER_CYCLE];
-      BearingBuffer ** pptr = new BearingBuffer * [BEARINGS_PER_CYCLE];
-#ifdef PRINTERRORS
-      fprintf(stderr, "%s: pointer array %d: %p\n", __func__, scanidx, pptr);
-#endif
-      scans[scanidx] = pptr;
+    for(int scanidx = 0; scanidx < RDS_MAX_SCANS; scanidx++)
+    {
+        if(!scans[scanidx])
+        {
+            //scans[scanidx] = new BearingBuffer * [BEARINGS_PER_CYCLE];
+            BearingBuffer ** pptr = new BearingBuffer * [BEARINGS_PER_CYCLE];
+  #ifdef PRINTERRORS
+            fprintf(stderr, "%s: pointer array %d: %p\n", __func__, scanidx, pptr);
+  #endif
+            scans[scanidx] = pptr;
+            if(!scans[scanidx])
+            {
+  #ifdef PRINTERRORS
+                fprintf(stderr, "%s: failed to create scan container %d\n", __func__, scanidx);
+  #endif // PRINTERRORS
+                return;
+            }
+            memset(scans[scanidx], 0, sizeof(BearingBuffer *) * BEARINGS_PER_CYCLE);
+            activescan        = 0; // TODO: Check whether these lines may be moved out of the scope of the cycle
+            processed_bearing = 0;
+            last_bearing      = 0;
+        }
+    }
 
-      if(!scans[scanidx]) {
-#ifdef PRINTERRORS
-        fprintf(stderr, "%s: failed to create scan container %d\n", __func__, scanidx);
-#endif // PRINTERRORS
+    if(fd == -1)
+    {
+  #ifdef Q_OS_WIN
+      _sopen_s(&fd, radarfn, O_RDONLY, 0, 0);
+  #else
+      fd = ::open(radarfn, O_RDONLY);
+  #endif
+
+        if(fd == -1)
+        {
+  #ifdef PRINTERRORS
+            perror("Failed to open radar device file (using SIMULATION mode)");
+  #endif // PRINTERRORS
+            start();
+            return;
+        }
+
+        ret = ioctl(fd, APCTRL_IOCTL_GET_CAPS, &caps);
+        if (-1 == ret) {
+            fprintf(stderr, "Failed to get capabilities: %s\n", strerror(errno));
+            return;
+        }
+
+        printf("APCTRL device capabilities:\n"
+                " - bufs_nr = %lu (expected %lu)\n",
+                caps.bufs_nr, (unsigned long)(BEARINGS_PER_CYCLE * RDS_MAX_SCANS));
+    }
+
+    if(!bufpool)
+    {
+        bufpoolsize = caps.bufs_nr;
+        bufpool     = new BearingBuffer[bufpoolsize];
+        if(!bufpool)
+        {
+  #ifdef PRINTERRORS
+            fprintf(stderr, "%s: failed to create bearing buffer pool\n", __func__);
+  #endif // PRINTERRORS
+            bufpoolsize = 0;
+            return;
+        }
+        //nextbuf = 0;
+    }
+
+    for (unsigned int i = 0; i < bufpoolsize; i++) {
+        struct apctrl_buf_desc d;
+        uint8_t * bufptr;
+
+        d.nr = i;
+
+        ret = ioctl(fd, APCTL_IOCTL_GET_BUF_DESC, &d);
+        if (-1 == ret) {
+            fprintf(stderr, "Failed to get buffer descriptor: %s\n",
+                    strerror(errno));
+            return;
+        }
+
+        bufptr = (uint8_t *)mmap(0, d.size, PROT_READ, MAP_SHARED, fd, d.offset);
+        if (!bufptr || (-1 == (long)bufptr)) {
+            fprintf(stderr, "Failed to mmap buffer %u: %s\n", i,
+                    strerror(errno));
+            return;
+        }
+
+        if(!bufpool[i].bind((uint32_t *)bufptr, d.nr))
+        {
+            fprintf(stderr, "Failed to bind kernel buffer to BearingBuffer object\n");
+            return;
+        }
+    }
+
+    ret = ioctl(fd, APCTL_IOCTL_GET_CUR, &rdpqueued);
+    if(-1 == ret)
+    {
+        fprintf(stderr, "Failed to to get current buffer index: %s\n", strerror(errno));
         return;
-      }
-
-      memset(scans[scanidx], 0, sizeof(BearingBuffer *) * BEARINGS_PER_CYCLE);
-      activescan        = 0;
-      processed_bearing = 0;
-      last_bearing      = 0;
     }
-  }
+    fprintf(stderr, "Ready to start DMA with buffer %lu\n", rdpqueued);
+    rdpnext = rdpqueued;
 
-  if(fd == -1) {
-#ifdef Q_OS_WIN
-    _sopen_s(&fd, radarfn, O_RDONLY, 0, 0);
-#else
-    fd = ::open(radarfn, O_RDONLY);
-#endif
+    //ret = ioctl(fd, APCTRL_IOCTL_START, 256);
+    //if (-1 == ret) {
+    //    fprintf(stderr, "Failed to start APCTRL: %s\n", strerror(errno));
+    //    return;
+    //}
 
-    if(fd == -1) {
-#ifdef PRINTERRORS
-      perror("Failed to open radar device file (using SIMULATION mode)");
-#endif // PRINTERRORS
-      start();
-      return;
+#ifdef WRITE_WHENSYNC
+    if(!scanlog)
+    {
+        scanlog = fopen("scanlog.txt", "w");
     }
-  }
+#endif // WRITE_WHENSYNC
 
-  syncstate    = RDSS_NOTSYNC;
-  finish_flag  = false;
-  workerThread = QtConcurrent::run(this, &RadarDataSource::radar_worker);
+    syncstate    = RDSS_NOTSYNC;
+    finish_flag  = false;
+    workerThread = QtConcurrent::run(this, &RadarDataSource::radar_worker);
 }
 
 void RadarDataSource::finish() {
   finish_flag = true;
 }
 
-#define BLOCK_TO_SEND 32
+//#define BLOCK_TO_SEND 32
+#define BLOCK_TO_SEND 16
 
 void RadarDataSource::worker() {
   int file = 0;
   int offset = 0;
 
   while(!finish_flag) {
-    qSleep(24);
+    qSleep(19);
 
     emit updateData(offset, BLOCK_TO_SEND, &file_divs[file][offset], &file_amps[file][offset*PELENG_SIZE]);
 
@@ -201,192 +274,192 @@ void RadarDataSource::worker() {
   }
 }
 
+uint32_t bearidx;
+
 void RadarDataSource::radar_worker() {
-  int       i, res;
-  uint32_t bearingbuflen = BEARING_PACK_SIZE;
-  //uint32_t curbuf;
-  uint32_t stepbear;
-  uint32_t scanidx;
-  uint32_t bearidx;
-  //uint32_t rdbufidx;
-  //uint32_t reqidx;
-  uint32_t waitnum = 0; // Number of bearings to wait for completition
-  //uint32_t valcnt;
-  //uint32_t firstbear;
-  //uint32_t firstbearidx;
-  FreeInfo  usrInfo;
-  //struct timespec t1, t2;
+    int      res;
+    uint32_t stepbear;
+    uint32_t scanidx;
+    //uint32_t bearidx;
+    //struct timespec t1, t2;
 #ifdef WRITE_2SCANS
-  uint32_t prevbear = -1;
-  int             writestage;
-  int             dbgfd = -1;
+    uint32_t prevbear = -1;
+    int      writestage;
+    int      dbgfd = -1;
 
-  writestage = 0;
+    writestage = 0;
 #endif // WRITE_2SCANS
-  stepbear   = 0;
-  scanidx    = 0;
-  bearidx    = 0;
-  //rdbufidx   = 0;
-  //reqidx     = 0;
-  //curbuf     = 0;
-  //valcnt     = 0;
-  //firstbear  = -1;
+    stepbear   = 0;
+    scanidx    = 0;
+    bearidx    = 0;
 #ifdef WRITE_2SCANS
 
-#ifdef Q_OS_WIN
-  _sopen_s(&fd, "simout.bin", O_CREAT | O_RDWR, 0, 0);
-#else
-  dbgfd = ::open("simout.bin", O_CREAT | O_RDWR);
-#endif
-
-#endif // WRITE_2SCANS
-  try {
-    while(!finish_flag) {
-      //clock_gettime(CLOCK_REALTIME, &t1);
-      //clock_gettime(CLOCK_REALTIME, &t2);
-      //double rdtime = (double)((long long)(t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec) / 1000000);
-      //printf("%s: Read time %f ms (mean %f ms per bearing)\n", __func__, rdtime, rdtime / 256);
-      for(i = 0; i < RDS_RDPOOL_SIZE; i++) {
-          if(finish_flag)
-              break;
-
-          if(rdpool[rdpnext] != NULL)
-              break;
-
-          BearingBuffer * bbuf = getNextFreeBuffer();
-
-          if(bbuf == NULL) {
 #ifdef PRINTERRORS
-            fprintf(stderr, "%s: buffer pool is exhausted\n", __func__);
+	printf("%s: thread is starting.\n", __func__);
 #endif // PRINTERRORS
-            break;
-          }
 
 #ifdef Q_OS_WIN
-          res = _read(fd, bbuf->ptr, bearingbuflen);
+    _sopen_s(&fd, "simout.bin", O_CREAT | O_RDWR, 0, 0);
 #else
-          res = ::read(fd, bbuf->ptr, bearingbuflen);
+    dbgfd = ::open("simout.bin", O_CREAT | O_RDWR);
 #endif
 
-          if(res == -1) {
-            throw -1;
-          }
+#endif // WRITE_2SCANS
+    try
+    {
 
-          bbuf->used  = true;
-          bbuf->valid = false;
-          rdpool[rdpnext] = bbuf;
-          waitnum++;
-
-          if(++rdpnext >= RDS_RDPOOL_SIZE)
-              rdpnext = 0;
+#define SLEEPTIMESEC 20
+#ifdef PRINTERRORS
+			printf("%s: Sleeping %d s while engine initializes.\n", __func__, SLEEPTIMESEC);
+#endif // PRINTERRORS
+        sleep(SLEEPTIMESEC);
+        res = ioctl(fd, APCTRL_IOCTL_START, 256);
+        if (-1 == res) {
+            fprintf(stderr, "Failed to start APCTRL: %s\n", strerror(errno));
+            return;
         }
 
-        if(finish_flag && !waitnum)
-          break;
+#ifdef PRINTERRORS
+		printf("%s: IOCTL_START succeeded.\n", __func__);
+#endif // PRINTERRORS
 
-        processBearings();
+        while(!finish_flag)
+        {
+            //clock_gettime(CLOCK_REALTIME, &t1);
+            //clock_gettime(CLOCK_REALTIME, &t2);
+            //double rdtime = (double)((long long)(t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec) / 1000000);
+            //printf("%s: Read time %f ms (mean %f ms per bearing)\n", __func__, rdtime, rdtime / 256);
 
-        usrInfo.expected = waitnum;
 #ifndef Q_OS_WIN
-        res = ioctl(fd, IGET_TRN_RXUSRINFO, &usrInfo);
-        if (res < 0)
-          throw -1;
+            res = ioctl(fd, APCTL_IOCTL_WAIT, &rdpnext);
+            if (-1 == res) {
+                fprintf(stderr, "%s: Failed to get current buffer: %s\n",
+                        __func__, strerror(errno));
+                throw -18;
+            }
 #endif
-        //if(usrInfo.expected)
-        //	fprintf(stderr, "%u completed\n", usrInfo.expected);
-        for(i = 0; i < (int)usrInfo.expected; i++) {
-          if(rdpool[rdpqueued] == NULL) {
+
 #ifdef PRINTERRORS
-            fprintf(stderr, "%s: rdpqueued points at invalid buffer %d\n", __func__, rdpqueued);
+			printf("%s: IOCTL_WAIT returned (%lu).\n", __func__, rdpnext);
 #endif // PRINTERRORS
-            for(int j = 0; j < RDS_RDPOOL_SIZE; j++) {
-              if(++rdpqueued >= RDS_RDPOOL_SIZE)
-                rdpqueued = 0;
-              if(rdpool[rdpqueued] != NULL)
-                break;
+
+            if(rdpnext > bufpoolsize)
+            {
+                fprintf(stderr, "Updated buffer id %lu is out of bound\n", rdpnext);
+                throw -19;
             }
 
-            if(rdpool[rdpqueued] == NULL) {
+            for(; rdpqueued != rdpnext; rdpqueued = (rdpqueued + 1) % bufpoolsize)
+            {
+                BearingBuffer * bbuf = &bufpool[rdpqueued];
+                bool useData = true;
+                bbuf->used   = true;
+
+//				if(bearidx > 4095)
+				{
+
 #ifdef PRINTERRORS
-              fprintf(stderr, "%s: Read pool is EMPTY (%d)!\n", __func__, rdpqueued);
+				printf("%s: setting raw data (%lu).\n", __func__, rdpqueued);
 #endif // PRINTERRORS
-              break;
-            }
-          }
 
-          BearingBuffer * bbuf = rdpool[rdpqueued];
-          bool useData = true;
-          if(setRawBearingData(rdpool[rdpqueued]))
-            useData = false;
+                if(setRawBearingData(&bufpool[rdpqueued]))
+                    useData = false;
 
-          rdpool[rdpqueued] = NULL; // Remove buffer from read pool
+#ifdef PRINTERRORS
+				printf("%s: raw data set (useData = %d).\n", __func__, (int)useData);
+#endif // PRINTERRORS
 
-          if(++rdpqueued >= RDS_RDPOOL_SIZE)
-            rdpqueued = 0;
+				}
+				//else
+				//{
+				//	bbuf->used = false;
+				//	useData = false;
+				//}
 
-          if(useData) {
-            stepbear = bbuf->ptr[0];
-            //valcnt++;
+                if(useData)
+                {
+                    stepbear = bbuf->ptr[0];
 #ifdef WRITE_2SCANS
-          if((writestage == 0) && (stepbear == 0))
-            writestage = 1;
-
-          if((writestage == 1) || (writestage == 2)) {
-            if((stepbear - prevbear) == 1) {
+                    if((writestage == 0) && (stepbear == 0))
+                        writestage = 1;
+                    if((writestage == 1) || (writestage == 2))
+                    {
+                        if((stepbear - prevbear) == 1)
+                        {
 #ifdef Q_OS_WIN
-              _write(dbgfd, bbuf->ptr, (800 + 3) * 4);
+                           _write(dbgfd, bbuf->ptr, (800 + 3) * 4);
 #else
-              ::write(dbgfd, bbuf->ptr, (800 + 3) * 4);
+                           ::write(dbgfd, bbuf->ptr, (800 + 3) * 4);
 #endif
-              prevbear = stepbear;
-            }
-          }
+                           prevbear = stepbear;
+                        }
+                    }
 #endif // WRITE_2SCANS
 
-          if(bbuf->ptr[0] == 4095) {
+                    if(bbuf->ptr[0] == 4095)
+                    {
 #ifdef WRITE_2SCANS
-            if(prevbear == 4095) {
-              if(writestage == 1) {
-                prevbear = -1;
-                writestage++;
-              } else if(writestage == 2) {
+                        if(prevbear == 4095)
+                        {
+                            if(writestage == 1)
+                            {
+                                prevbear = -1;
+                                writestage++;
+                            }
+                            else if(writestage == 2)
+                            {
 #ifdef Q_OS_WIN
-                _close(dbgfd);
+                                _close(dbgfd);
 #else
-                ::close(dbgfd);
+                                ::close(dbgfd);
 #endif
-                dbgfd = -1;
-                writestage++;
-              }
-            }
+                                dbgfd = -1;
+                                writestage++;
+                            }
+                        }
 #endif // WRITE_2SCANS
-          }
+                    }
+                }
+
+                bearidx++;
+                if((bearidx % 4096) == 0)
+                    printf("Radar scan: %u (bearing %u)\n", ++scanidx, stepbear);
+            }
+
+#ifdef PRINTERRORS
+			printf("%s: calling preocessBearings.\n", __func__);
+#endif // PRINTERRORS
+
+            processBearings();
+
+#ifdef PRINTERRORS
+			printf("%s: .ssBearings returned\n", __func__);
+#endif // PRINTERRORS
         }
-
-        bearidx++;
-        if((bearidx % 4096) == 0)
-          printf("Radar scan: %u (bearing %u)\n", ++scanidx, stepbear);
-      }
     }
-  }
 #ifdef PRINTERRORS
-  catch(int err)
+    catch(int err)
 #else
-  catch(int)
+    catch(int)
 #endif
-  {
+    {
 #ifdef PRINTERRORS
-    if(err == -1)
-      perror("Error during reading radar data");
-      fprintf(stderr, "%s: thread stopped because of error %d\n", __func__, err);
+        if(err == -1)
+            perror("Error during reading radar data");
+        fprintf(stderr, "%s: thread stopped because of error %d\n", __func__, err);
 #endif // PRINTERRORS
-      finish_flag = true;
-  }
+        finish_flag = true;
+    }
 
 #ifdef PRINTERRORS
-  printf("%s: radar thread is about to finish\n", __func__);
+    printf("%s: radar thread is about to finish (rdpqueued = %lu)\n", __func__, rdpqueued);
 #endif // PRINTERRORS
-  return;
+    res = ioctl(fd, APCTRL_IOCTL_STOP);
+    if (-1 == res) {
+        fprintf(stderr, "Failed to stop APCTRL: %s\n", strerror(errno));
+        //return 17;
+    }
+    return;
 }
 
 bool RadarDataSource::loadData() {
@@ -508,6 +581,11 @@ bool RadarDataSource::loadObserves1(char* filename, float* divs, float* amps) {
 
 int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
   uint32_t brg;
+  static uint32_t prev_bear = 0;
+
+#ifdef PRINTERRORS
+    printf("%s: Entered\n", __func__);
+#endif // PRINTERRORS
 
   if(!bearing)
     return -1;
@@ -515,13 +593,32 @@ int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
   if(!bearing->used)
     return -2;
 
+#ifdef PRINTERRORS
+    printf("%s: Getting bearing value\n", __func__);
+#endif // PRINTERRORS
+
   brg = bearing->ptr[0];
   bearing->used  = false;
+
+#ifdef PRINTERRORS
+    printf("%s: Bearing: %u\n", __func__, brg);
+#endif // PRINTERRORS
+
+  // TODO: Delete after debugging (start)
+  if(((brg - prev_bear) != 1) && (brg != 0) && (prev_bear != 4095))
+  {
+      fprintf(stdout, "Non-sequential! cur %u, prev %u\n", brg, prev_bear);
+      //fprintf(stderr, "Non-sequential! cur %u, prev %u\n", brg, prev_bear);
+  }
+  prev_bear = brg;
+  // TODO: Delete after debugging (end)
+
 
   if (brg >= BEARINGS_PER_CYCLE) {
     bearing->valid = false;
 #ifdef PRINTERRORS
-    fprintf(stderr, "%s: Invalid bearing (%u)\n", __func__, brg);
+    fprintf(stdout, "%s: Invalid bearing (%u)\n", __func__, brg);
+    //fprintf(stderr, "%s: Invalid bearing (%u)\n", __func__, brg);
 #endif // PRINTERRORS
     return -3; // Invalid bearing
   }
@@ -537,19 +634,51 @@ int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
           if(last_bearing == (BEARINGS_PER_CYCLE - 1)) {
             // Full scan completed. Radar controller is synchronized
             processed_bearing = BEARINGS_PER_CYCLE - 1;
+#ifdef PRINTERRORS
+            printf("In sync state (%u %u)!\n", brg, last_bearing);
+#endif // PRINTERRORS
             syncstate = RDSS_SYNC;
             break;
           }
 
           syncstate = RDSS_NOTSYNC; // Gap in bearings. Restart synchronization process
 #ifdef PRINTERRORS
-          fprintf(stderr, "%s: Restart synchronization: cur %u, prev %u\n", __func__, brg, last_bearing);
+          //fprintf(stderr, "%s: Restart synchronization: cur %u, prev %u\n", __func__, brg, last_bearing);
+          fprintf(stdout, "%s: Restart synchronization: cur %u, prev %u\n", __func__, brg, last_bearing);
+#ifdef WRITE_WHENSYNC
+          if(!brg && !last_bearing)
+          {
+              fprintf(scanlog, "BIDX: %u. %u, %u, %u", bearidx, bearing->ptr[0], bearing->ptr[1], bearing->ptr[2]);
+              for(int i = 3; i < 803; i++)
+              {
+                  if(((i - 3) % 8) == 0)
+                      fprintf(scanlog, "\n\t");
+                  fprintf(scanlog, "0x%08X ", bearing->ptr[i]);
+              }
+              fprintf(scanlog, "\n");
+          }
+#endif // WRITE_WHENSYNC
 #endif
         } else {
           if (brg != last_bearing + 1) {
             syncstate = RDSS_NOTSYNC; // Gap in bearings. Restart synchronization process
 #ifdef PRINTERRORS
-            fprintf(stderr, "%s: Restart synchronization: cur %u, prev %u\n", __func__, brg, last_bearing);
+            //fprintf(stderr, "%s: Restart synchronization: cur %u, prev %u\n", __func__, brg, last_bearing);
+            fprintf(stdout, "%s: Restart synchronization: cur %u, prev %u\n", __func__, brg, last_bearing);
+#ifdef WRITE_WHENSYNC
+            if(!brg && !last_bearing)
+            {
+                fprintf(scanlog, "%s: Restart synchronization: cur %u, prev %u\n", __func__, brg, last_bearing);
+                fprintf(scanlog, "BIDX: %u. %u, %u, %u", bearidx, bearing->ptr[0], bearing->ptr[1], bearing->ptr[2]);
+                for(int i = 3; i < 803; i++)
+                {
+                    if(((i - 3) % 8) == 0)
+                        fprintf(scanlog, "\n\t");
+                    fprintf(scanlog, "0x%08X ", bearing->ptr[i]);
+                }
+                fprintf(scanlog, "\n");
+            }
+#endif // WRITE_WHENSYNC
 #endif
           }
         }
@@ -565,6 +694,17 @@ int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
     }
   }
 
+#ifdef WRITE_WHENSYNC
+  fprintf(scanlog, "%u, %u, %u", bearing->ptr[0], bearing->ptr[1], bearing->ptr[2]);
+  for(int i = 3; i < 803; i++)
+  {
+      if(((i - 3) % 8) == 0)
+          fprintf(scanlog, "\n\t");
+      fprintf(scanlog, "0x%08X ", bearing->ptr[i]);
+  }
+  fprintf(scanlog, "\n");
+#endif // WRITE_WHENSYNC
+
   bearing->valid = true;
   if(scans[activescan][brg] && (scans[activescan][brg]->used || scans[activescan][brg]->valid)) {
     // The bearing has not been processed yet but we have new data for this bearing
@@ -572,7 +712,9 @@ int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
     scans[activescan][brg]->used  = false;
     scans[activescan][brg]->valid = false;
 #ifdef PRINTERRORS
-    fprintf(stderr, "%s: data at BRG %u has been overwritten\n", __func__, brg);
+    //fprintf(stderr, "%s: data at BRG %u has been overwritten\n", __func__, brg);
+    fprintf(stdout, "%s: data at BRG %u has been overwritten (%c)\n", __func__, brg,
+            (scans[activescan][brg]->used ? 'u' : 'v'));
 #endif // PRINTERRORS
   }
 
@@ -580,9 +722,17 @@ int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
 #ifdef PRINTERRORS
   if (brg == 0) {
     if (last_bearing != (BEARINGS_PER_CYCLE - 1))
-      fprintf(stderr, "%s: Gap in bearings: cur %u, prev %u\n", __func__, brg, last_bearing);
+    {
+        fprintf(stdout, "%s: Gap in bearings: cur %u, prev %u\n", __func__, brg, last_bearing);
+        //fprintf(stderr, "%s: Gap in bearings: cur %u, prev %u\n", __func__, brg, last_bearing);
+        syncstate = RDSS_NOTSYNC; // Gap in bearings. Restart synchronization process
+    }
   } else if(brg != (last_bearing + 1))
-    fprintf(stderr, "%s: Gap in bearings: cur %u, prev %u\n", __func__, brg, last_bearing);
+  {
+      fprintf(stdout, "%s: Gap in bearings: cur %u, prev %u\n", __func__, brg, last_bearing);
+      //fprintf(stderr, "%s: Gap in bearings: cur %u, prev %u\n", __func__, brg, last_bearing);
+      syncstate = RDSS_NOTSYNC; // Gap in bearings. Restart synchronization process
+  }
 #endif // PRINTERRORS
 
   last_bearing = brg;
@@ -590,6 +740,11 @@ int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
 }
 
 BearingBuffer * RadarDataSource::getNextFreeBuffer(void) {
+    //TODO: Remove this function
+    // There is no read pool anymore. Buffers are created and managed by driver now.
+    // We need just to keep track of buffer indexes (last processed must be kept by us
+    // and latest newly populated index is returned by ioctl)
+    /*
   if (nextbuf >= (BEARINGS_PER_CYCLE * (RDS_MAX_SCANS + 1)))
     nextbuf = 0;
 
@@ -602,6 +757,7 @@ BearingBuffer * RadarDataSource::getNextFreeBuffer(void) {
 
     return &bufpool[nextbuf++];
   }
+  */
 
   return NULL;
 }
@@ -659,10 +815,30 @@ int RadarDataSource::processBearings(void) {
     amps = scans[activescan][processed_bearing]->ptr[1];
     div  = scans[activescan][processed_bearing]->ptr[2];
 
+
+#ifdef GET_MAX_AMPL
+    uint32_t max = scans[activescan][processed_bearing]->ptr[3];
+    for(int i = 4; i < 803; i++)
+    {
+        if(scans[activescan][processed_bearing]->ptr[i] > max)
+            max = scans[activescan][processed_bearing]->ptr[i];
+    }
+    if(max > 255)
+    {
+        div = max / 255 + 1;
+    }
+
+    if(max > gmax)
+        gmax = max;
+#endif // GET_MAX_AMPL
+    div = 4; // 10 bit data downgraded to 8 bit //1600 / 255 + 1;
+
+
     if (amps > PELENG_SIZE)
       amps = PELENG_SIZE;
 
-    file_divs[0][processed_bearing] = (div < 32) ? div : 1; // After debugging "div"
+    file_divs[0][processed_bearing] = div;
+    //(div < 32) ? div : 1; // After debugging "div"
     ptr = &(scans[activescan][processed_bearing]->ptr[3]);
 
     for(uint32_t j = 0; j < amps; j++)

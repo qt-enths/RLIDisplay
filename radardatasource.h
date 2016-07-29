@@ -19,17 +19,21 @@ const int RDS_RDPOOL_SIZE     = 256;
 class BearingBuffer
 {
 public:
-    BearingBuffer(size_t datasize = BEARING_PACK_SIZE, size_t pagesize = 4096) : ptr(NULL), used(false), valid(false), buf(NULL) {this->datasize = datasize; this->pagesize = pagesize;}
-    ~BearingBuffer(){if(buf) delete [] buf; buf = ptr = NULL; used = false; valid = false;}
+    BearingBuffer(size_t datasize = BEARING_PACK_SIZE, size_t pagesize = 4096) : nr(0), ptr(NULL), used(false), valid(false), buf(NULL) {this->datasize = datasize; this->pagesize = pagesize;}
+    ~BearingBuffer(){/*if(buf) delete [] buf; */buf = ptr = NULL; used = false; valid = false;}
 
     bool create(void){buf = new uint32_t[pagesize * 2 / sizeof(uint32_t)]; ptr = buf; if(!buf) return false; else return true;}
-    bool align(void){if(!buf) return false; if(((uint64_t)buf) & (pagesize - 1)) ptr = (uint32_t *)((((uint64_t)buf) & ~(pagesize - 1)) + pagesize); return true;}
-    uint32_t * ptr;
-    bool        used;
-    bool        valid;
+    bool align(void){/*if(!buf) return false; if(((uint64_t)buf) & (pagesize - 1)) ptr = (uint32_t *)((((uint64_t)buf) & ~(pagesize - 1)) + pagesize); */return true;}
+    bool bind(uint32_t * b, uint32_t number) {if(buf) return false; ptr = buf = b; nr = number; return true;}
 
-    size_t      datasize;
-    size_t      pagesize;
+
+    uint32_t   nr;
+    uint32_t * ptr;
+    bool       used;
+    bool       valid;
+
+    size_t     datasize;
+    size_t     pagesize;
 
 protected:
     uint32_t * buf;
@@ -81,12 +85,13 @@ private:
 
   // Buffer pool
   BearingBuffer  * bufpool;
-  int              nextbuf; // Next available buffer
+  unsigned long     bufpoolsize;
+  //int              nextbuf; // Next available buffer
 
   // Pool of buffers awaiting for DMA read completition
-  BearingBuffer ** rdpool;
-  int              rdpnext;
-  int              rdpqueued;
+  //BearingBuffer ** rdpool;
+  unsigned long    rdpnext;
+  unsigned long    rdpqueued;
 
   // Scans
   BearingBuffer ** scans[RDS_MAX_SCANS];
