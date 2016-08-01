@@ -1,72 +1,7 @@
-<<<<<<< HEAD
 TARGET = RLIDisplay
 TEMPLATE = app
 
-QT       += core gui opengl
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-# using GDAL library
-win32:QMAKE_LIBDIR += C:/GDAL/lib
-unix:QMAKE_LIBDIR += /usr/local/lib/
-
-win32:INCLUDEPATH += C:/GDAL/include
-unix:INCLUDEPATH += /usr/local/include/
-
-unix:LIBS += -lgdal
-win32:LIBS += -lgdal_i -lgeos_i
-
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    rlicontrolwidget.cpp \
-    rlidisplaywidget.cpp \
-    asmfonts.cpp \
-    radardatasource.cpp \
-    radarengine.cpp \
-    infoengine.cpp \
-    infocontrollers.cpp \
-    rlicontrolevent.cpp \
-    maskengine.cpp \
-    controlsengine.cpp \
-    menuengine.cpp
-
-HEADERS  += mainwindow.h \
-    rlicontrolwidget.h \
-    rlidisplaywidget.h \
-    asmfonts.h \
-    radardatasource.h \
-    radarengine.h \
-    xpmon_be.h \
-    infoengine.h \
-    infocontrollers.h \
-    rlicontrolevent.h \
-    maskengine.h \
-    controlsengine.h \
-    menuengine.h \
-    chartmanager.h \
-    s52assets.h \
-    s52chart.h \
-    s52references.h \
-    triangulate.h \
-    chartengine.h \
-    chartlayers.h \
-    chartshaders.h
-    apctrl.h
-
-FORMS    += mainwindow.ui \
-    rlicontrolwidget.ui
-
-RESOURCES += \
-    icons.qrc \
-    fonts.qrc \
-    shaders.qrc
-
-OTHER_FILES +=
-=======
-TARGET = RLIDisplay
-TEMPLATE = app
-
-QT       += core gui opengl
+QT       += core gui opengl concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -122,7 +57,8 @@ HEADERS  += mainwindow.h \
     triangulate.h \
     chartengine.h \
     chartlayers.h \
-    chartshaders.h
+    chartshaders.h \
+    apctrl.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui
@@ -133,4 +69,3 @@ RESOURCES += \
     shaders.qrc
 
 OTHER_FILES +=
->>>>>>> c8bed611a748f24c0457d52ac9b633a899dfd8ea
