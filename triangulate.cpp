@@ -97,7 +97,11 @@ Bibliography:
 
 */
 
-//#define __MSVC__
+#include <QtGlobal>
+
+#ifdef Q_OS_WIN
+  #define __MSVC__
+#endif
 
 #include "triangulate.h"
 
