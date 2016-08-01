@@ -10,7 +10,7 @@
     #include <QtConcurrentRun>
 #endif
 
-const int PELENG_SIZE         = 1024;
+const int PELENG_SIZE         = 800;
 const int BEARINGS_PER_CYCLE  = 4096;
 const int BEARING_PACK_SIZE   = (800 + 3) * sizeof(uint32_t); // Number of words in DMA transaction
 const int RDS_MAX_SCANS       = 3;

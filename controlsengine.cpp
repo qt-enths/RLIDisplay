@@ -93,7 +93,7 @@ void ControlsEngine::draw() {
 void ControlsEngine::drawCursor() {
   glShadeModel( GL_SMOOTH );
 
-  glLineWidth(1);
+  glLineWidth(3);
   glColor3f(0.f, .82f, .76f);
 
   QPoint d = _cursor - _center;
@@ -114,8 +114,8 @@ void ControlsEngine::drawVN() {
   float vn_p_rads = PI * (_vn_p / 180);
   float vn_cu_rads = PI * (_vn_cu / 180);
 
-  glLineWidth(1);
-  glColor3f(0.83f, .82f, .76f);
+  glLineWidth(2);
+  glColor3f(0.93f, .62f, .46f);
 
   glBegin(GL_LINES);
   glVertex2f(0, 0);
@@ -172,14 +172,14 @@ void ControlsEngine::drawVD() {
   // Set uniforms
   // ---------------------------------------------------------------------
   glUniform1f(loc_radius, _vd);
-  glUniform4f(loc_color, 0.f, 0.f, 1.f, 1.f);
+  glUniform4f(loc_color, 1.f, 0.f, 1.f, 1.f);
   // ---------------------------------------------------------------------
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[CTRL_ATTR_ANGLE]);
   glVertexAttribPointer(loc_angle, 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(loc_angle);
 
-  glLineWidth(1);
+  glLineWidth(2);
   glDrawArrays(GL_LINE_STRIP, 0, CIRCLE_POINTS+1);
 
   _prog->release();
@@ -215,8 +215,8 @@ void ControlsEngine::drawOZ() {
 
   glShadeModel( GL_SMOOTH );
 
-  glLineWidth(1);
-  glColor3f(1.f, 1.f, 0.f);
+  glLineWidth(2);
+  glColor3f(0.f, 1.f, 1.f);
 
   glBegin(GL_LINES);
   glVertex2f(_oz_min_radius * sin(min_angle_rads), -_oz_min_radius * cos(min_angle_rads));
@@ -230,13 +230,13 @@ void ControlsEngine::drawOZ() {
 
   // Set uniforms
   // ---------------------------------------------------------------------
-  glUniform4f(loc_color, 1.f, 1.f, 0.f, 1.f);
+  glUniform4f(loc_color, 0.f, 1.f, 1.f, 1.f);
   // ---------------------------------------------------------------------
 
   int min_index = round(_oz_min_angle*CIRCLE_POINTS / 360.f);
   int max_index = round(_oz_max_angle*CIRCLE_POINTS / 360.f);
 
-  glLineWidth(1);
+  glLineWidth(2);
 
   if (min_index < max_index) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[CTRL_ATTR_ANGLE]);

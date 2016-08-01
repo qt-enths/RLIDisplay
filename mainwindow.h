@@ -5,6 +5,7 @@
 #include <QResizeEvent>
 #include <QTimerEvent>
 
+#include "chartmanager.h"
 #include "radardatasource.h"
 #include "infocontrollers.h"
 
@@ -40,6 +41,7 @@ private:
   CursorController* _curs_ctrl;
   ClockController* _clck_ctrl;
 
+  ChartManager* _chart_mngr;
   RadarDataSource* _radar_ds;
 
   Ui::MainWindow *ui;
