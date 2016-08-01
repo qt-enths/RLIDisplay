@@ -7,10 +7,13 @@
 #include <QtOpenGL/QGLFunctions>
 #include <QtOpenGL/QGLShaderProgram>
 
+#include "chartmanager.h"
+
 #include "radarengine.h"
 #include "infoengine.h"
 #include "menuengine.h"
 #include "maskengine.h"
+#include "chartengine.h"
 #include "controlsengine.h"
 
 class RLIDisplayWidget : public QGLWidget, protected QGLFunctions
@@ -24,6 +27,8 @@ public:
   inline MaskEngine* maskEngine() { return _maskEngine; }
   inline InfoEngine* infoEngine() { return _infoEngine; }
   inline MenuEngine* menuEngine() { return _menuEngine; }
+
+  inline void setChartManager(ChartManager* mngr) { _chrt_mngr = mngr; }
 
 signals:
   void initialized();
@@ -42,6 +47,8 @@ protected slots:
 
   bool event(QEvent* e);
 
+  void new_chart(const QString& name);
+
 private:
   void fillWithTexture(GLuint texId);
 
@@ -51,7 +58,9 @@ private:
   int  _last_second;
 
   AsmFonts* _fonts;
+  ChartManager* _chrt_mngr;
 
+  ChartEngine* _chartEngine;
   RadarEngine* _radarEngine;
   InfoEngine* _infoEngine;
   MaskEngine* _maskEngine;

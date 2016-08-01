@@ -11,6 +11,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "RadarDS init start";
 
   _radar_ds = new RadarDataSource();
+  _chart_mngr = new ChartManager();
+
+  ui->wgtRLIDisplay->setChartManager(_chart_mngr);
 
   QStringList args = qApp->arguments();
   QRegExp     rx("--radar-device");
@@ -49,11 +52,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 MainWindow::~MainWindow() {
   delete ui;
+
   delete _radar_ds;
+  delete _chart_mngr;
 
   delete _gain_ctrl;
   delete _water_ctrl;
   delete _rain_ctrl;
+  delete _apch_ctrl;
+  delete _radiation_ctrl;
 
   delete _curs_ctrl;
   delete _clck_ctrl;
@@ -77,6 +84,9 @@ void MainWindow::onRLIWidgetInitialized() {
 
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);
+
+  connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));
+  _chart_mngr->loadCharts();
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {

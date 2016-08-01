@@ -27,7 +27,15 @@ SOURCES += main.cpp\
     rlicontrolevent.cpp \
     maskengine.cpp \
     controlsengine.cpp \
-    menuengine.cpp
+    menuengine.cpp \
+    chartmanager.cpp \
+    s52assets.cpp \
+    s52chart.cpp \
+    s52references.cpp \
+    triangulate.cpp \
+    chartengine.cpp \
+    chartlayers.cpp \
+    chartshaders.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
@@ -41,7 +49,15 @@ HEADERS  += mainwindow.h \
     rlicontrolevent.h \
     maskengine.h \
     controlsengine.h \
-    menuengine.h
+    menuengine.h \
+    chartmanager.h \
+    s52assets.h \
+    s52chart.h \
+    s52references.h \
+    triangulate.h \
+    chartengine.h \
+    chartlayers.h \
+    chartshaders.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

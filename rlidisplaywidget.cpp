@@ -10,6 +10,7 @@
 RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _fonts = new AsmFonts();
 
+  _chartEngine = new ChartEngine();
   _radarEngine = new RadarEngine(4096, 1024);
   _maskEngine = new MaskEngine(size());
   _maskEngine->setCursorPos(_maskEngine->getCenter());
@@ -24,11 +25,23 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
 }
 
 RLIDisplayWidget::~RLIDisplayWidget() {
+  delete _chartEngine;
   delete _radarEngine;
   delete _maskEngine;
+  delete _menuEngine;
   delete _infoEngine;
 
+  delete _controlsEngine;
+
   delete _fonts;
+}
+
+void RLIDisplayWidget::new_chart(const QString& name) {
+  if (!_initialized)
+    return;
+
+  if (name == "CO200008.000")
+    _chartEngine->setChart(_chrt_mngr->getChart(name), _chrt_mngr->refs());
 }
 
 void RLIDisplayWidget::initializeGL() {
@@ -87,7 +100,7 @@ void RLIDisplayWidget::initializeGL() {
   glEnable(GL_DEPTH_TEST);
 
   // Disable multisampling
-  glEnable(GL_MULTISAMPLE);
+  glDisable(GL_MULTISAMPLE);
 
   // Disable Lighting
   glDisable(GL_LIGHTING);
@@ -110,6 +123,12 @@ void RLIDisplayWidget::initializeGL() {
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
   glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
+  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Chart engine init start";
+  if (!_chartEngine->init(_chrt_mngr->refs(), width(), height(), context()))
+    return;
+  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Chart engine init finish";
+
+
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Radar engine init start";
   if (!_radarEngine->init(context()))
     return;
@@ -128,6 +147,7 @@ void RLIDisplayWidget::initializeGL() {
     return;
   _infoEngine->setFonts(_fonts);
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Info engine init finish";
+
 
   qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Info engine init start";
   if (!_menuEngine->init(context()))
@@ -150,6 +170,7 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
 
   glViewport(0, 0, w, h);
 
+  _chartEngine->resize(w, h);
   _maskEngine->resize(QSize(w, h));
 
   _maskEngine->setCursorPos(_maskEngine->getCenter());
@@ -174,7 +195,6 @@ void RLIDisplayWidget::paintGL() {
   }
 
   glDisable(GL_BLEND);
-  glDisable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH);
   glEnable(GL_DEPTH_TEST);
   _radarEngine->updateTexture();
@@ -185,9 +205,10 @@ void RLIDisplayWidget::paintGL() {
   _menuEngine->update();
   _infoEngine->update();
 
-  glViewport(0, 0, width(), height());
-
   glEnable(GL_BLEND);
+  _chartEngine->update(QVector2D(12.192f, -80.974f), 50000.f, 0.f);
+
+  glViewport(0, 0, width(), height());
 
   // Fill widget with black
   glClearColor(0.33f, 0.33f, 0.33f, 1.0f);
@@ -198,6 +219,8 @@ void RLIDisplayWidget::paintGL() {
   glPushMatrix();
   glLoadIdentity();
   glOrtho(0, width(), height(), 0, -1, 1 );
+
+  fillWithTexture(_chartEngine->getTextureId());
 
   QPoint center = _controlsEngine->getCenterPos();
 
@@ -230,21 +253,21 @@ void RLIDisplayWidget::paintGL() {
   glTexCoord2f(tr, tt); glVertex3f(r, t, 0.0f);
   glTexCoord2f(tl, tt); glVertex3f(l, t, 0.0f);
 
+  /*
   glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
   glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
   glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
   glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
+  */
   glEnd();
 
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  glEnable(GL_MULTISAMPLE);
   _controlsEngine->draw();
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();
 
-  glDisable(GL_MULTISAMPLE);
   fillWithTexture(_maskEngine->getTextureId());
 
   for (int i = 0; i < _infoEngine->getBlockCount(); i++) {

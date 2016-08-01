@@ -8,5 +8,15 @@
         <file>res/shaders/info.vert.glsl</file>
         <file>res/shaders/control.frag.glsl</file>
         <file>res/shaders/control.vert.glsl</file>
+        <file>res/shaders/chart_area.frag.glsl</file>
+        <file>res/shaders/chart_area.vert.glsl</file>
+        <file>res/shaders/chart_line.frag.glsl</file>
+        <file>res/shaders/chart_line.vert.glsl</file>
+        <file>res/shaders/chart_mark.frag.glsl</file>
+        <file>res/shaders/chart_mark.vert.glsl</file>
+        <file>res/shaders/chart_sndg.frag.glsl</file>
+        <file>res/shaders/chart_sndg.vert.glsl</file>
+        <file>res/shaders/chart_text.frag.glsl</file>
+        <file>res/shaders/chart_text.vert.glsl</file>
     </qresource>
 </RCC>

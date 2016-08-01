@@ -1,0 +1,1278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Settings>
+    <DisplaySoundings>True</DisplaySoundings>
+    <Depths>
+        <Shallow>2</Shallow>
+        <Safety>20</Safety>
+        <Deep>50</Deep>
+    </Depths>
+    <Layers>
+        <Layer>
+            <Id>302</Id>
+            <Name>M_COVR</Name>
+            <Descrption>Coverage</Descrption>
+            <Display>True</Display>
+            <Order>1</Order>
+        </Layer>
+        <Layer>
+            <Id>2</Id>
+            <Name>AIRARE</Name>
+            <Descrption>Airport / airfield</Descrption>
+            <Display>False</Display>
+            <Order>2</Order>
+        </Layer>
+        <Layer>
+            <Id>3</Id>
+            <Name>ACHBRT</Name>
+            <Descrption>Anchor berth</Descrption>
+            <Display>False</Display>
+            <Order>3</Order>
+        </Layer>
+        <Layer>
+            <Id>5</Id>
+            <Name>BCNCAR</Name>
+            <Descrption>Beacon, cardinal</Descrption>
+            <Display>False</Display>
+            <Order>4</Order>
+        </Layer>
+        <Layer>
+            <Id>6</Id>
+            <Name>BCNISD</Name>
+            <Descrption>Beacon, isolated danger</Descrption>
+            <Display>False</Display>
+            <Order>5</Order>
+        </Layer>
+        <Layer>
+            <Id>7</Id>
+            <Name>BCNLAT</Name>
+            <Descrption>Beacon, lateral</Descrption>
+            <Display>False</Display>
+            <Order>6</Order>
+        </Layer>
+        <Layer>
+            <Id>4</Id>
+            <Name>ACHARE</Name>
+            <Descrption>Anchorage area</Descrption>
+            <Display>False</Display>
+            <Order>7</Order>
+        </Layer>
+        <Layer>
+            <Id>8</Id>
+            <Name>BCNSAW</Name>
+            <Descrption>Beacon, safe water</Descrption>
+            <Display>False</Display>
+            <Order>8</Order>
+        </Layer>
+        <Layer>
+            <Id>9</Id>
+            <Name>BCNSPP</Name>
+            <Descrption>Beacon, special purpose/general</Descrption>
+            <Display>False</Display>
+            <Order>9</Order>
+        </Layer>
+        <Layer>
+            <Id>10</Id>
+            <Name>BERTHS</Name>
+            <Descrption>Berth</Descrption>
+            <Display>False</Display>
+            <Order>10</Order>
+        </Layer>
+        <Layer>
+            <Id>11</Id>
+            <Name>BRIDGE</Name>
+            <Descrption>Bridge</Descrption>
+            <Display>False</Display>
+            <Order>11</Order>
+        </Layer>
+        <Layer>
+            <Id>12</Id>
+            <Name>BUISGL</Name>
+            <Descrption>Building, single</Descrption>
+            <Display>False</Display>
+            <Order>12</Order>
+        </Layer>
+        <Layer>
+            <Id>14</Id>
+            <Name>BOYCAR</Name>
+            <Descrption>Buoy, cardinal</Descrption>
+            <Display>True</Display>
+            <Order>13</Order>
+        </Layer>
+        <Layer>
+            <Id>15</Id>
+            <Name>BOYINB</Name>
+            <Descrption>Buoy, installation</Descrption>
+            <Display>True</Display>
+            <Order>14</Order>
+        </Layer>
+        <Layer>
+            <Id>16</Id>
+            <Name>BOYISD</Name>
+            <Descrption>Buoy, isolated danger</Descrption>
+            <Display>True</Display>
+            <Order>15</Order>
+        </Layer>
+        <Layer>
+            <Id>17</Id>
+            <Name>BOYLAT</Name>
+            <Descrption>Buoy, lateral</Descrption>
+            <Display>True</Display>
+            <Order>16</Order>
+        </Layer>
+        <Layer>
+            <Id>18</Id>
+            <Name>BOYSAW</Name>
+            <Descrption>Buoy, safe water</Descrption>
+            <Display>True</Display>
+            <Order>17</Order>
+        </Layer>
+        <Layer>
+            <Id>19</Id>
+            <Name>BOYSPP</Name>
+            <Descrption>Buoy, special purpose/general</Descrption>
+            <Display>True</Display>
+            <Order>18</Order>
+        </Layer>
+        <Layer>
+            <Id>20</Id>
+            <Name>CBLARE</Name>
+            <Descrption>Cable area</Descrption>
+            <Display>True</Display>
+            <Order>19</Order>
+        </Layer>
+        <Layer>
+            <Id>21</Id>
+            <Name>CBLOHD</Name>
+            <Descrption>Cable, overhead</Descrption>
+            <Display>True</Display>
+            <Order>20</Order>
+        </Layer>
+        <Layer>
+            <Id>22</Id>
+            <Name>CBLSUB</Name>
+            <Descrption>Cable, submarine</Descrption>
+            <Display>True</Display>
+            <Order>21</Order>
+        </Layer>
+        <Layer>
+            <Id>23</Id>
+            <Name>CANALS</Name>
+            <Descrption>Canal</Descrption>
+            <Display>False</Display>
+            <Order>22</Order>
+        </Layer>
+        <Layer>
+            <Id>24</Id>
+            <Name>CANBNK</Name>
+            <Descrption>Canal bank</Descrption>
+            <Display>False</Display>
+            <Order>23</Order>
+        </Layer>
+        <Layer>
+            <Id>25</Id>
+            <Name>CTSARE</Name>
+            <Descrption>Cargo transshipment area</Descrption>
+            <Display>False</Display>
+            <Order>24</Order>
+        </Layer>
+        <Layer>
+            <Id>26</Id>
+            <Name>CAUSWY</Name>
+            <Descrption>Causeway</Descrption>
+            <Display>False</Display>
+            <Order>25</Order>
+        </Layer>
+        <Layer>
+            <Id>27</Id>
+            <Name>CTNARE</Name>
+            <Descrption>Caution area</Descrption>
+            <Display>True</Display>
+            <Order>26</Order>
+        </Layer>
+        <Layer>
+            <Id>28</Id>
+            <Name>CHKPNT</Name>
+            <Descrption>Checkpoint</Descrption>
+            <Display>False</Display>
+            <Order>27</Order>
+        </Layer>
+        <Layer>
+            <Id>29</Id>
+            <Name>CGUSTA</Name>
+            <Descrption>Coastguard station</Descrption>
+            <Display>False</Display>
+            <Order>28</Order>
+        </Layer>
+        <Layer>
+            <Id>30</Id>
+            <Name>COALNE</Name>
+            <Descrption>Coastline</Descrption>
+            <Display>True</Display>
+            <Order>29</Order>
+        </Layer>
+        <Layer>
+            <Id>31</Id>
+            <Name>CONZNE</Name>
+            <Descrption>Contiguous zone</Descrption>
+            <Display>False</Display>
+            <Order>30</Order>
+        </Layer>
+        <Layer>
+            <Id>32</Id>
+            <Name>COSARE</Name>
+            <Descrption>Continental shelf area</Descrption>
+            <Display>False</Display>
+            <Order>31</Order>
+        </Layer>
+        <Layer>
+            <Id>33</Id>
+            <Name>CTRPNT</Name>
+            <Descrption>Control point</Descrption>
+            <Display>False</Display>
+            <Order>32</Order>
+        </Layer>
+        <Layer>
+            <Id>34</Id>
+            <Name>CONVYR</Name>
+            <Descrption>Conveyor</Descrption>
+            <Display>False</Display>
+            <Order>33</Order>
+        </Layer>
+        <Layer>
+            <Id>35</Id>
+            <Name>CRANES</Name>
+            <Descrption>Crane</Descrption>
+            <Display>False</Display>
+            <Order>34</Order>
+        </Layer>
+        <Layer>
+            <Id>36</Id>
+            <Name>CURENT</Name>
+            <Descrption>Current - non - gravitational</Descrption>
+            <Display>True</Display>
+            <Order>35</Order>
+        </Layer>
+        <Layer>
+            <Id>37</Id>
+            <Name>CUSZNE</Name>
+            <Descrption>Custom zone</Descrption>
+            <Display>False</Display>
+            <Order>36</Order>
+        </Layer>
+        <Layer>
+            <Id>38</Id>
+            <Name>DAMCON</Name>
+            <Descrption>Dam</Descrption>
+            <Display>False</Display>
+            <Order>37</Order>
+        </Layer>
+        <Layer>
+            <Id>39</Id>
+            <Name>DAYMAR</Name>
+            <Descrption>Daymark</Descrption>
+            <Display>True</Display>
+            <Order>38</Order>
+        </Layer>
+        <Layer>
+            <Id>40</Id>
+            <Name>DWRTCL</Name>
+            <Descrption>Deep water route centerline</Descrption>
+            <Display>False</Display>
+            <Order>39</Order>
+        </Layer>
+        <Layer>
+            <Id>41</Id>
+            <Name>DWRTPT</Name>
+            <Descrption>Deep water route part</Descrption>
+            <Display>False</Display>
+            <Order>40</Order>
+        </Layer>
+        <Layer>
+            <Id>42</Id>
+            <Name>DEPARE</Name>
+            <Descrption>Depth area</Descrption>
+            <Display>True</Display>
+            <Order>41</Order>
+        </Layer>
+        <Layer>
+            <Id>43</Id>
+            <Name>DEPCNT</Name>
+            <Descrption>Depth contour</Descrption>
+            <Display>True</Display>
+            <Order>42</Order>
+        </Layer>
+        <Layer>
+            <Id>119</Id>
+            <Name>SEAARE</Name>
+            <Descrption>Sea area / named water area</Descrption>
+            <Display>False</Display>
+            <Order>43</Order>
+        </Layer>
+        <Layer>
+            <Id>44</Id>
+            <Name>DISMAR</Name>
+            <Descrption>Distance mark</Descrption>
+            <Display>False</Display>
+            <Order>44</Order>
+        </Layer>
+        <Layer>
+            <Id>45</Id>
+            <Name>DOCARE</Name>
+            <Descrption>Dock area</Descrption>
+            <Display>False</Display>
+            <Order>45</Order>
+        </Layer>
+        <Layer>
+            <Id>46</Id>
+            <Name>DRGARE</Name>
+            <Descrption>Dredged area</Descrption>
+            <Display>False</Display>
+            <Order>46</Order>
+        </Layer>
+        <Layer>
+            <Id>47</Id>
+            <Name>DRYDOC</Name>
+            <Descrption>Dry dock</Descrption>
+            <Display>False</Display>
+            <Order>47</Order>
+        </Layer>
+        <Layer>
+            <Id>48</Id>
+            <Name>DMPGRD</Name>
+            <Descrption>Dumping ground</Descrption>
+            <Display>False</Display>
+            <Order>48</Order>
+        </Layer>
+        <Layer>
+            <Id>49</Id>
+            <Name>DYKCON</Name>
+            <Descrption>Dyke</Descrption>
+            <Display>False</Display>
+            <Order>49</Order>
+        </Layer>
+        <Layer>
+            <Id>50</Id>
+            <Name>EXEZNE</Name>
+            <Descrption>Exclusive Economic Zone</Descrption>
+            <Display>False</Display>
+            <Order>50</Order>
+        </Layer>
+        <Layer>
+            <Id>51</Id>
+            <Name>FAIRWY</Name>
+            <Descrption>Fairway</Descrption>
+            <Display>True</Display>
+            <Order>51</Order>
+        </Layer>
+        <Layer>
+            <Id>52</Id>
+            <Name>FNCLNE</Name>
+            <Descrption>Fence/wall</Descrption>
+            <Display>False</Display>
+            <Order>52</Order>
+        </Layer>
+        <Layer>
+            <Id>53</Id>
+            <Name>FERYRT</Name>
+            <Descrption>Ferry route</Descrption>
+            <Display>False</Display>
+            <Order>53</Order>
+        </Layer>
+        <Layer>
+            <Id>54</Id>
+            <Name>FSHZNE</Name>
+            <Descrption>Fishery zone</Descrption>
+            <Display>False</Display>
+            <Order>54</Order>
+        </Layer>
+        <Layer>
+            <Id>55</Id>
+            <Name>FSHFAC</Name>
+            <Descrption>Fishing facility</Descrption>
+            <Display>False</Display>
+            <Order>55</Order>
+        </Layer>
+        <Layer>
+            <Id>56</Id>
+            <Name>FSHGRD</Name>
+            <Descrption>Fishing ground</Descrption>
+            <Display>False</Display>
+            <Order>56</Order>
+        </Layer>
+        <Layer>
+            <Id>57</Id>
+            <Name>FLODOC</Name>
+            <Descrption>Floating dock</Descrption>
+            <Display>False</Display>
+            <Order>57</Order>
+        </Layer>
+        <Layer>
+            <Id>58</Id>
+            <Name>FOGSIG</Name>
+            <Descrption>Fog signal</Descrption>
+            <Display>False</Display>
+            <Order>58</Order>
+        </Layer>
+        <Layer>
+            <Id>59</Id>
+            <Name>FORSTC</Name>
+            <Descrption>Fortified structure</Descrption>
+            <Display>False</Display>
+            <Order>59</Order>
+        </Layer>
+        <Layer>
+            <Id>60</Id>
+            <Name>FRPARE</Name>
+            <Descrption>Free port area</Descrption>
+            <Display>False</Display>
+            <Order>60</Order>
+        </Layer>
+        <Layer>
+            <Id>61</Id>
+            <Name>GATCON</Name>
+            <Descrption>Gate</Descrption>
+            <Display>False</Display>
+            <Order>61</Order>
+        </Layer>
+        <Layer>
+            <Id>62</Id>
+            <Name>GRIDRN</Name>
+            <Descrption>Gridiron</Descrption>
+            <Display>False</Display>
+            <Order>62</Order>
+        </Layer>
+        <Layer>
+            <Id>63</Id>
+            <Name>HRBARE</Name>
+            <Descrption>Harbour area (administrative)</Descrption>
+            <Display>False</Display>
+            <Order>63</Order>
+        </Layer>
+        <Layer>
+            <Id>64</Id>
+            <Name>HRBFAC</Name>
+            <Descrption>Harbour facility</Descrption>
+            <Display>False</Display>
+            <Order>64</Order>
+        </Layer>
+        <Layer>
+            <Id>65</Id>
+            <Name>HULKES</Name>
+            <Descrption>Hulk</Descrption>
+            <Display>False</Display>
+            <Order>65</Order>
+        </Layer>
+        <Layer>
+            <Id>66</Id>
+            <Name>ICEARE</Name>
+            <Descrption>Ice area</Descrption>
+            <Display>False</Display>
+            <Order>66</Order>
+        </Layer>
+        <Layer>
+            <Id>67</Id>
+            <Name>ICNARE</Name>
+            <Descrption>Incineration area</Descrption>
+            <Display>False</Display>
+            <Order>67</Order>
+        </Layer>
+        <Layer>
+            <Id>68</Id>
+            <Name>ISTZNE</Name>
+            <Descrption>Inshore traffic zone</Descrption>
+            <Display>False</Display>
+            <Order>68</Order>
+        </Layer>
+        <Layer>
+            <Id>71</Id>
+            <Name>LNDARE</Name>
+            <Descrption>Land area</Descrption>
+            <Display>True</Display>
+            <Order>69</Order>
+        </Layer>
+        <Layer>
+            <Id>72</Id>
+            <Name>LNDELV</Name>
+            <Descrption>Land elevation</Descrption>
+            <Display>True</Display>
+            <Order>70</Order>
+        </Layer>
+        <Layer>
+            <Id>73</Id>
+            <Name>LNDRGN</Name>
+            <Descrption>Land region</Descrption>
+            <Display>True</Display>
+            <Order>71</Order>
+        </Layer>
+        <Layer>
+            <Id>69</Id>
+            <Name>LAKARE</Name>
+            <Descrption>Lake</Descrption>
+            <Display>True</Display>
+            <Order>72</Order>
+        </Layer>
+        <Layer>
+            <Id>70</Id>
+            <Name>LAKSHR</Name>
+            <Descrption>Lake shore</Descrption>
+            <Display>True</Display>
+            <Order>73</Order>
+        </Layer>
+        <Layer>
+            <Id>74</Id>
+            <Name>LNDMRK</Name>
+            <Descrption>Landmark</Descrption>
+            <Display>True</Display>
+            <Order>74</Order>
+        </Layer>
+        <Layer>
+            <Id>75</Id>
+            <Name>LIGHTS</Name>
+            <Descrption>Light</Descrption>
+            <Display>True</Display>
+            <Order>75</Order>
+        </Layer>
+        <Layer>
+            <Id>76</Id>
+            <Name>LITFLT</Name>
+            <Descrption>Light float</Descrption>
+            <Display>False</Display>
+            <Order>76</Order>
+        </Layer>
+        <Layer>
+            <Id>13</Id>
+            <Name>BUAARE</Name>
+            <Descrption>Built-up area</Descrption>
+            <Display>True</Display>
+            <Order>77</Order>
+        </Layer>
+        <Layer>
+            <Id>77</Id>
+            <Name>LITVES</Name>
+            <Descrption>Light vessel</Descrption>
+            <Display>False</Display>
+            <Order>78</Order>
+        </Layer>
+        <Layer>
+            <Id>78</Id>
+            <Name>LOCMAG</Name>
+            <Descrption>Local magnetic anomaly</Descrption>
+            <Display>False</Display>
+            <Order>79</Order>
+        </Layer>
+        <Layer>
+            <Id>79</Id>
+            <Name>LOKBSN</Name>
+            <Descrption>Lock basin</Descrption>
+            <Display>False</Display>
+            <Order>80</Order>
+        </Layer>
+        <Layer>
+            <Id>80</Id>
+            <Name>LOGPON</Name>
+            <Descrption>Log pond</Descrption>
+            <Display>False</Display>
+            <Order>81</Order>
+        </Layer>
+        <Layer>
+            <Id>81</Id>
+            <Name>MAGVAR</Name>
+            <Descrption>Magnetic variation</Descrption>
+            <Display>True</Display>
+            <Order>82</Order>
+        </Layer>
+        <Layer>
+            <Id>82</Id>
+            <Name>MARCUL</Name>
+            <Descrption>Marine farm/culture</Descrption>
+            <Display>False</Display>
+            <Order>83</Order>
+        </Layer>
+        <Layer>
+            <Id>83</Id>
+            <Name>MIPARE</Name>
+            <Descrption>Military practice area</Descrption>
+            <Display>False</Display>
+            <Order>84</Order>
+        </Layer>
+        <Layer>
+            <Id>84</Id>
+            <Name>MORFAC</Name>
+            <Descrption>Mooring/warping facility</Descrption>
+            <Display>False</Display>
+            <Order>85</Order>
+        </Layer>
+        <Layer>
+            <Id>85</Id>
+            <Name>NAVLNE</Name>
+            <Descrption>Navigation line</Descrption>
+            <Display>False</Display>
+            <Order>86</Order>
+        </Layer>
+        <Layer>
+            <Id>86</Id>
+            <Name>OBSTRN</Name>
+            <Descrption>Obstruction</Descrption>
+            <Display>False</Display>
+            <Order>87</Order>
+        </Layer>
+        <Layer>
+            <Id>87</Id>
+            <Name>OFSPLF</Name>
+            <Descrption>Offshore platform</Descrption>
+            <Display>False</Display>
+            <Order>88</Order>
+        </Layer>
+        <Layer>
+            <Id>88</Id>
+            <Name>OSPARE</Name>
+            <Descrption>Offshore production area</Descrption>
+            <Display>False</Display>
+            <Order>89</Order>
+        </Layer>
+        <Layer>
+            <Id>89</Id>
+            <Name>OILBAR</Name>
+            <Descrption>Oil barrier</Descrption>
+            <Display>False</Display>
+            <Order>90</Order>
+        </Layer>
+        <Layer>
+            <Id>90</Id>
+            <Name>PILPNT</Name>
+            <Descrption>Pile</Descrption>
+            <Display>True</Display>
+            <Order>91</Order>
+        </Layer>
+        <Layer>
+            <Id>91</Id>
+            <Name>PILBOP</Name>
+            <Descrption>Pilot boarding place</Descrption>
+            <Display>False</Display>
+            <Order>92</Order>
+        </Layer>
+        <Layer>
+            <Id>92</Id>
+            <Name>PIPARE</Name>
+            <Descrption>Pipeline area</Descrption>
+            <Display>False</Display>
+            <Order>93</Order>
+        </Layer>
+        <Layer>
+            <Id>93</Id>
+            <Name>PIPOHD</Name>
+            <Descrption>Pipeline, overhead</Descrption>
+            <Display>False</Display>
+            <Order>94</Order>
+        </Layer>
+        <Layer>
+            <Id>94</Id>
+            <Name>PIPSOL</Name>
+            <Descrption>Pipeline, submarine/on land</Descrption>
+            <Display>False</Display>
+            <Order>95</Order>
+        </Layer>
+        <Layer>
+            <Id>95</Id>
+            <Name>PONTON</Name>
+            <Descrption>Pontoon</Descrption>
+            <Display>False</Display>
+            <Order>96</Order>
+        </Layer>
+        <Layer>
+            <Id>96</Id>
+            <Name>PRCARE</Name>
+            <Descrption>Precautionary area</Descrption>
+            <Display>False</Display>
+            <Order>97</Order>
+        </Layer>
+        <Layer>
+            <Id>97</Id>
+            <Name>PRDARE</Name>
+            <Descrption>Production / storage area</Descrption>
+            <Display>False</Display>
+            <Order>98</Order>
+        </Layer>
+        <Layer>
+            <Id>98</Id>
+            <Name>PYLONS</Name>
+            <Descrption>Pylon/bridge support</Descrption>
+            <Display>False</Display>
+            <Order>99</Order>
+        </Layer>
+        <Layer>
+            <Id>99</Id>
+            <Name>RADLNE</Name>
+            <Descrption>Radar line</Descrption>
+            <Display>False</Display>
+            <Order>100</Order>
+        </Layer>
+        <Layer>
+            <Id>100</Id>
+            <Name>RADRNG</Name>
+            <Descrption>Radar range</Descrption>
+            <Display>False</Display>
+            <Order>101</Order>
+        </Layer>
+        <Layer>
+            <Id>101</Id>
+            <Name>RADRFL</Name>
+            <Descrption>Radar reflector</Descrption>
+            <Display>False</Display>
+            <Order>102</Order>
+        </Layer>
+        <Layer>
+            <Id>102</Id>
+            <Name>RADSTA</Name>
+            <Descrption>Radar station</Descrption>
+            <Display>False</Display>
+            <Order>103</Order>
+        </Layer>
+        <Layer>
+            <Id>103</Id>
+            <Name>RTPBCN</Name>
+            <Descrption>Radar transponder beacon</Descrption>
+            <Display>True</Display>
+            <Order>104</Order>
+        </Layer>
+        <Layer>
+            <Id>104</Id>
+            <Name>RDOCAL</Name>
+            <Descrption>Radio calling-in point</Descrption>
+            <Display>False</Display>
+            <Order>105</Order>
+        </Layer>
+        <Layer>
+            <Id>105</Id>
+            <Name>RDOSTA</Name>
+            <Descrption>Radio station</Descrption>
+            <Display>True</Display>
+            <Order>106</Order>
+        </Layer>
+        <Layer>
+            <Id>106</Id>
+            <Name>RAILWY</Name>
+            <Descrption>Railway</Descrption>
+            <Display>False</Display>
+            <Order>107</Order>
+        </Layer>
+        <Layer>
+            <Id>107</Id>
+            <Name>RAPIDS</Name>
+            <Descrption>Rapids</Descrption>
+            <Display>False</Display>
+            <Order>108</Order>
+        </Layer>
+        <Layer>
+            <Id>108</Id>
+            <Name>RCRTCL</Name>
+            <Descrption>Recommended route centerline</Descrption>
+            <Display>False</Display>
+            <Order>109</Order>
+        </Layer>
+        <Layer>
+            <Id>109</Id>
+            <Name>RECTRC</Name>
+            <Descrption>Recommended track</Descrption>
+            <Display>False</Display>
+            <Order>110</Order>
+        </Layer>
+        <Layer>
+            <Id>110</Id>
+            <Name>RCTLPT</Name>
+            <Descrption>Recommended Traffic Lane Part</Descrption>
+            <Display>False</Display>
+            <Order>111</Order>
+        </Layer>
+        <Layer>
+            <Id>111</Id>
+            <Name>RSCSTA</Name>
+            <Descrption>Rescue station</Descrption>
+            <Display>False</Display>
+            <Order>112</Order>
+        </Layer>
+        <Layer>
+            <Id>112</Id>
+            <Name>RESARE</Name>
+            <Descrption>Restricted area</Descrption>
+            <Display>False</Display>
+            <Order>113</Order>
+        </Layer>
+        <Layer>
+            <Id>113</Id>
+            <Name>RETRFL</Name>
+            <Descrption>Retro-reflector</Descrption>
+            <Display>False</Display>
+            <Order>114</Order>
+        </Layer>
+        <Layer>
+            <Id>114</Id>
+            <Name>RIVERS</Name>
+            <Descrption>River</Descrption>
+            <Display>True</Display>
+            <Order>115</Order>
+        </Layer>
+        <Layer>
+            <Id>115</Id>
+            <Name>RIVBNK</Name>
+            <Descrption>River bank</Descrption>
+            <Display>False</Display>
+            <Order>116</Order>
+        </Layer>
+        <Layer>
+            <Id>116</Id>
+            <Name>ROADWY</Name>
+            <Descrption>Road</Descrption>
+            <Display>False</Display>
+            <Order>117</Order>
+        </Layer>
+        <Layer>
+            <Id>117</Id>
+            <Name>RUNWAY</Name>
+            <Descrption>Runway</Descrption>
+            <Display>False</Display>
+            <Order>118</Order>
+        </Layer>
+        <Layer>
+            <Id>118</Id>
+            <Name>SNDWAV</Name>
+            <Descrption>Sand waves</Descrption>
+            <Display>False</Display>
+            <Order>119</Order>
+        </Layer>
+        <Layer>
+            <Id>120</Id>
+            <Name>SPLARE</Name>
+            <Descrption>Sea-plane landing area</Descrption>
+            <Display>False</Display>
+            <Order>120</Order>
+        </Layer>
+        <Layer>
+            <Id>121</Id>
+            <Name>SBDARE</Name>
+            <Descrption>Seabed area</Descrption>
+            <Display>True</Display>
+            <Order>121</Order>
+        </Layer>
+        <Layer>
+            <Id>122</Id>
+            <Name>SLCONS</Name>
+            <Descrption>Shoreline Construction</Descrption>
+            <Display>True</Display>
+            <Order>122</Order>
+        </Layer>
+        <Layer>
+            <Id>123</Id>
+            <Name>SISTAT</Name>
+            <Descrption>Signal station, traffic</Descrption>
+            <Display>False</Display>
+            <Order>123</Order>
+        </Layer>
+        <Layer>
+            <Id>124</Id>
+            <Name>SISTAW</Name>
+            <Descrption>Signal station, warning</Descrption>
+            <Display>False</Display>
+            <Order>124</Order>
+        </Layer>
+        <Layer>
+            <Id>125</Id>
+            <Name>SILTNK</Name>
+            <Descrption>Silo / tank</Descrption>
+            <Display>False</Display>
+            <Order>125</Order>
+        </Layer>
+        <Layer>
+            <Id>126</Id>
+            <Name>SLOTOP</Name>
+            <Descrption>Slope topline</Descrption>
+            <Display>False</Display>
+            <Order>126</Order>
+        </Layer>
+        <Layer>
+            <Id>127</Id>
+            <Name>SLOGRD</Name>
+            <Descrption>Sloping ground</Descrption>
+            <Display>False</Display>
+            <Order>127</Order>
+        </Layer>
+        <Layer>
+            <Id>128</Id>
+            <Name>SMCFAC</Name>
+            <Descrption>Small craft facility</Descrption>
+            <Display>False</Display>
+            <Order>128</Order>
+        </Layer>
+        <Layer>
+            <Id>129</Id>
+            <Name>SOUNDG</Name>
+            <Descrption>Sounding</Descrption>
+            <Display>False</Display>
+            <Order>129</Order>
+        </Layer>
+        <Layer>
+            <Id>130</Id>
+            <Name>SPRING</Name>
+            <Descrption>Spring</Descrption>
+            <Display>False</Display>
+            <Order>130</Order>
+        </Layer>
+        <Layer>
+            <Id>131</Id>
+            <Name>SQUARE</Name>
+            <Descrption>Square</Descrption>
+            <Display>False</Display>
+            <Order>131</Order>
+        </Layer>
+        <Layer>
+            <Id>132</Id>
+            <Name>STSLNE</Name>
+            <Descrption>Straight territorial sea baseline</Descrption>
+            <Display>False</Display>
+            <Order>132</Order>
+        </Layer>
+        <Layer>
+            <Id>133</Id>
+            <Name>SUBTLN</Name>
+            <Descrption>Submarine transit lane</Descrption>
+            <Display>False</Display>
+            <Order>133</Order>
+        </Layer>
+        <Layer>
+            <Id>134</Id>
+            <Name>SWPARE</Name>
+            <Descrption>Swept Area</Descrption>
+            <Display>False</Display>
+            <Order>134</Order>
+        </Layer>
+        <Layer>
+            <Id>135</Id>
+            <Name>TESARE</Name>
+            <Descrption>Territorial sea area</Descrption>
+            <Display>False</Display>
+            <Order>135</Order>
+        </Layer>
+        <Layer>
+            <Id>136</Id>
+            <Name>TS_PRH</Name>
+            <Descrption>Tidal stream - harmonic prediction</Descrption>
+            <Display>False</Display>
+            <Order>136</Order>
+        </Layer>
+        <Layer>
+            <Id>137</Id>
+            <Name>TS_PNH</Name>
+            <Descrption>Tidal stream - non-harmonic prediction</Descrption>
+            <Display>False</Display>
+            <Order>137</Order>
+        </Layer>
+        <Layer>
+            <Id>138</Id>
+            <Name>TS_PAD</Name>
+            <Descrption>Tidal stream panel data</Descrption>
+            <Display>False</Display>
+            <Order>138</Order>
+        </Layer>
+        <Layer>
+            <Id>139</Id>
+            <Name>TS_TIS</Name>
+            <Descrption>Tidal stream - time series</Descrption>
+            <Display>False</Display>
+            <Order>139</Order>
+        </Layer>
+        <Layer>
+            <Id>140</Id>
+            <Name>T_HMON</Name>
+            <Descrption>Tide - harmonic prediction</Descrption>
+            <Display>False</Display>
+            <Order>140</Order>
+        </Layer>
+        <Layer>
+            <Id>141</Id>
+            <Name>T_NHMN</Name>
+            <Descrption>Tide - non-harmonic prediction</Descrption>
+            <Display>False</Display>
+            <Order>141</Order>
+        </Layer>
+        <Layer>
+            <Id>142</Id>
+            <Name>T_TIMS</Name>
+            <Descrption>Tidal stream - time series</Descrption>
+            <Display>False</Display>
+            <Order>142</Order>
+        </Layer>
+        <Layer>
+            <Id>143</Id>
+            <Name>TIDEWY</Name>
+            <Descrption>Tideway</Descrption>
+            <Display>False</Display>
+            <Order>143</Order>
+        </Layer>
+        <Layer>
+            <Id>144</Id>
+            <Name>TOPMAR</Name>
+            <Descrption>Top mark</Descrption>
+            <Display>False</Display>
+            <Order>144</Order>
+        </Layer>
+        <Layer>
+            <Id>145</Id>
+            <Name>TSELNE</Name>
+            <Descrption>Traffic Separation Line</Descrption>
+            <Display>False</Display>
+            <Order>145</Order>
+        </Layer>
+        <Layer>
+            <Id>146</Id>
+            <Name>TSSBND</Name>
+            <Descrption>Traffic Separation Scheme  Boundary</Descrption>
+            <Display>False</Display>
+            <Order>146</Order>
+        </Layer>
+        <Layer>
+            <Id>147</Id>
+            <Name>TSSCRS</Name>
+            <Descrption>Traffic Separation Scheme Crossing</Descrption>
+            <Display>False</Display>
+            <Order>147</Order>
+        </Layer>
+        <Layer>
+            <Id>148</Id>
+            <Name>TSSLPT</Name>
+            <Descrption>Traffic Separation Scheme  Lane part</Descrption>
+            <Display>False</Display>
+            <Order>148</Order>
+        </Layer>
+        <Layer>
+            <Id>149</Id>
+            <Name>TSSRON</Name>
+            <Descrption>Traffic Separation Scheme  Roundabout</Descrption>
+            <Display>False</Display>
+            <Order>149</Order>
+        </Layer>
+        <Layer>
+            <Id>150</Id>
+            <Name>TSEZNE</Name>
+            <Descrption>Traffic Separation Zone</Descrption>
+            <Display>False</Display>
+            <Order>150</Order>
+        </Layer>
+        <Layer>
+            <Id>151</Id>
+            <Name>TUNNEL</Name>
+            <Descrption>Tunnel</Descrption>
+            <Display>False</Display>
+            <Order>151</Order>
+        </Layer>
+        <Layer>
+            <Id>152</Id>
+            <Name>TWRTPT</Name>
+            <Descrption>Two-way route  part</Descrption>
+            <Display>False</Display>
+            <Order>152</Order>
+        </Layer>
+        <Layer>
+            <Id>153</Id>
+            <Name>UWTROC</Name>
+            <Descrption>Underwater rock / awash rock</Descrption>
+            <Display>True</Display>
+            <Order>153</Order>
+        </Layer>
+        <Layer>
+            <Id>154</Id>
+            <Name>UNSARE</Name>
+            <Descrption>Unsurveyed area</Descrption>
+            <Display>False</Display>
+            <Order>154</Order>
+        </Layer>
+        <Layer>
+            <Id>155</Id>
+            <Name>VEGATN</Name>
+            <Descrption>Vegetation</Descrption>
+            <Display>False</Display>
+            <Order>155</Order>
+        </Layer>
+        <Layer>
+            <Id>156</Id>
+            <Name>WATTUR</Name>
+            <Descrption>Water turbulence</Descrption>
+            <Display>True</Display>
+            <Order>156</Order>
+        </Layer>
+        <Layer>
+            <Id>157</Id>
+            <Name>WATFAL</Name>
+            <Descrption>Waterfall</Descrption>
+            <Display>False</Display>
+            <Order>157</Order>
+        </Layer>
+        <Layer>
+            <Id>158</Id>
+            <Name>WEDKLP</Name>
+            <Descrption>Weed/Kelp</Descrption>
+            <Display>False</Display>
+            <Order>158</Order>
+        </Layer>
+        <Layer>
+            <Id>159</Id>
+            <Name>WRECKS</Name>
+            <Descrption>Wreck</Descrption>
+            <Display>True</Display>
+            <Order>159</Order>
+        </Layer>
+        <Layer>
+            <Id>160</Id>
+            <Name>TS_FEB</Name>
+            <Descrption>Tidal stream - flood/ebb</Descrption>
+            <Display>False</Display>
+            <Order>160</Order>
+        </Layer>
+        <Layer>
+            <Id>300</Id>
+            <Name>M_ACCY</Name>
+            <Descrption>Accuracy of data</Descrption>
+            <Display>False</Display>
+            <Order>161</Order>
+        </Layer>
+        <Layer>
+            <Id>301</Id>
+            <Name>M_CSCL</Name>
+            <Descrption>Compilation scale of data</Descrption>
+            <Display>False</Display>
+            <Order>162</Order>
+        </Layer>
+        <Layer>
+            <Id>1</Id>
+            <Name>ADMARE</Name>
+            <Descrption>Administration area (Named)</Descrption>
+            <Display>False</Display>
+            <Order>163</Order>
+        </Layer>
+        <Layer>
+            <Id>303</Id>
+            <Name>M_HDAT</Name>
+            <Descrption>Horizontal datum of data</Descrption>
+            <Display>False</Display>
+            <Order>164</Order>
+        </Layer>
+        <Layer>
+            <Id>304</Id>
+            <Name>M_HOPA</Name>
+            <Descrption>Horizontal datum shift parameters</Descrption>
+            <Display>False</Display>
+            <Order>165</Order>
+        </Layer>
+        <Layer>
+            <Id>305</Id>
+            <Name>M_NPUB</Name>
+            <Descrption>Nautical publication information</Descrption>
+            <Display>False</Display>
+            <Order>166</Order>
+        </Layer>
+        <Layer>
+            <Id>306</Id>
+            <Name>M_NSYS</Name>
+            <Descrption>Navigational system of marks</Descrption>
+            <Display>False</Display>
+            <Order>167</Order>
+        </Layer>
+        <Layer>
+            <Id>307</Id>
+            <Name>M_PROD</Name>
+            <Descrption>Production information</Descrption>
+            <Display>False</Display>
+            <Order>168</Order>
+        </Layer>
+        <Layer>
+            <Id>308</Id>
+            <Name>M_QUAL</Name>
+            <Descrption>Quality of data</Descrption>
+            <Display>False</Display>
+            <Order>169</Order>
+        </Layer>
+        <Layer>
+            <Id>309</Id>
+            <Name>M_SDAT</Name>
+            <Descrption>Sounding datum</Descrption>
+            <Display>False</Display>
+            <Order>170</Order>
+        </Layer>
+        <Layer>
+            <Id>310</Id>
+            <Name>M_SREL</Name>
+            <Descrption>Survey reliability</Descrption>
+            <Display>False</Display>
+            <Order>171</Order>
+        </Layer>
+        <Layer>
+            <Id>311</Id>
+            <Name>M_UNIT</Name>
+            <Descrption>Units of measurement of data</Descrption>
+            <Display>False</Display>
+            <Order>172</Order>
+        </Layer>
+        <Layer>
+            <Id>312</Id>
+            <Name>M_VDAT</Name>
+            <Descrption>Vertical datum of data</Descrption>
+            <Display>False</Display>
+            <Order>173</Order>
+        </Layer>
+        <Layer>
+            <Id>400</Id>
+            <Name>C_AGGR</Name>
+            <Descrption>Aggregation</Descrption>
+            <Display>False</Display>
+            <Order>174</Order>
+        </Layer>
+        <Layer>
+            <Id>401</Id>
+            <Name>C_ASSO</Name>
+            <Descrption>Association</Descrption>
+            <Display>False</Display>
+            <Order>175</Order>
+        </Layer>
+        <Layer>
+            <Id>402</Id>
+            <Name>C_STAC</Name>
+            <Descrption>Stacked on/stacked under</Descrption>
+            <Display>False</Display>
+            <Order>176</Order>
+        </Layer>
+        <Layer>
+            <Id>500</Id>
+            <Name>$AREAS</Name>
+            <Descrption>Cartographic area</Descrption>
+            <Display>False</Display>
+            <Order>177</Order>
+        </Layer>
+        <Layer>
+            <Id>501</Id>
+            <Name>$LINES</Name>
+            <Descrption>Cartographic line</Descrption>
+            <Display>False</Display>
+            <Order>178</Order>
+        </Layer>
+        <Layer>
+            <Id>502</Id>
+            <Name>$CSYMB</Name>
+            <Descrption>Cartographic symbol</Descrption>
+            <Display>False</Display>
+            <Order>179</Order>
+        </Layer>
+        <Layer>
+            <Id>503</Id>
+            <Name>$COMPS</Name>
+            <Descrption>Compass</Descrption>
+            <Display>False</Display>
+            <Order>180</Order>
+        </Layer>
+        <Layer>
+            <Id>504</Id>
+            <Name>$TEXTS</Name>
+            <Descrption>Text</Descrption>
+            <Display>False</Display>
+            <Order>181</Order>
+        </Layer>
+    </Layers>
+</Settings>
