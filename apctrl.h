@@ -1,3 +1,9 @@
+#include <QtGlobal>
+
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
+
 #ifndef APCTRL_H
 #define APCTRL_H
 
@@ -50,3 +56,6 @@ struct apctrl_buf_desc {
 	_IOR(APCTRL_IOCTL_MAGIC, 8, unsigned long)
 
 #endif
+
+#endif //Q_OS_WIN
+// ------------------------------------------------------

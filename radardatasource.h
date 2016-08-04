@@ -16,8 +16,13 @@ const int BEARING_PACK_SIZE   = (800 + 3) * sizeof(uint32_t); // Number of words
 const int RDS_MAX_SCANS       = 3;
 const int RDS_RDPOOL_SIZE     = 256;
 
-class BearingBuffer
-{
+#include <QtGlobal>
+
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
+
+class BearingBuffer {
 public:
     BearingBuffer(size_t datasize = BEARING_PACK_SIZE, size_t pagesize = 4096) : nr(0), ptr(NULL), used(false), valid(false), buf(NULL) {this->datasize = datasize; this->pagesize = pagesize;}
     ~BearingBuffer(){/*if(buf) delete [] buf; */buf = ptr = NULL; used = false; valid = false;}
@@ -39,6 +44,9 @@ protected:
     uint32_t * buf;
 };
 
+#endif //Q_OS_WIN
+// ------------------------------------------------------
+
 class RadarDataSource : public QObject {
   Q_OBJECT
 public:
@@ -47,6 +55,7 @@ public:
 
   void start();
   void start(const char * radarfn);
+
   void finish();
 
 signals:
@@ -58,19 +67,23 @@ private:
   bool loadObserves1(char* filename, float* divs, float* amps);
   bool loadObserves2(char* filename, float* divs, float* amps);
 
-  void worker();
-  void radar_worker();
-
-  int setRawBearingData(BearingBuffer * bearing);
-  BearingBuffer * getNextFreeBuffer(void);
-  int processBearings(void);
-
-  QFuture<void> workerThread;
-
   bool finish_flag;
   float file_divs[2][BEARINGS_PER_CYCLE];
   float file_amps[2][BEARINGS_PER_CYCLE * PELENG_SIZE];
   uint  file_curr;
+
+  void worker();
+  void radar_worker();
+
+  QFuture<void> workerThread;
+
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
+
+  int setRawBearingData(BearingBuffer * bearing);
+  BearingBuffer * getNextFreeBuffer(void);
+  int processBearings(void);
 
   enum radar_sync_stage
   {
@@ -100,6 +113,8 @@ private:
   uint32_t        last_bearing;
 
   int              fd;         // Radar device file descriptor
+#endif //Q_OS_WIN
+// ------------------------------------------------------
 };
 
 #endif // RADARDATASOURCE_H

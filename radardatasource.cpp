@@ -1,6 +1,4 @@
 #include "radardatasource.h"
-#include "xpmon_be.h"
-#include "apctrl.h"
 
 #include <QThread>
 #include <fstream>
@@ -9,15 +7,12 @@
 #include <stdint.h>
 #include <QDebug>
 
-#ifdef Q_OS_WIN
-#include <windows.h> // for Sleep
-#include <stdio.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <io.h>
-#else  //  Q_OS_WIN
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
+#include "xpmon_be.h"
+#include "apctrl.h"
+
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -25,7 +20,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#endif //  Q_OS_WIN
 
 //#define WRITE_2SCANS
 //#define PRINTERRORS
@@ -39,6 +33,12 @@ FILE * scanlog = NULL;
 uint32_t gmax = 0;
 #endif // GET_MAX_AMPL
 
+#endif //  Q_OS_WIN
+// ------------------------------------------------------
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 
 void qSleep(int ms) {
   if (ms <= 0) return;
@@ -50,40 +50,46 @@ void qSleep(int ms) {
 #endif
 }
 
-RadarDataSource::RadarDataSource()
-    : file_curr(0)
-    , syncstate(RDSS_NOTSYNC)
-    , bufpool(NULL)
-    , bufpoolsize(0) //nextbuf(0)
-    //, rdpool(NULL)
-    , rdpnext(0)
-    , rdpqueued(0)
-    , activescan(0)
-    , processed_bearing(0)
-    , last_bearing(0)
-    , fd(-1)
-{
+RadarDataSource::RadarDataSource() {
   finish_flag = true;
   loadData();
-  
+
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
+  file_curr = 0;
+  syncstate = RDSS_NOTSYNC;
+  bufpool = NULL;
+  bufpoolsize = 0; //nextbuf(0)
+  // rdpool = NULL;
+  rdpnext = 0;
+  rdpqueued = 0;
+  activescan = 0;
+  processed_bearing = 0;
+  last_bearing = 0;
+  fd = -1;
+
   for(int scanidx = 0; scanidx < RDS_MAX_SCANS; scanidx++)
     scans[scanidx] = NULL;
+#endif //Q_OS_WIN
+// ------------------------------------------------------
 }
 
 RadarDataSource::~RadarDataSource() {
   finish_flag = true;
   while(workerThread.isRunning());
+
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
   if(fd != -1) {
     int ret = ioctl(fd, APCTRL_IOCTL_STOP);
     if (-1 == ret) {
         fprintf(stderr, "Failed to stop APCTRL: %s\n", strerror(errno));
         //return 17;
     }
-#ifdef Q_OS_WIN
-    _close(fd);
-#else
+
     ::close(fd);
-#endif
     fd = -1;
   }
 
@@ -107,9 +113,13 @@ RadarDataSource::~RadarDataSource() {
       scanlog = NULL;
   }
 #endif // WRITE_WHENSYNC
+
 #ifdef GET_MAX_AMPL
   fprintf(stderr, "gmax = %u\n", gmax);
 #endif // GET_MAX_AMPL
+
+#endif //Q_OS_WIN
+// ------------------------------------------------------
 }
 
 void RadarDataSource::start() {
@@ -121,6 +131,10 @@ void RadarDataSource::start() {
 }
 
 void RadarDataSource::start(const char * radarfn) {
+  Q_UNUSED(radarfn);
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
     struct apctrl_caps caps;
     int ret;
 
@@ -158,11 +172,7 @@ void RadarDataSource::start(const char * radarfn) {
 
     if(fd == -1)
     {
-  #ifdef Q_OS_WIN
-      _sopen_s(&fd, radarfn, O_RDONLY, 0, 0);
-  #else
       fd = ::open(radarfn, O_RDONLY);
-  #endif
 
         if(fd == -1)
         {
@@ -251,14 +261,16 @@ void RadarDataSource::start(const char * radarfn) {
     syncstate    = RDSS_NOTSYNC;
     finish_flag  = false;
     workerThread = QtConcurrent::run(this, &RadarDataSource::radar_worker);
+
+#endif //Q_OS_WIN
+// ------------------------------------------------------
 }
 
 void RadarDataSource::finish() {
   finish_flag = true;
 }
 
-//#define BLOCK_TO_SEND 32
-#define BLOCK_TO_SEND 16
+#define BLOCK_TO_SEND 64
 
 void RadarDataSource::worker() {
   int file = 0;
@@ -273,6 +285,10 @@ void RadarDataSource::worker() {
     if (offset == 0) file = 1 - file;
   }
 }
+
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
 
 uint32_t bearidx;
 
@@ -298,11 +314,7 @@ void RadarDataSource::radar_worker() {
 	printf("%s: thread is starting.\n", __func__);
 #endif // PRINTERRORS
 
-#ifdef Q_OS_WIN
-    _sopen_s(&fd, "simout.bin", O_CREAT | O_RDWR, 0, 0);
-#else
-    dbgfd = ::open("simout.bin", O_CREAT | O_RDWR);
-#endif
+	dbgfd = ::open("simout.bin", O_CREAT | O_RDWR);
 
 #endif // WRITE_2SCANS
     try
@@ -330,14 +342,12 @@ void RadarDataSource::radar_worker() {
             //double rdtime = (double)((long long)(t2.tv_sec - t1.tv_sec) * 1000000000 + (t2.tv_nsec - t1.tv_nsec) / 1000000);
             //printf("%s: Read time %f ms (mean %f ms per bearing)\n", __func__, rdtime, rdtime / 256);
 
-#ifndef Q_OS_WIN
             res = ioctl(fd, APCTL_IOCTL_WAIT, &rdpnext);
             if (-1 == res) {
                 fprintf(stderr, "%s: Failed to get current buffer: %s\n",
                         __func__, strerror(errno));
                 throw -18;
             }
-#endif
 
 #ifdef PRINTERRORS
 			printf("%s: IOCTL_WAIT returned (%lu).\n", __func__, rdpnext);
@@ -386,11 +396,7 @@ void RadarDataSource::radar_worker() {
                     {
                         if((stepbear - prevbear) == 1)
                         {
-#ifdef Q_OS_WIN
-                           _write(dbgfd, bbuf->ptr, (800 + 3) * 4);
-#else
                            ::write(dbgfd, bbuf->ptr, (800 + 3) * 4);
-#endif
                            prevbear = stepbear;
                         }
                     }
@@ -408,11 +414,7 @@ void RadarDataSource::radar_worker() {
                             }
                             else if(writestage == 2)
                             {
-#ifdef Q_OS_WIN
-                                _close(dbgfd);
-#else
                                 ::close(dbgfd);
-#endif
                                 dbgfd = -1;
                                 writestage++;
                             }
@@ -461,6 +463,9 @@ void RadarDataSource::radar_worker() {
     }
     return;
 }
+#endif //Q_OS_WIN
+// ------------------------------------------------------
+
 
 bool RadarDataSource::loadData() {
   char file1[25] = "res/pelengs/r1nm3h0_4096";
@@ -579,6 +584,10 @@ bool RadarDataSource::loadObserves1(char* filename, float* divs, float* amps) {
   return false;
 }
 
+
+#ifndef Q_OS_WIN
+// Disable radar device for win OS
+// ------------------------------------------------------
 int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
   uint32_t brg;
   static uint32_t prev_bear = 0;
@@ -853,4 +862,6 @@ int RadarDataSource::processBearings(void) {
 
   return res;
 }
+#endif //Q_OS_WIN
+// ------------------------------------------------------
 
