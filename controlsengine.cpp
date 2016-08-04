@@ -27,6 +27,10 @@ ControlsEngine::ControlsEngine() : QGLFunctions() {
 }
 
 ControlsEngine::~ControlsEngine() {
+  delete _prog;
+
+  if (_initialized)
+    glDeleteBuffers(CTRL_ATTR_COUNT, vbo_ids);
 }
 
 bool ControlsEngine::init(const QGLContext* context) {
