@@ -3,7 +3,7 @@
 
 #include <QByteArray>
 
-enum RLILang { LANG_ENGLISH = 0, LANG_RUSSIAN = 1, LANG_COUNT = 2 };
+enum RLILang { RLI_LANG_ENGLISH = 0, RLI_LANG_RUSSIAN = 1, RLI_LANG_COUNT = 2 };
 
 namespace RLIStrings {
   static char* nEng[2] =     { "ENG",	"АНГЛ" };

@@ -4,7 +4,7 @@ RLIMenuItem::RLIMenuItem(QObject* parent) : QObject(parent) {
   _enc = QTextCodec::codecForName("cp866")->makeEncoder();
   _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
 
-  for (int i = 0; i < LANG_COUNT; i++) {
+  for (int i = 0; i < RLI_LANG_COUNT; i++) {
     _name[i] = QByteArray();
   }
 }
@@ -13,7 +13,7 @@ RLIMenuItem::RLIMenuItem(char** name, QObject* parent) : QObject(parent) {
   _enc = QTextCodec::codecForName("cp866")->makeEncoder();
   _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
 
-  for (int i = 0; i < LANG_COUNT; i++) {
+  for (int i = 0; i < RLI_LANG_COUNT; i++) {
     _name[i] = _enc->fromUnicode(_dec->toUnicode(name[i]));
   }
 }
@@ -90,7 +90,7 @@ RLIMenuItemFloat::RLIMenuItemFloat(char** name, float min, float max, float def)
 MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent), QGLFunctions() {
   _prog = new QGLShaderProgram();
 
-  _lang = LANG_RUSSIAN;
+  _lang = RLI_LANG_RUSSIAN;
 
   _enc = QTextCodec::codecForName("cp866")->makeEncoder();
   _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
@@ -365,15 +365,15 @@ void MenuEngine::setVisibility(bool val) {
 void MenuEngine::onLanguageChanged(const QByteArray& lang) {
   QString lang_str = _dec1->toUnicode(lang);
 
-  if (_lang == LANG_RUSSIAN && (lang_str == _dec->toUnicode(RLIStrings::nEng[LANG_RUSSIAN])
-                             || lang_str == _dec->toUnicode(RLIStrings::nEng[LANG_ENGLISH]))) {
-      _lang = LANG_ENGLISH;
+  if (_lang == RLI_LANG_RUSSIAN && (lang_str == _dec->toUnicode(RLIStrings::nEng[RLI_LANG_RUSSIAN])
+                             || lang_str == _dec->toUnicode(RLIStrings::nEng[RLI_LANG_ENGLISH]))) {
+      _lang = RLI_LANG_ENGLISH;
       _need_update = true;
   }
 
-  if (_lang == LANG_ENGLISH && (lang_str == _dec->toUnicode(RLIStrings::nRus[LANG_ENGLISH])
-                             || lang_str == _dec->toUnicode(RLIStrings::nRus[LANG_RUSSIAN]))) {
-      _lang = LANG_RUSSIAN;
+  if (_lang == RLI_LANG_ENGLISH && (lang_str == _dec->toUnicode(RLIStrings::nRus[RLI_LANG_ENGLISH])
+                             || lang_str == _dec->toUnicode(RLIStrings::nRus[RLI_LANG_RUSSIAN]))) {
+      _lang = RLI_LANG_RUSSIAN;
       _need_update = true;
   }
 }

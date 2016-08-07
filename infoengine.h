@@ -21,7 +21,7 @@ struct InfoRect {
 };
 
 struct InfoText {
-  QByteArray str[LANG_COUNT];
+  QByteArray str[RLI_LANG_COUNT];
   QString font_tag;
   QColor color;
   QPoint anchor;

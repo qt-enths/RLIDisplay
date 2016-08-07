@@ -3,14 +3,14 @@ TEMPLATE = app
 
 QT       += core gui opengl concurrent
 
-QMAKE_CXXFLAGS += -Wno-write-strings
-QMAKE_CXXFLAGS += -Wno-unused-variable
-
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 # using GDAL library
 win32:QMAKE_LIBDIR += C:/GDAL/lib
 unix:QMAKE_LIBDIR += /usr/local/lib/
+
+unix:QMAKE_CXXFLAGS += -Wno-write-strings
+unix:QMAKE_CXXFLAGS += -Wno-unused-variable
 
 win32:INCLUDEPATH += C:/GDAL/include
 unix:INCLUDEPATH += /usr/local/include/

@@ -59,7 +59,7 @@ void ValueBarController::initBlock(const QSize& size) {
 
   InfoText t;
   t.font_tag = "12x14";
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(_name[i]));
 
   t.anchor = QPoint(4 + 6*(_title_width - t.str[0].size()), 5);
@@ -69,7 +69,7 @@ void ValueBarController::initBlock(const QSize& size) {
 
   t.anchor = QPoint(12*_title_width + 9, 5);
   t.font_tag = "12x14";
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = QByteArray();
   t.anchor_left = true;
   t.color = txtCol;
@@ -87,7 +87,7 @@ void ValueBarController::onValueChanged(int val) {
     else {
       emit setRect(_val_rect_id, QRect(12*_title_width + 8, 4, 0, 15));
 
-      for (int i = 0; i < LANG_COUNT; i++)
+      for (int i = 0; i < RLI_LANG_COUNT; i++)
         emit setText(_val_text_id, i, enc->fromUnicode(dec->toUnicode(RLIStrings::nOff[i])));
     }
   }
@@ -119,17 +119,17 @@ void CursorController::initBlock(const QSize& size) {
   t.color = txtStaticCol;
 
   t.anchor = QPoint(80, 5);
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nMrk[i]));
   _block->addText(t);
 
   t.anchor = QPoint(4, 32);
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nBear[i]));
   _block->addText(t);
 
   t.anchor = QPoint(4, 52);
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nRng[i]));
   _block->addText(t);
 
@@ -139,7 +139,7 @@ void CursorController::initBlock(const QSize& size) {
   t.color = txtDynamicCol;
 
   t.anchor = QPoint(184, 32);
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode("0"));
   _pel_text_id = _block->addText(t);
 
@@ -152,26 +152,26 @@ void CursorController::initBlock(const QSize& size) {
 
   QByteArray str(" ");
   str[0] = static_cast<unsigned char>(248);
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nGrad[i]));
   t.anchor = QPoint(186, 32);
   _block->addText(t);
 
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nNM[i]));
   t.anchor = QPoint(186, 52);
   _block->addText(t);
 }
 
 void CursorController::cursor_moved(float peleng, float distance) {
-  QByteArray str[LANG_COUNT];
+  QByteArray str[RLI_LANG_COUNT];
 
   if (_pel_text_id != -1)
-    for (int i = 0; i < LANG_COUNT; i++)
+    for (int i = 0; i < RLI_LANG_COUNT; i++)
       emit setText(_pel_text_id, i, QString::number(peleng, 'f', 2).left(5).toLocal8Bit());
 
   if (_dis_text_id != -1)
-    for (int i = 0; i < LANG_COUNT; i++)
+    for (int i = 0; i < RLI_LANG_COUNT; i++)
       emit setText(_dis_text_id, i, QString::number(distance, 'f', 2).left(5).toLocal8Bit());
 }
 
@@ -197,20 +197,20 @@ void ClockController::initBlock(const QSize& size) {
   t.anchor_left = true;
   t.color = txtStaticCol;
   t.anchor = QPoint(4, 3);
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nTime[i]));
   _block->addText(t);
 
   t.color = txtDynamicCol;
   t.anchor_left = false;
   t.anchor = QPoint(204, 3);
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = QTime::currentTime().toString().toLocal8Bit();
   _text_id = _block->addText(t);
 }
 
 void ClockController::second_changed() {
-  for (int i = 0; i < LANG_COUNT; i++)
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
     emit setText(_text_id, i, QTime::currentTime().toString().toLocal8Bit());
 
 }

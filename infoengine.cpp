@@ -66,7 +66,7 @@ InfoEngine::InfoEngine(QObject* parent) : QObject(parent), QGLFunctions() {
   _prog = new QGLShaderProgram();
   _initialized = false;
 
-  _lang = LANG_RUSSIAN;
+  _lang = RLI_LANG_RUSSIAN;
 
   enc = QTextCodec::codecForName("cp866")->makeEncoder();
   dec = QTextCodec::codecForName("UTF8")->makeDecoder();
@@ -112,15 +112,15 @@ InfoBlock* InfoEngine::addInfoBlock() {
 void InfoEngine::onLanguageChanged(const QByteArray& lang) {
   QString lang_str = dec1->toUnicode(lang);
 
-  if (_lang == LANG_RUSSIAN && (lang_str == dec->toUnicode(RLIStrings::nEng[LANG_RUSSIAN])
-                             || lang_str == dec->toUnicode(RLIStrings::nEng[LANG_ENGLISH]))) {
-      _lang = LANG_ENGLISH;
+  if (_lang == RLI_LANG_RUSSIAN && (lang_str == dec->toUnicode(RLIStrings::nEng[RLI_LANG_RUSSIAN])
+                             || lang_str == dec->toUnicode(RLIStrings::nEng[RLI_LANG_ENGLISH]))) {
+      _lang = RLI_LANG_ENGLISH;
       _full_update = true;
   }
 
-  if (_lang == LANG_ENGLISH && (lang_str == dec->toUnicode(RLIStrings::nRus[LANG_ENGLISH])
-                             || lang_str == dec->toUnicode(RLIStrings::nRus[LANG_RUSSIAN]))) {
-      _lang = LANG_RUSSIAN;
+  if (_lang == RLI_LANG_ENGLISH && (lang_str == dec->toUnicode(RLIStrings::nRus[RLI_LANG_ENGLISH])
+                             || lang_str == dec->toUnicode(RLIStrings::nRus[RLI_LANG_RUSSIAN]))) {
+      _lang = RLI_LANG_RUSSIAN;
       _full_update = true;
   }
 }

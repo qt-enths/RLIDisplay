@@ -39,7 +39,7 @@ private:
   QTextEncoder* _enc;
   QTextDecoder* _dec;
 
-  QByteArray _name[LANG_COUNT];
+  QByteArray _name[RLI_LANG_COUNT];
 };
 
 
