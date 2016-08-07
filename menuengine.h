@@ -11,19 +11,22 @@
 #include <QtOpenGL/QGLShaderProgram>
 
 #include "asmfonts.h"
+#include "rlistrings.h"
 
-class RLIMenuItem {
+class RLIMenuItem : public QObject {
+  Q_OBJECT
 public:
-  RLIMenuItem() { _name = QByteArray(); }
-  RLIMenuItem(const QByteArray& name) : _name(name) {}
+  RLIMenuItem(QObject* parent = 0);
+  RLIMenuItem(char** name, QObject* parent = 0);
 
   virtual ~RLIMenuItem() {  }
 
-  virtual QByteArray name() { return _name; }
+  virtual QByteArray name(int lang_id) { return _name[lang_id]; }
   virtual QByteArray value() { return QByteArray(); }
 
   virtual void up() { }
   virtual void down() { }
+  virtual void action() { }
 
   enum RLI_MENU_ITEM_TYPE { MENU, LIST, INT, FLOAT, ACTION};
 
@@ -33,13 +36,23 @@ protected:
   RLI_MENU_ITEM_TYPE _type;
 
 private:
-  QByteArray _name;
+  QTextEncoder* _enc;
+  QTextDecoder* _dec;
+
+  QByteArray _name[LANG_COUNT];
 };
 
+
 class RLIMenuItemAction : public RLIMenuItem {
+  Q_OBJECT
 public:
-  RLIMenuItemAction(const QByteArray& name);
+  RLIMenuItemAction(char** name, QObject* parent = 0);
   ~RLIMenuItemAction() {}
+
+  void action();
+
+signals:
+  void triggered();
 
 private:
 };
@@ -47,7 +60,7 @@ private:
 
 class RLIMenuItemMenu : public RLIMenuItem {
 public:
-  RLIMenuItemMenu(const QByteArray& name, RLIMenuItemMenu* parent);
+  RLIMenuItemMenu(char** name, RLIMenuItemMenu* parent);
   ~RLIMenuItemMenu();
 
   inline QByteArray value() { return QByteArray(); }
@@ -62,24 +75,30 @@ private:
   QVector<RLIMenuItem*> _items;
 };
 
+
 class RLIMenuItemList : public RLIMenuItem {
+  Q_OBJECT
 public:
-  RLIMenuItemList(const QByteArray& name, const QVector<QByteArray>& variants, int def_ind);
+  RLIMenuItemList(char** name, const QVector<QByteArray>& variants, int def_ind, QObject* parent = 0);
   ~RLIMenuItemList() {}
 
   inline QByteArray value() { return _variants[_index]; }
 
-  inline void up() { if (_index < _variants.size() - 1) _index++; }
-  inline void down() { if (_index > 0) _index--; }
+  void up();
+  void down();
+
+signals:
+  void onValueChanged(const QByteArray);
 
 private:
   int _index;
   QVector<QByteArray> _variants;
 };
 
+
 class RLIMenuItemInt : public RLIMenuItem {
 public:
-  RLIMenuItemInt(const QByteArray& name, int min, int max, int def);
+  RLIMenuItemInt(char** name, int min, int max, int def);
   ~RLIMenuItemInt() {}
 
   inline QByteArray value() { return QString::number(_value).toLatin1(); }
@@ -92,9 +111,10 @@ private:
   int _min, _max;
 };
 
+
 class RLIMenuItemFloat : public RLIMenuItem {
 public:
-  RLIMenuItemFloat(const QByteArray& name, float min, float max, float def);
+  RLIMenuItemFloat(char** name, float min, float max, float def);
   ~RLIMenuItemFloat() { }
 
   inline QByteArray value() { return QString::number(_value).left(5).toLatin1(); }
@@ -107,6 +127,8 @@ private:
   float _step;
   float _min, _max;
 };
+
+
 
 
 class MenuEngine : public QObject, protected QGLFunctions {
@@ -127,9 +149,12 @@ public:
   inline QByteArray toQByteArray(const char* str) { return _enc->fromUnicode(_dec->toUnicode(str)); }
 
 signals:
+  void languageChanged(const QByteArray& lang);
 
 public slots:
   void setVisibility(bool val);
+  void onLanguageChanged(const QByteArray& lang);
+
   void update();
 
   void onUp();
@@ -164,8 +189,10 @@ private:
   bool _selection_active;
 
   AsmFonts* _fonts;
+  RLILang _lang;
   QTextEncoder* _enc;
   QTextDecoder* _dec;
+  QTextDecoder* _dec1;
 
   QGLFramebufferObject* _fbo;
   QGLShaderProgram* _prog;

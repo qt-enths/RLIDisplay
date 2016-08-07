@@ -3,6 +3,9 @@ TEMPLATE = app
 
 QT       += core gui opengl concurrent
 
+QMAKE_CXXFLAGS += -Wno-write-strings
+QMAKE_CXXFLAGS += -Wno-unused-variable
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 # using GDAL library
@@ -58,7 +61,8 @@ HEADERS  += mainwindow.h \
     chartengine.h \
     chartlayers.h \
     chartshaders.h \
-    apctrl.h
+    apctrl.h \
+    rlistrings.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

@@ -1,32 +1,80 @@
 #include "menuengine.h"
 
-RLIMenuItemMenu::RLIMenuItemMenu(const QByteArray& name, RLIMenuItemMenu* parent) : RLIMenuItem(name) {
+RLIMenuItem::RLIMenuItem(QObject* parent) : QObject(parent) {
+  _enc = QTextCodec::codecForName("cp866")->makeEncoder();
+  _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
+
+  for (int i = 0; i < LANG_COUNT; i++) {
+    _name[i] = QByteArray();
+  }
+}
+
+RLIMenuItem::RLIMenuItem(char** name, QObject* parent) : QObject(parent) {
+  _enc = QTextCodec::codecForName("cp866")->makeEncoder();
+  _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
+
+  for (int i = 0; i < LANG_COUNT; i++) {
+    _name[i] = _enc->fromUnicode(_dec->toUnicode(name[i]));
+  }
+}
+
+
+RLIMenuItemMenu::RLIMenuItemMenu(char** name, RLIMenuItemMenu* parent) : RLIMenuItem(name, parent) {
   _type = MENU;
   _parent = parent;
 }
+
+
 
 RLIMenuItemMenu::~RLIMenuItemMenu() {
   qDeleteAll(_items);
 }
 
-RLIMenuItemAction::RLIMenuItemAction(const QByteArray& name) : RLIMenuItem(name) {
+
+
+RLIMenuItemAction::RLIMenuItemAction(char** name, QObject* parent) : RLIMenuItem(name, parent) {
   _type = ACTION;
 }
 
-RLIMenuItemList::RLIMenuItemList(const QByteArray& name, const QVector<QByteArray>& variants, int def_ind) : RLIMenuItem(name) {
+void RLIMenuItemAction::action() {
+  emit triggered();
+}
+
+
+
+RLIMenuItemList::RLIMenuItemList(char** name, const QVector<QByteArray>& variants, int def_ind, QObject* parent)
+  : RLIMenuItem(name, parent) {
   _type = LIST;
   _variants = variants;
   _index = def_ind;
 }
 
-RLIMenuItemInt::RLIMenuItemInt(const QByteArray& name, int min, int max, int def)  : RLIMenuItem(name) {
+void RLIMenuItemList::up() {
+  if (_index < _variants.size() - 1) {
+    _index++;
+    emit onValueChanged(_variants[_index]);
+  }
+}
+
+void RLIMenuItemList::down() {
+  if (_index > 0) {
+    _index--;
+    emit onValueChanged(_variants[_index]);
+  }
+}
+
+
+
+RLIMenuItemInt::RLIMenuItemInt(char** name, int min, int max, int def)  : RLIMenuItem(name) {
   _type = INT;
   _min = min;
   _max = max;
   _value = def;
 }
 
-RLIMenuItemFloat::RLIMenuItemFloat(const QByteArray& name, float min, float max, float def) : RLIMenuItem(name) {
+
+
+RLIMenuItemFloat::RLIMenuItemFloat(char** name, float min, float max, float def) : RLIMenuItem(name) {
   _type = FLOAT;
   _min = min;
   _max = max;
@@ -34,10 +82,19 @@ RLIMenuItemFloat::RLIMenuItemFloat(const QByteArray& name, float min, float max,
   _step = 0.2f;
 }
 
+
+
+
+
+
 MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent), QGLFunctions() {
   _prog = new QGLShaderProgram();
+
+  _lang = LANG_RUSSIAN;
+
   _enc = QTextCodec::codecForName("cp866")->makeEncoder();
   _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
+  _dec1 = QTextCodec::codecForName("cp866")->makeDecoder();
 
   resize(font_size);
 
@@ -52,57 +109,54 @@ MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent
 void MenuEngine::initMenuTree() {
   QVector<QByteArray> val_list;
 
-  RLIMenuItemMenu* m0 = new RLIMenuItemMenu(toQByteArray("ГЛАВНОЕ МЕНЮ"), NULL);
+  RLIMenuItemMenu* m0 = new RLIMenuItemMenu(RLIStrings::nMenu0, NULL);
 
   // --------------------------
-  RLIMenuItemMenu* m00 = new RLIMenuItemMenu(toQByteArray("ЯРКОСТЬ"), m0);
+  RLIMenuItemMenu* m00 = new RLIMenuItemMenu(RLIStrings::nMenu00, m0);
   m0->add_item(m00);
 
-  RLIMenuItemInt* i000 = new RLIMenuItemInt(toQByteArray("РЛ ВИДЕО"), 0, 255, 255);
+  RLIMenuItemInt* i000 = new RLIMenuItemInt(RLIStrings::nMenu000, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i000));
 
-  RLIMenuItemInt* i001 = new RLIMenuItemInt(toQByteArray("ИЗМЕРИТ СРЕДСТВА"), 0, 255, 255);
+  RLIMenuItemInt* i001 = new RLIMenuItemInt(RLIStrings::nMenu001, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i001));
 
-  RLIMenuItemInt* i002 = new RLIMenuItemInt(toQByteArray("МД"), 0, 255, 255);
+  RLIMenuItemInt* i002 = new RLIMenuItemInt(RLIStrings::nMenu002, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i002));
 
-  RLIMenuItemInt* i003 = new RLIMenuItemInt(toQByteArray("СИМВОЛЫ АРП"), 0, 255, 255);
+  RLIMenuItemInt* i003 = new RLIMenuItemInt(RLIStrings::nMenu003, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i003));
 
-  RLIMenuItemInt* i004 = new RLIMenuItemInt(toQByteArray("СЛЕДЫ"), 0, 255, 255);
+  RLIMenuItemInt* i004 = new RLIMenuItemInt(RLIStrings::nMenu004, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i004));
 
-  RLIMenuItemInt* i005 = new RLIMenuItemInt(toQByteArray("ПАНЕЛЬ"), 0, 255, 255);
+  RLIMenuItemInt* i005 = new RLIMenuItemInt(RLIStrings::nMenu005, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i005));
 
-  RLIMenuItemInt* i006 = new RLIMenuItemInt(toQByteArray("ПУЛЬТ"), 0, 255, 255);
+  RLIMenuItemInt* i006 = new RLIMenuItemInt(RLIStrings::nMenu006, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i006));
 
-  RLIMenuItemInt* i007 = new RLIMenuItemInt(toQByteArray("ПАНЕЛЬ"), 0, 255, 255);
+  RLIMenuItemInt* i007 = new RLIMenuItemInt(RLIStrings::nMenu007, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i007));
-
-  RLIMenuItemInt* i008 = new RLIMenuItemInt(toQByteArray("КАРТА"), 0, 255, 255);
-  m00->add_item(static_cast<RLIMenuItem*>(i008));
 
   val_list.append(toQByteArray("ДЕНЬ"));
   val_list.append(toQByteArray("НОЧЬ"));
-  RLIMenuItemList* i009 = new RLIMenuItemList(toQByteArray("ДЕНЬ/НОЧЬ"), val_list, 0);
+  RLIMenuItemList* i008 = new RLIMenuItemList(RLIStrings::nMenu008, val_list, 0);
   val_list.clear();
-  m00->add_item(static_cast<RLIMenuItem*>(i009));
+  m00->add_item(static_cast<RLIMenuItem*>(i008));
 
 
   // --------------------------
-  RLIMenuItemMenu* m01 = new RLIMenuItemMenu(toQByteArray("АВТОПРОКЛАДКА"), m0);
+  RLIMenuItemMenu* m01 = new RLIMenuItemMenu(RLIStrings::nMenu01, m0);
   m0->add_item(m01);
 
-  RLIMenuItemFloat* i010 = new RLIMenuItemFloat(toQByteArray("ОПАСН ДКС миль"), 0.01f, 8.f, 2.f);
+  RLIMenuItemFloat* i010 = new RLIMenuItemFloat(RLIStrings::nMenu010, 0.01f, 8.f, 2.f);
   m01->add_item(static_cast<RLIMenuItem*>(i010));
 
-  RLIMenuItemInt* i011 = new RLIMenuItemInt(toQByteArray("ОПАСН ВКС мин"), 5, 60, 30);
+  RLIMenuItemInt* i011 = new RLIMenuItemInt(RLIStrings::nMenu011, 5, 60, 30);
   m01->add_item(static_cast<RLIMenuItem*>(i011));
 
-  RLIMenuItemInt* i012 = new RLIMenuItemInt(toQByteArray("ВЕКТОРЫ мин"), 5, 60, 30);
+  RLIMenuItemInt* i012 = new RLIMenuItemInt(RLIStrings::nMenu012, 5, 60, 30);
   m01->add_item(static_cast<RLIMenuItem*>(i012));
 
   val_list.append(toQByteArray("1"));
@@ -110,179 +164,182 @@ void MenuEngine::initMenuTree() {
   val_list.append(toQByteArray("3"));
   val_list.append(toQByteArray("6"));
   val_list.append(toQByteArray("12"));
-  RLIMenuItemList* i013 = new RLIMenuItemList(toQByteArray("СЛЕДЫ/ТЧК"), val_list, 3);
+  RLIMenuItemList* i013 = new RLIMenuItemList(RLIStrings::nMenu013, val_list, 3);
   val_list.clear();
   m01->add_item(static_cast<RLIMenuItem*>(i013));
 
   val_list.append(toQByteArray("ВКЛ"));
   val_list.append(toQByteArray("ОТКЛ"));
-  RLIMenuItemList* i014 = new RLIMenuItemList(toQByteArray("НОМЕРА ЦЕЛЕЙ"), val_list, 1);
+  RLIMenuItemList* i014 = new RLIMenuItemList(RLIStrings::nMenu014, val_list, 1);
   val_list.clear();
   m01->add_item(static_cast<RLIMenuItem*>(i014));
 
-  RLIMenuItemAction* i015 = new RLIMenuItemAction(toQByteArray("СБРОС ЗОНЫ"));
+  RLIMenuItemAction* i015 = new RLIMenuItemAction(RLIStrings::nMenu015);
   m01->add_item(static_cast<RLIMenuItem*>(i015));
 
-  RLIMenuItemAction* i016 = new RLIMenuItemAction(toQByteArray("УСТАН ЗОНЫ"));
+  RLIMenuItemAction* i016 = new RLIMenuItemAction(RLIStrings::nMenu016);
   m01->add_item(static_cast<RLIMenuItem*>(i016));
 
   val_list.append(toQByteArray("ВОДА"));
   val_list.append(toQByteArray("ГРУНТ"));
-  RLIMenuItemList* i017 = new RLIMenuItemList(toQByteArray("ЛИД"), val_list, 0);
+  RLIMenuItemList* i017 = new RLIMenuItemList(RLIStrings::nMenu017, val_list, 0);
   val_list.clear();
   m01->add_item(static_cast<RLIMenuItem*>(i017));
 
 
   // --------------------------
-  RLIMenuItemMenu* m02 = new RLIMenuItemMenu(toQByteArray("УСТАНОВКИ"), m0);
+  RLIMenuItemMenu* m02 = new RLIMenuItemMenu(RLIStrings::nMenu02, m0);
   m0->add_item(m02);
 
-  RLIMenuItemInt* i020 = new RLIMenuItemInt(toQByteArray("РПЧ"), 0, 255, 5);
+  RLIMenuItemInt* i020 = new RLIMenuItemInt(RLIStrings::nMenu020, 0, 255, 5);
   m02->add_item(static_cast<RLIMenuItem*>(i020));
 
   val_list.append(toQByteArray("МИЛИ"));
   val_list.append(toQByteArray("КМ"));
-  RLIMenuItemList* i021 = new RLIMenuItemList(toQByteArray("СМЕНА ВД"), val_list, 0);
+  RLIMenuItemList* i021 = new RLIMenuItemList(RLIStrings::nMenu021, val_list, 0);
   val_list.clear();
   m02->add_item(static_cast<RLIMenuItem*>(i021));
 
   val_list.append(toQByteArray("ЛАГ"));
   val_list.append(toQByteArray("РУЧ"));
-  RLIMenuItemList* i022 = new RLIMenuItemList(toQByteArray("ДАТЧИК СКОР"), val_list, 0);
+  RLIMenuItemList* i022 = new RLIMenuItemList(RLIStrings::nMenu022, val_list, 0);
   val_list.clear();
   m02->add_item(static_cast<RLIMenuItem*>(i022));
 
-  RLIMenuItemFloat* i023 = new RLIMenuItemFloat(toQByteArray("СК  РУЧ  УЗ"), 0.f, 90.f, 5.f);
+  RLIMenuItemFloat* i023 = new RLIMenuItemFloat(RLIStrings::nMenu023, 0.f, 90.f, 5.f);
   m02->add_item(i023);
 
   val_list.append(toQByteArray("АОЦ"));
   val_list.append(toQByteArray("СНС"));
   val_list.append(toQByteArray("ГК-Л(В)"));
   val_list.append(toQByteArray("ДЛГ"));
-  RLIMenuItemList* i024 = new RLIMenuItemList(toQByteArray("ДАТЧИК СТАБ"), val_list, 2);
+  RLIMenuItemList* i024 = new RLIMenuItemList(RLIStrings::nMenu024, val_list, 2);
   val_list.clear();
   m02->add_item(i024);
 
-  RLIMenuItemInt* i025 = new RLIMenuItemInt(toQByteArray("ТАЙМЕР мин"), 0, 90, 0);
+  RLIMenuItemInt* i025 = new RLIMenuItemInt(RLIStrings::nMenu025, 0, 90, 0);
   m02->add_item(i025);
 
   val_list.append(toQByteArray("РУС"));
   val_list.append(toQByteArray("АНГЛ"));
-  RLIMenuItemList* i026 = new RLIMenuItemList(toQByteArray("ЯЗЫК"), val_list, 0);
+  RLIMenuItemList* i026 = new RLIMenuItemList(RLIStrings::nMenu026, val_list, 0);
   val_list.clear();
+  connect(i026, SIGNAL(onValueChanged(QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
   m02->add_item(i026);
 
-  RLIMenuItemFloat* i027 = new RLIMenuItemFloat(toQByteArray("СОГЛАС ГИРО"), 0.f, 359.9f, 0.f);
+  RLIMenuItemFloat* i027 = new RLIMenuItemFloat(RLIStrings::nMenu027, 0.f, 359.9f, 0.f);
   m02->add_item(i027);
 
-  RLIMenuItemInt* i028 = new RLIMenuItemInt(toQByteArray("ОПАС ГЛУБ м"), 1, 100, 1);
+  RLIMenuItemInt* i028 = new RLIMenuItemInt(RLIStrings::nMenu028, 1, 100, 1);
   m02->add_item(i028);
 
-  RLIMenuItemInt* i029 = new RLIMenuItemInt(toQByteArray("ЯКОРНАЯ СТ м"), 1, 100, 1);
+  RLIMenuItemInt* i029 = new RLIMenuItemInt(RLIStrings::nMenu029, 1, 100, 1);
   m02->add_item(i029);
 
   val_list.append(toQByteArray("ОТКЛ"));
-  RLIMenuItemList* i0210 = new RLIMenuItemList(toQByteArray("ШУМ СТАБ"), val_list, 0);
+  RLIMenuItemList* i02A = new RLIMenuItemList(RLIStrings::nMenu02A, val_list, 0);
   val_list.clear();
-  m02->add_item(i0210);
+  m02->add_item(i02A);
 
 
   // --------------------------
-  RLIMenuItemMenu* m03 = new RLIMenuItemMenu(toQByteArray("КОНТРОЛЬ"), m0);
+  RLIMenuItemMenu* m03 = new RLIMenuItemMenu(RLIStrings::nMenu03, m0);
   m0->add_item(m03);
 
-  RLIMenuItemInt* i030 = new RLIMenuItemInt(toQByteArray("СТРОБ АС"), 1, 2, 1);
+  RLIMenuItemInt* i030 = new RLIMenuItemInt(RLIStrings::nMenu030, 1, 2, 1);
   m03->add_item(static_cast<RLIMenuItem*>(i030));
 
   val_list.append(toQByteArray("ВКЛ"));
   val_list.append(toQByteArray("ОТКЛ"));
-  RLIMenuItemList* i031 = new RLIMenuItemList(toQByteArray("ИМИТАЦИЯ ЦЕЛИ"), val_list, 1);
+  RLIMenuItemList* i031 = new RLIMenuItemList(RLIStrings::nMenu031, val_list, 1);
   m03->add_item(static_cast<RLIMenuItem*>(i031));
 
-  RLIMenuItemList* i032 = new RLIMenuItemList(toQByteArray("ЭП"), val_list, 1);
+  RLIMenuItemList* i032 = new RLIMenuItemList(RLIStrings::nMenu032, val_list, 1);
   m03->add_item(static_cast<RLIMenuItem*>(i032));
 
-  RLIMenuItemList* i033 = new RLIMenuItemList(toQByteArray("КИМ"), val_list, 1);
+  RLIMenuItemList* i033 = new RLIMenuItemList(RLIStrings::nMenu033, val_list, 1);
   val_list.clear();
   m03->add_item(static_cast<RLIMenuItem*>(i033));
 
-  RLIMenuItemFloat* i034 = new RLIMenuItemFloat(toQByteArray("ТОК МАГНЕТР"), 0.f, 3.f, 0.f);
+  RLIMenuItemFloat* i034 = new RLIMenuItemFloat(RLIStrings::nMenu034, 0.f, 3.f, 0.f);
   m03->add_item(static_cast<RLIMenuItem*>(i034));
 
   val_list.append(toQByteArray("ДА"));
   val_list.append(toQByteArray("НЕТ"));
-  RLIMenuItemList* i035 = new RLIMenuItemList(toQByteArray("ЗАПУСК И"), val_list, 0);
+  RLIMenuItemList* i035 = new RLIMenuItemList(RLIStrings::nMenu035, val_list, 0);
   m03->add_item(static_cast<RLIMenuItem*>(i035));
 
-  RLIMenuItemList* i036 = new RLIMenuItemList(toQByteArray("РЛ ВИДЕО"), val_list, 1);
+  RLIMenuItemList* i036 = new RLIMenuItemList(RLIStrings::nMenu036, val_list, 1);
   m03->add_item(static_cast<RLIMenuItem*>(i036));
 
-  RLIMenuItemList* i037 = new RLIMenuItemList(toQByteArray("КУА"), val_list, 1);
+  RLIMenuItemList* i037 = new RLIMenuItemList(RLIStrings::nMenu037, val_list, 1);
   m03->add_item(static_cast<RLIMenuItem*>(i037));
 
-  RLIMenuItemList* i038 = new RLIMenuItemList(toQByteArray("ОК"), val_list, 1);
+  RLIMenuItemList* i038 = new RLIMenuItemList(RLIStrings::nMenu038, val_list, 1);
   val_list.clear();
   m03->add_item(static_cast<RLIMenuItem*>(i038));
 
   // --------------------------
-  RLIMenuItemMenu* m04 = new RLIMenuItemMenu(toQByteArray("КАРТА"), m0);
+  RLIMenuItemMenu* m04 = new RLIMenuItemMenu(RLIStrings::nMenu04, m0);
   m0->add_item(m04);
 
-  RLIMenuItemInt* i040 = new RLIMenuItemInt(toQByteArray("ВЫЗОВ КАРТЫ №"), 1, 4, 1);
+  RLIMenuItemInt* i040 = new RLIMenuItemInt(RLIStrings::nMenu040, 1, 4, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i040));
 
   val_list.append(toQByteArray("ОТКЛ"));
   for (int i = 1; i < 11; i++)
     val_list.append(toQByteArray(QString::number(i).toLocal8Bit()));
-  RLIMenuItemList* i041 = new RLIMenuItemList(toQByteArray("СЛЕДЫ/ТЧК"), val_list, 0);
+  RLIMenuItemList* i041 = new RLIMenuItemList(RLIStrings::nMenu041, val_list, 0);
   m04->add_item(static_cast<RLIMenuItem*>(i041));
 
-  RLIMenuItemAction* i042 = new RLIMenuItemAction(toQByteArray("-------------------------"));
+  RLIMenuItemAction* i042 = new RLIMenuItemAction(RLIStrings::nMenu042);
   m04->add_item(static_cast<RLIMenuItem*>(i042));
 
-  RLIMenuItemInt* i043 = new RLIMenuItemInt(toQByteArray("ВЫЗОВ КАРТЫ №"), 40, 1000, 200);
+  RLIMenuItemInt* i043 = new RLIMenuItemInt(RLIStrings::nMenu043, 40, 1000, 200);
   m04->add_item(static_cast<RLIMenuItem*>(i043));
 
-  RLIMenuItemAction* i044 = new RLIMenuItemAction(toQByteArray("ЛИНИЯ МАРШРУТА"));
+  RLIMenuItemAction* i044 = new RLIMenuItemAction(RLIStrings::nMenu044);
   m04->add_item(static_cast<RLIMenuItem*>(i044));
 
-  RLIMenuItemList* i045 = new RLIMenuItemList(toQByteArray("НОМЕР ТОЧКИ"), val_list, 1);
+  RLIMenuItemList* i045 = new RLIMenuItemList(RLIStrings::nMenu045, val_list, 1);
   val_list.clear();
   m04->add_item(static_cast<RLIMenuItem*>(i045));
 
   val_list.append(toQByteArray("#"));
   val_list.append(toQByteArray("@"));
   val_list.append(toQByteArray("&"));
-  RLIMenuItemList* i046 = new RLIMenuItemList(toQByteArray("СИМВОЛЫ"), val_list, 0);
+  RLIMenuItemList* i046 = new RLIMenuItemList(RLIStrings::nMenu046, val_list, 0);
   val_list.clear();
   m04->add_item(static_cast<RLIMenuItem*>(i046));
 
-  RLIMenuItemInt* i047 = new RLIMenuItemInt(toQByteArray("ЗАПИСЬ КАРТЫ №"), 1, 4, 1);
+  RLIMenuItemInt* i047 = new RLIMenuItemInt(RLIStrings::nMenu047, 1, 4, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i047));
 
+
   // --------------------------
-  RLIMenuItemMenu* m05 = new RLIMenuItemMenu(toQByteArray("ОПОЗНАВАНИЕ"), m0);
+  RLIMenuItemMenu* m05 = new RLIMenuItemMenu(RLIStrings::nMenu05, m0);
   m0->add_item(m05);
 
   val_list.append(toQByteArray("НЕТ"));
   val_list.append(toQByteArray("СВОЙ"));
   val_list.append(toQByteArray("ЧУЖОЙ"));
-  RLIMenuItemList* i050 = new RLIMenuItemList(toQByteArray("ПРИЗНАК"), val_list, 0);
+  RLIMenuItemList* i050 = new RLIMenuItemList(RLIStrings::nMenu050, val_list, 0);
   val_list.clear();
   m05->add_item(static_cast<RLIMenuItem*>(i050));
 
   val_list.append(toQByteArray("НЕТ"));
   val_list.append(toQByteArray("КРУГ"));
   val_list.append(toQByteArray("СЕКТ"));
-  RLIMenuItemList* i051 = new RLIMenuItemList(toQByteArray("ЗАПРОС"), val_list, 0);
+  RLIMenuItemList* i051 = new RLIMenuItemList(RLIStrings::nMenu051, val_list, 0);
   val_list.clear();
   m05->add_item(static_cast<RLIMenuItem*>(i051));
 
   val_list.append(toQByteArray("ОТКЛ"));
   val_list.append(toQByteArray("ВКЛ"));
-  RLIMenuItemList* i052 = new RLIMenuItemList(toQByteArray("ЗАПРЕТ ИЗЛУЧ"), val_list, 0);
+  RLIMenuItemList* i052 = new RLIMenuItemList(RLIStrings::nMenu052, val_list, 0);
   val_list.clear();
   m05->add_item(static_cast<RLIMenuItem*>(i052));
+
 
   // --------------------------
   _main_menu = m0;
@@ -303,6 +360,22 @@ MenuEngine::~MenuEngine() {
 void MenuEngine::setVisibility(bool val) {
   _enabled = val;
   _need_update = true;
+}
+
+void MenuEngine::onLanguageChanged(const QByteArray& lang) {
+  QString lang_str = _dec1->toUnicode(lang);
+
+  if (_lang == LANG_RUSSIAN && (lang_str == _dec->toUnicode(RLIStrings::nEng[LANG_RUSSIAN])
+                             || lang_str == _dec->toUnicode(RLIStrings::nEng[LANG_ENGLISH]))) {
+      _lang = LANG_ENGLISH;
+      _need_update = true;
+  }
+
+  if (_lang == LANG_ENGLISH && (lang_str == _dec->toUnicode(RLIStrings::nRus[LANG_ENGLISH])
+                             || lang_str == _dec->toUnicode(RLIStrings::nRus[LANG_RUSSIAN]))) {
+      _lang = LANG_RUSSIAN;
+      _need_update = true;
+  }
 }
 
 void MenuEngine::onUp() {
@@ -431,10 +504,10 @@ void MenuEngine::update() {
 
     _prog->bind();
 
-    drawText(_menu->name(), 0, ALIGN_CENTER, QColor(69, 251, 247));
+    drawText(_menu->name(_lang), 0, ALIGN_CENTER, QColor(69, 251, 247));
 
     for (int i = 0; i < _menu->item_count(); i++) {
-      drawText(_menu->item(i)->name(), i+1, ALIGN_LEFT, QColor(69, 251, 247));
+      drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, QColor(69, 251, 247));
       drawText(_menu->item(i)->value(), i+1, ALIGN_RIGHT, QColor(255, 242, 216));
     }
 

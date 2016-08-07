@@ -13,6 +13,20 @@ InfoBlock::~InfoBlock() {
   delete _fbo;
 }
 
+void InfoBlock::setRect(int rectId, const QRect& r) {
+  if (rectId < _rects.size())
+    _rects[rectId].rect = r;
+
+  _need_update = true;
+}
+
+void InfoBlock::setText(int textId, int lang_id, const QByteArray& str) {
+  if (textId < _texts.size())
+    _texts[textId].str[lang_id] = str;
+
+  _need_update = true;
+}
+
 bool InfoBlock::init(const QGLContext* context) {
   if (_initialized)
     return false;
@@ -51,6 +65,12 @@ void InfoBlock::setGeometry(const QRect& r) {
 InfoEngine::InfoEngine(QObject* parent) : QObject(parent), QGLFunctions() {
   _prog = new QGLShaderProgram();
   _initialized = false;
+
+  _lang = LANG_RUSSIAN;
+
+  enc = QTextCodec::codecForName("cp866")->makeEncoder();
+  dec = QTextCodec::codecForName("UTF8")->makeDecoder();
+  dec1 = QTextCodec::codecForName("cp866")->makeDecoder();
 }
 
 InfoEngine::~InfoEngine() {
@@ -87,6 +107,24 @@ InfoBlock* InfoEngine::addInfoBlock() {
 }
 
 
+
+
+void InfoEngine::onLanguageChanged(const QByteArray& lang) {
+  QString lang_str = dec1->toUnicode(lang);
+
+  if (_lang == LANG_RUSSIAN && (lang_str == dec->toUnicode(RLIStrings::nEng[LANG_RUSSIAN])
+                             || lang_str == dec->toUnicode(RLIStrings::nEng[LANG_ENGLISH]))) {
+      _lang = LANG_ENGLISH;
+      _full_update = true;
+  }
+
+  if (_lang == LANG_ENGLISH && (lang_str == dec->toUnicode(RLIStrings::nRus[LANG_ENGLISH])
+                             || lang_str == dec->toUnicode(RLIStrings::nRus[LANG_RUSSIAN]))) {
+      _lang = LANG_RUSSIAN;
+      _full_update = true;
+  }
+}
+
 void InfoEngine::update() {
   if (!_initialized)
     return;
@@ -97,7 +135,8 @@ void InfoEngine::update() {
     if (_full_update || block->needUpdate()) {
       block->fbo()->bind();
 
-
+      glDisable(GL_BLEND);
+      glDisable(GL_DEPTH);
 
       QRect geom = block->getGeometry();
 
@@ -130,7 +169,6 @@ void InfoEngine::updateBlock(InfoBlock* b) {
   glShadeModel( GL_FLAT );
 
   // Draw background and border
-  glDisable(GL_BLEND);
 
   if (brdWid >= 1) {
     drawRect(geom, brdCol);
@@ -162,15 +200,15 @@ void InfoEngine::drawText(const InfoText& text) {
   QVector<float> pos, ord, chars;
   QPointF anchor = text.anchor;
   if (!text.anchor_left)
-    anchor -= QPointF(text.chars.size() * font_size.width(), 0);
+    anchor -= QPointF(text.str[_lang].size() * font_size.width(), 0);
 
-  for (int i = 0; i < text.chars.size(); i++) {
+  for (int i = 0; i < text.str[_lang].size(); i++) {
     for (int j = 0; j < 4; j++) {
       QPointF lefttop = anchor + QPointF(i * font_size.width(), 0);
       pos.push_back(lefttop.x());
       pos.push_back(lefttop.y());
       ord.push_back(j);
-      chars.push_back(text.chars[i]);
+      chars.push_back(text.str[_lang][i]);
     }
   }
 
@@ -198,6 +236,7 @@ void InfoEngine::drawText(const InfoText& text) {
   glDrawArrays(GL_QUADS, 0, ord.size());
   glBindTexture(GL_TEXTURE_2D, 0);
 }
+
 
 void InfoEngine::drawRect(const QRect& rect, const QColor& col) {
   glBegin(GL_QUADS);
