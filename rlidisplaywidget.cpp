@@ -48,7 +48,7 @@ void RLIDisplayWidget::initializeGL() {
   if (_initialized)
     return;
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "GL init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "GL init start";
   initializeGLFunctions();
 
   qDebug() << "Vendor: " << (const char*) glGetString(GL_VENDOR);
@@ -90,9 +90,9 @@ void RLIDisplayWidget::initializeGL() {
 
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Fonts loading start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Fonts loading start";
   _fonts->init(context(), ":/res/fonts");
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Fonts loading finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Fonts loading finish";
 
   // Disable depth and stencil buffers (we need only 2D)
   glDisable(GL_STENCIL);
@@ -123,37 +123,37 @@ void RLIDisplayWidget::initializeGL() {
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
   glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Chart engine init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Chart engine init start";
   if (!_chartEngine->init(_chrt_mngr->refs(), width(), height(), context()))
     return;
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Chart engine init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Chart engine init finish";
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Radar engine init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Radar engine init start";
   if (!_radarEngine->init(context()))
     return;
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Radar engine init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Radar engine init finish";
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Mask engine init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Mask engine init start";
   if (!_maskEngine->init(context()))
     return;
   _maskEngine->setFonts(_fonts);
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Mask engine init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Mask engine init finish";
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Info engine init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Info engine init start";
   if (!_infoEngine->init(context()))
     return;
   _infoEngine->setFonts(_fonts);
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Info engine init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Info engine init finish";
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Info engine init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Info engine init start";
   if (!_menuEngine->init(context()))
     return;
   _menuEngine->setFonts(_fonts);
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Info engine init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Info engine init finish";
 
 
   if (!_controlsEngine->init(context()))
@@ -161,7 +161,7 @@ void RLIDisplayWidget::initializeGL() {
 
   emit initialized();
   _initialized = true;
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "GL init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "GL init finish";
 }
 
 void RLIDisplayWidget::resizeGL(int w, int h) {

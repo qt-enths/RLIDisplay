@@ -5,10 +5,10 @@
 #include <QDateTime>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "MainWindow construction start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction start";
   ui->setupUi(this);
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "RadarDS init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init start";
 
   _radar_ds = new RadarDataSource();
   _chart_mngr = new ChartManager();
@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   else
       _radar_ds->start();
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "RadarDS init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
   _gain_ctrl = new ValueBarController("УСИЛЕНИЕ", QPoint(10, 10), 8, 0, this);
   connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onValueChanged(int)));
@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
   startTimer(33);
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "MainWindow construction finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction finish";
 }
 
 MainWindow::~MainWindow() {
@@ -67,12 +67,12 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::onRLIWidgetInitialized() {
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Connect radar to datasource";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
   connect(_radar_ds, SIGNAL(updateData(uint,uint,float*,float*))
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint,uint,float*,float*)));
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup InfoBlocks";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";
   setupInfoBlock(_gain_ctrl);
   setupInfoBlock(_water_ctrl);
   setupInfoBlock(_rain_ctrl);
@@ -82,7 +82,7 @@ void MainWindow::onRLIWidgetInitialized() {
   setupInfoBlock(_curs_ctrl);
   setupInfoBlock(_clck_ctrl);
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup rliwidget as control reciever";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);
 
   connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));

@@ -415,7 +415,7 @@ void ChartEngine::draw() {
   if (!initialized || setting_up)
       return;
 
-  //qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Update chart";
+  //qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Update chart";
 
   glViewport(0, 0, canvas.x(), canvas.y());
   glBindFramebuffer(GL_FRAMEBUFFER_EXT, fbo_id);

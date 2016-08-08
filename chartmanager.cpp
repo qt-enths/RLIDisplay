@@ -20,7 +20,7 @@ void ChartManager::loadCharts() {
 }
 
 void ChartManager::chartLoadingWorker() {
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Charts loading started";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Charts loading started";
 
   QDir dir("res/charts");
   dir.setNameFilters(QStringList("*.000"));
@@ -28,7 +28,7 @@ void ChartManager::chartLoadingWorker() {
 
   QStringList fileList = dir.entryList();
   for (int i = 0; i < fileList.count(); i++) {
-    qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Loading: " << fileList[i];
+    qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Loading: " << fileList[i];
 
     QString chart_path(dir.path() + "/" + fileList[i]);
     char* c_chart_path = new char[chart_path.size() + 1];
@@ -39,9 +39,9 @@ void ChartManager::chartLoadingWorker() {
     _charts.insert(fileList[i], new S52Chart(c_chart_path, _s52_refs));
     delete[] c_chart_path;
 
-    qDebug()  << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": "<< "Loaded: " << fileList[i];
+    qDebug()  << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": "<< "Loaded: " << fileList[i];
     emit new_chart_available(fileList[i]);
   }
 
-  qDebug()  << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": "<< "Charts loading finished";
+  qDebug()  << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": "<< "Charts loading finished";
 }
