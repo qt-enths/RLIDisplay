@@ -5,20 +5,23 @@
 #include <QVector>
 #include <QDebug>
 
+#include <QTextEncoder>
+#include <QTextDecoder>
+
 #include <QtOpenGL/QGLFunctions>
 #include <QtOpenGL/QGLFramebufferObject>
 #include <QtOpenGL/QGLShaderProgram>
 
 #include "asmfonts.h"
+#include "rlistrings.h"
 
 struct InfoRect {
   QColor col;
   QRect  rect;
 };
 
-
 struct InfoText {
-  QByteArray chars;
+  QByteArray str[RLI_LANG_COUNT];
   QString font_tag;
   QColor color;
   QPoint anchor;
@@ -60,11 +63,11 @@ public:
   inline const InfoText& getText(int i)     { return _texts[i]; }
 
   inline GLuint getTextureId()              { return _fbo->texture(); }
-  QGLFramebufferObject* fbo()         { return _fbo; }
+  QGLFramebufferObject* fbo()               { return _fbo; }
 
 public slots:
-  void setRect(int rectId, const QRect& r)     { if (rectId < _rects.size()) _rects[rectId].rect = r;  _need_update = true; }
-  void setText(int textId, const QByteArray& c) { if (textId < _texts.size()) _texts[textId].chars = c; _need_update = true; }
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
   bool _initialized;
@@ -102,6 +105,7 @@ public:
 
 public slots:
   void update();
+  void onLanguageChanged(const QByteArray& lang);
 
 private:
   void updateBlock(InfoBlock* b);
@@ -109,6 +113,7 @@ private:
   inline void drawRect(const QRect& rect, const QColor& col);
 
   AsmFonts* _fonts;
+  RLILang _lang;
 
   bool _initialized;
   bool _full_update;
@@ -134,6 +139,10 @@ private:
   GLuint _vbo_ids[INFO_ATTR_COUNT];
   GLuint _attr_locs[INFO_ATTR_COUNT];
   GLuint _uniform_locs[INFO_UNIFORM_COUNT];
+
+  QTextEncoder* enc;
+  QTextDecoder* dec;
+  QTextDecoder* dec1;
 };
 
 #endif // INFOENGINE_H

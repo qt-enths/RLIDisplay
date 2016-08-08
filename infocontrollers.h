@@ -20,7 +20,7 @@ public slots:
 
 signals:
   void setRect(int rectId, const QRect& r);
-  void setText(int textId, const QByteArray& c);
+  void setText(int textId, int lang_id, const QByteArray& str);
 
 protected:
   virtual void initBlock(const QSize& size) = 0;
@@ -34,21 +34,21 @@ protected:
 class ValueBarController : public InfoBlockController {
   Q_OBJECT
 public:
-  explicit ValueBarController(const char* name, const QPoint& left_top, int title_width, int def_val, QObject* parent = 0);
+  explicit ValueBarController(char** name, const QPoint& left_top, int title_width, int def_val, QObject* parent = 0);
 
 public slots:
   void onValueChanged(int val);
 
 signals:
   void setRect(int rectId, const QRect& r);
-  void setText(int textId, const QByteArray& c);
+  void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
   void initBlock(const QSize& size);
 
   int _val;
 
-  QByteArray _name;
+  char** _name;
   int _title_width;
   QPoint _left_top;
 
@@ -68,7 +68,7 @@ public slots:
 
 signals:
   void setRect(int rectId, const QRect& r);
-  void setText(int textId, const QByteArray& c);
+  void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
   void initBlock(const QSize& size);
@@ -88,7 +88,7 @@ public slots:
 
 signals:
   void setRect(int rectId, const QRect& r);
-  void setText(int textId, const QByteArray& c);
+  void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
   void initBlock(const QSize& size);

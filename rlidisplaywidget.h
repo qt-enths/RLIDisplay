@@ -23,6 +23,7 @@ public:
   explicit RLIDisplayWidget(QWidget *parent = 0);
   ~RLIDisplayWidget();
 
+  inline ChartEngine* chartEngine() { return _chartEngine; }
   inline RadarEngine* radarEngine() { return _radarEngine; }
   inline MaskEngine* maskEngine() { return _maskEngine; }
   inline InfoEngine* infoEngine() { return _infoEngine; }

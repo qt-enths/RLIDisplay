@@ -9,6 +9,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 win32:QMAKE_LIBDIR += C:/GDAL/lib
 unix:QMAKE_LIBDIR += /usr/local/lib/
 
+unix:QMAKE_CXXFLAGS += -Wno-write-strings
+unix:QMAKE_CXXFLAGS += -Wno-unused-variable
+
 win32:INCLUDEPATH += C:/GDAL/include
 unix:INCLUDEPATH += /usr/local/include/
 
@@ -58,7 +61,8 @@ HEADERS  += mainwindow.h \
     chartengine.h \
     chartlayers.h \
     chartshaders.h \
-    apctrl.h
+    apctrl.h \
+    rlistrings.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

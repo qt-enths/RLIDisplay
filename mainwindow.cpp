@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <QDateTime>
 
+#include "rlistrings.h"
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction start";
   ui->setupUi(this);
@@ -26,17 +28,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
-  _gain_ctrl = new ValueBarController("УСИЛЕНИЕ", QPoint(10, 10), 8, 0, this);
+  _gain_ctrl = new ValueBarController(RLIStrings::nGain, QPoint(10, 10), 8, 0, this);
   connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onValueChanged(int)));
 
-  _water_ctrl = new ValueBarController("ВОЛНЫ", QPoint(10, 10+23+4), 8, 0, this);
+  _water_ctrl = new ValueBarController(RLIStrings::nWave, QPoint(10, 10+23+4), 8, 0, this);
   connect(ui->wgtRLIControl, SIGNAL(waterChanged(int)), _water_ctrl, SLOT(onValueChanged(int)));
 
-  _rain_ctrl = new ValueBarController("ДОЖДЬ", QPoint(10, 10+2*(23+4)), 8, 0, this);
+  _rain_ctrl = new ValueBarController(RLIStrings::nRain, QPoint(10, 10+2*(23+4)), 8, 0, this);
   connect(ui->wgtRLIControl, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
-  _apch_ctrl = new ValueBarController("АПЧ", QPoint(10, 10+3*(23+4)), 8, 0, this);
-  _radiation_ctrl = new ValueBarController("ИЗЛУЧЕНИЕ", QPoint(10+12*8+60+6, 10), 9, -1, this);
+  _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(10, 10+3*(23+4)), 8, 0, this);
+  _radiation_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(10+12*8+60+6, 10), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
   connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(float,float)), _curs_ctrl, SLOT(cursor_moved(float,float)));
@@ -87,6 +89,13 @@ void MainWindow::onRLIWidgetInitialized() {
 
   connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));
   _chart_mngr->loadCharts();
+
+  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup menu signals";
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         , ui->wgtRLIDisplay->infoEngine(), SLOT(onLanguageChanged(QByteArray)));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         , ui->wgtRLIDisplay->menuEngine(), SLOT(onLanguageChanged(QByteArray)));
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
@@ -94,7 +103,7 @@ void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
   ctrl->setupBlock(blck, ui->wgtRLIDisplay->size());
 
   connect(ctrl, SIGNAL(setRect(int, QRect)), blck, SLOT(setRect(int, QRect)));
-  connect(ctrl, SIGNAL(setText(int, QByteArray)), blck, SLOT(setText(int, QByteArray)));
+  connect(ctrl, SIGNAL(setText(int, int, QByteArray)), blck, SLOT(setText(int, int, QByteArray)));
   connect(ui->wgtRLIDisplay, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
 }
 
