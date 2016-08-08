@@ -483,7 +483,7 @@ bool RadarDataSource::loadData() {
   if (!initWithDummy(file_divs[1], file_amps[1]))
     return false;
   */
-  for(int i = 0; i < 2; i++)
+  /*for(int i = 0; i < 2; i++)
   {
       float amp = (i + 1) * 64;
       for(int j = 0; j < BEARINGS_PER_CYCLE; j++)
@@ -494,7 +494,7 @@ bool RadarDataSource::loadData() {
               file_amps[i][(j * PELENG_SIZE) + k] = amp;
           }
       }
-  }
+  }*/
 
   return true;
 }

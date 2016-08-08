@@ -90,7 +90,7 @@ void MainWindow::onRLIWidgetInitialized() {
   connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));
   _chart_mngr->loadCharts();
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:MM:ss zzz") << ": " << "Setup menu signals";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup menu signals";
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
          , ui->wgtRLIDisplay->infoEngine(), SLOT(onLanguageChanged(QByteArray)));
 

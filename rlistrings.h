@@ -149,6 +149,66 @@ namespace RLIStrings {
   static char* nMenu050[2] = { "SIGN", "ПРИЗНАК" };
   static char* nMenu051[2] = { "REQUEST", "ЗАПРОС" };
   static char* nMenu052[2] = { "ABORT EMIS", "ЗАПРЕТ ИЗЛУЧ" };
+
+  // выбор день/ночь
+  static char* dayArray[2][2] = { { "NIGHT", "НОЧЬ" }
+                                , { "DAY", " ДЕНЬ" } };
+
+  // значения следов/точек для меню
+  static char *trackArray[5][2] = { { "1", "1" }
+                                  , { "2", "2" }
+                                  , { "3", "3" }
+                                  , { "6", "6" }
+                                  , { "12", "12" } };
+
+  // выбор ОТКЛ/ВКЛ
+  static char *OffOnArray[2][2] = { { "OFF", "ОТКЛ" }
+                                  , { "ON", "ВКЛ" } };
+
+  // выбор ДА/НЕТ
+  static char *YesNoArray[2][2] = { { "YES", "ДА" }
+                                  , { "NO", "НЕТ" } };
+
+  // выбор ЛИД для АС
+  static char *tvecApArray[2][2] = { { "WATER", "ВОДА" }
+                                   , { "GRND", "ГРУНТ" } };
+
+  // значения типа скорости для меню
+  static char *speedArray[2][2] = { { "MAN", "РУЧ" }
+                                  , { "LOG", "ЛАГ" } };
+
+  // выбор языка системы
+  static char *langArray[2][2] = { { "ENGL", "АНГЛ" }
+                                 , { "RUS", "РУС" } };
+
+  // выбор датчика стабилизации
+  static char *devStabArray[4][2] = { { "ATER", "АОЦ" }
+                                    , { "GPS", "СНС" }
+                                    , { "DLG", "ДЛГ" }
+                                    , { "L-G(W)", "ГК-Л(В)" } };
+
+  // выбор единиц измерения ВД
+  static char *vdArray[2][2] = { { "KM", "КМ" }
+                               , { "NM", "МИЛИ" } };
+
+  // символы маршрута
+  static char *nameSymb[5][2] = { { "╚", "╚" } // буй                  0xc8 в cp866
+                                , { "╔", "╔" } // веха                 0xc9 в cp866
+                                , { "╩", "╩" } // подводная опасность  0xca в cp866
+                                , { "╦", "╦" } // якорная стоянка      0xcb в cp866
+                                , { "╠", "╠" } // береговой ориентир   0xcc в cp866
+                                };
+
+
+
+  // опознавание
+  static char *nameRecog[3][2] = { { "OFF", "НЕТ" }
+                                 , { "ROUND", "КРУГ" }
+                                 , { "SECT", "СЕКТ" } };
+
+  static char *nameSign[3][2] = { { "UNINDENT", "НЕТ" }
+                                , { "FRIENDLY", "СВОЙ" }
+                                , { "ENEMY", "ЧУЖОЙ" } };
 }
 
 #endif // RLISTRINGS_H

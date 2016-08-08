@@ -22,7 +22,7 @@ public:
   virtual ~RLIMenuItem() {  }
 
   virtual QByteArray name(int lang_id) { return _name[lang_id]; }
-  virtual QByteArray value() { return QByteArray(); }
+  virtual QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QByteArray(); }
 
   virtual void up() { }
   virtual void down() { }
@@ -35,10 +35,10 @@ public:
 protected:
   RLI_MENU_ITEM_TYPE _type;
 
-private:
   QTextEncoder* _enc;
   QTextDecoder* _dec;
 
+private:
   QByteArray _name[RLI_LANG_COUNT];
 };
 
@@ -63,7 +63,7 @@ public:
   RLIMenuItemMenu(char** name, RLIMenuItemMenu* parent);
   ~RLIMenuItemMenu();
 
-  inline QByteArray value() { return QByteArray(); }
+  inline QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QByteArray(); }
 
   inline RLIMenuItemMenu* parent() { return _parent; }
   inline RLIMenuItem* item(int i) { return _items[i]; }
@@ -79,10 +79,11 @@ private:
 class RLIMenuItemList : public RLIMenuItem {
   Q_OBJECT
 public:
-  RLIMenuItemList(char** name, const QVector<QByteArray>& variants, int def_ind, QObject* parent = 0);
+  RLIMenuItemList(char** name, int def_ind, QObject* parent = 0);
   ~RLIMenuItemList() {}
 
-  inline QByteArray value() { return _variants[_index]; }
+  inline QByteArray value(int lang_id) { return _variants[lang_id][_index]; }
+  void addVariant(char** values);
 
   void up();
   void down();
@@ -92,7 +93,7 @@ signals:
 
 private:
   int _index;
-  QVector<QByteArray> _variants;
+  QVector<QByteArray> _variants[RLI_LANG_COUNT];
 };
 
 
@@ -101,7 +102,7 @@ public:
   RLIMenuItemInt(char** name, int min, int max, int def);
   ~RLIMenuItemInt() {}
 
-  inline QByteArray value() { return QString::number(_value).toLatin1(); }
+  inline QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QString::number(_value).toLatin1(); }
 
   inline void up() { if (_value < _max) _value++; }
   inline void down() { if (_value > _min) _value--; }
@@ -117,7 +118,7 @@ public:
   RLIMenuItemFloat(char** name, float min, float max, float def);
   ~RLIMenuItemFloat() { }
 
-  inline QByteArray value() { return QString::number(_value).left(5).toLatin1(); }
+  inline QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QString::number(_value).left(5).toLatin1(); }
 
   inline void up() { if (_value + _step < _max) _value += _step; }
   inline void down() { if (_value - _step > _min) _value -= _step; }

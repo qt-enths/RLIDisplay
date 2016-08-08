@@ -42,24 +42,29 @@ void RLIMenuItemAction::action() {
 
 
 
-RLIMenuItemList::RLIMenuItemList(char** name, const QVector<QByteArray>& variants, int def_ind, QObject* parent)
+RLIMenuItemList::RLIMenuItemList(char** name, int def_ind, QObject* parent)
   : RLIMenuItem(name, parent) {
   _type = LIST;
-  _variants = variants;
   _index = def_ind;
 }
 
+void RLIMenuItemList::addVariant(char** values) {
+  for (int i = 0; i < RLI_LANG_COUNT; i++) {
+    _variants[i] << _enc->fromUnicode(_dec->toUnicode(values[i]));
+  }
+}
+
 void RLIMenuItemList::up() {
-  if (_index < _variants.size() - 1) {
+  if (_index < _variants[RLI_LANG_RUSSIAN].size() - 1) {
     _index++;
-    emit onValueChanged(_variants[_index]);
+    emit onValueChanged(_variants[RLI_LANG_RUSSIAN][_index]);
   }
 }
 
 void RLIMenuItemList::down() {
   if (_index > 0) {
     _index--;
-    emit onValueChanged(_variants[_index]);
+    emit onValueChanged(_variants[RLI_LANG_RUSSIAN][_index]);
   }
 }
 
@@ -107,8 +112,6 @@ MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent
 }
 
 void MenuEngine::initMenuTree() {
-  QVector<QByteArray> val_list;
-
   RLIMenuItemMenu* m0 = new RLIMenuItemMenu(RLIStrings::nMenu0, NULL);
 
   // --------------------------
@@ -139,10 +142,9 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemInt* i007 = new RLIMenuItemInt(RLIStrings::nMenu007, 0, 255, 255);
   m00->add_item(static_cast<RLIMenuItem*>(i007));
 
-  val_list.append(toQByteArray("ДЕНЬ"));
-  val_list.append(toQByteArray("НОЧЬ"));
-  RLIMenuItemList* i008 = new RLIMenuItemList(RLIStrings::nMenu008, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i008 = new RLIMenuItemList(RLIStrings::nMenu008, 0);
+  i008->addVariant(RLIStrings::dayArray[0]);
+  i008->addVariant(RLIStrings::dayArray[1]);
   m00->add_item(static_cast<RLIMenuItem*>(i008));
 
 
@@ -159,19 +161,17 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemInt* i012 = new RLIMenuItemInt(RLIStrings::nMenu012, 5, 60, 30);
   m01->add_item(static_cast<RLIMenuItem*>(i012));
 
-  val_list.append(toQByteArray("1"));
-  val_list.append(toQByteArray("2"));
-  val_list.append(toQByteArray("3"));
-  val_list.append(toQByteArray("6"));
-  val_list.append(toQByteArray("12"));
-  RLIMenuItemList* i013 = new RLIMenuItemList(RLIStrings::nMenu013, val_list, 3);
-  val_list.clear();
+  RLIMenuItemList* i013 = new RLIMenuItemList(RLIStrings::nMenu013, 3);
+  i013->addVariant(RLIStrings::trackArray[0]);
+  i013->addVariant(RLIStrings::trackArray[1]);
+  i013->addVariant(RLIStrings::trackArray[2]);
+  i013->addVariant(RLIStrings::trackArray[3]);
+  i013->addVariant(RLIStrings::trackArray[4]);
   m01->add_item(static_cast<RLIMenuItem*>(i013));
 
-  val_list.append(toQByteArray("ВКЛ"));
-  val_list.append(toQByteArray("ОТКЛ"));
-  RLIMenuItemList* i014 = new RLIMenuItemList(RLIStrings::nMenu014, val_list, 1);
-  val_list.clear();
+  RLIMenuItemList* i014 = new RLIMenuItemList(RLIStrings::nMenu014, 1);
+  i014->addVariant(RLIStrings::OffOnArray[0]);
+  i014->addVariant(RLIStrings::OffOnArray[1]);
   m01->add_item(static_cast<RLIMenuItem*>(i014));
 
   RLIMenuItemAction* i015 = new RLIMenuItemAction(RLIStrings::nMenu015);
@@ -180,10 +180,9 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemAction* i016 = new RLIMenuItemAction(RLIStrings::nMenu016);
   m01->add_item(static_cast<RLIMenuItem*>(i016));
 
-  val_list.append(toQByteArray("ВОДА"));
-  val_list.append(toQByteArray("ГРУНТ"));
-  RLIMenuItemList* i017 = new RLIMenuItemList(RLIStrings::nMenu017, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i017 = new RLIMenuItemList(RLIStrings::nMenu017, 0);
+  i017->addVariant(RLIStrings::tvecApArray[0]);
+  i017->addVariant(RLIStrings::tvecApArray[1]);
   m01->add_item(static_cast<RLIMenuItem*>(i017));
 
 
@@ -194,36 +193,32 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemInt* i020 = new RLIMenuItemInt(RLIStrings::nMenu020, 0, 255, 5);
   m02->add_item(static_cast<RLIMenuItem*>(i020));
 
-  val_list.append(toQByteArray("МИЛИ"));
-  val_list.append(toQByteArray("КМ"));
-  RLIMenuItemList* i021 = new RLIMenuItemList(RLIStrings::nMenu021, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i021 = new RLIMenuItemList(RLIStrings::nMenu021, 0);
+  i021->addVariant(RLIStrings::vdArray[0]);
+  i021->addVariant(RLIStrings::vdArray[1]);
   m02->add_item(static_cast<RLIMenuItem*>(i021));
 
-  val_list.append(toQByteArray("ЛАГ"));
-  val_list.append(toQByteArray("РУЧ"));
-  RLIMenuItemList* i022 = new RLIMenuItemList(RLIStrings::nMenu022, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i022 = new RLIMenuItemList(RLIStrings::nMenu022, 0);
+  i022->addVariant(RLIStrings::speedArray[0]);
+  i022->addVariant(RLIStrings::speedArray[1]);
   m02->add_item(static_cast<RLIMenuItem*>(i022));
 
   RLIMenuItemFloat* i023 = new RLIMenuItemFloat(RLIStrings::nMenu023, 0.f, 90.f, 5.f);
   m02->add_item(i023);
 
-  val_list.append(toQByteArray("АОЦ"));
-  val_list.append(toQByteArray("СНС"));
-  val_list.append(toQByteArray("ГК-Л(В)"));
-  val_list.append(toQByteArray("ДЛГ"));
-  RLIMenuItemList* i024 = new RLIMenuItemList(RLIStrings::nMenu024, val_list, 2);
-  val_list.clear();
+  RLIMenuItemList* i024 = new RLIMenuItemList(RLIStrings::nMenu024, 2);
+  i024->addVariant(RLIStrings::devStabArray[0]);
+  i024->addVariant(RLIStrings::devStabArray[1]);
+  i024->addVariant(RLIStrings::devStabArray[2]);
+  i024->addVariant(RLIStrings::devStabArray[3]);
   m02->add_item(i024);
 
   RLIMenuItemInt* i025 = new RLIMenuItemInt(RLIStrings::nMenu025, 0, 90, 0);
   m02->add_item(i025);
 
-  val_list.append(toQByteArray("РУС"));
-  val_list.append(toQByteArray("АНГЛ"));
-  RLIMenuItemList* i026 = new RLIMenuItemList(RLIStrings::nMenu026, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i026 = new RLIMenuItemList(RLIStrings::nMenu026, 1);
+  i026->addVariant(RLIStrings::langArray[0]);
+  i026->addVariant(RLIStrings::langArray[1]);
   connect(i026, SIGNAL(onValueChanged(QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
   m02->add_item(i026);
 
@@ -236,9 +231,9 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemInt* i029 = new RLIMenuItemInt(RLIStrings::nMenu029, 1, 100, 1);
   m02->add_item(i029);
 
-  val_list.append(toQByteArray("ОТКЛ"));
-  RLIMenuItemList* i02A = new RLIMenuItemList(RLIStrings::nMenu02A, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i02A = new RLIMenuItemList(RLIStrings::nMenu02A, 0);
+  i02A->addVariant(RLIStrings::OffOnArray[0]);
+  i02A->addVariant(RLIStrings::OffOnArray[1]);
   m02->add_item(i02A);
 
 
@@ -249,35 +244,44 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemInt* i030 = new RLIMenuItemInt(RLIStrings::nMenu030, 1, 2, 1);
   m03->add_item(static_cast<RLIMenuItem*>(i030));
 
-  val_list.append(toQByteArray("ВКЛ"));
-  val_list.append(toQByteArray("ОТКЛ"));
-  RLIMenuItemList* i031 = new RLIMenuItemList(RLIStrings::nMenu031, val_list, 1);
+  RLIMenuItemList* i031 = new RLIMenuItemList(RLIStrings::nMenu031, 1);
+  i031->addVariant(RLIStrings::OffOnArray[0]);
+  i031->addVariant(RLIStrings::OffOnArray[1]);
   m03->add_item(static_cast<RLIMenuItem*>(i031));
 
-  RLIMenuItemList* i032 = new RLIMenuItemList(RLIStrings::nMenu032, val_list, 1);
+  RLIMenuItemList* i032 = new RLIMenuItemList(RLIStrings::nMenu032, 1);
+  i032->addVariant(RLIStrings::OffOnArray[0]);
+  i032->addVariant(RLIStrings::OffOnArray[1]);
   m03->add_item(static_cast<RLIMenuItem*>(i032));
 
-  RLIMenuItemList* i033 = new RLIMenuItemList(RLIStrings::nMenu033, val_list, 1);
-  val_list.clear();
+  RLIMenuItemList* i033 = new RLIMenuItemList(RLIStrings::nMenu033, 1);
+  i033->addVariant(RLIStrings::OffOnArray[0]);
+  i033->addVariant(RLIStrings::OffOnArray[1]);
   m03->add_item(static_cast<RLIMenuItem*>(i033));
 
   RLIMenuItemFloat* i034 = new RLIMenuItemFloat(RLIStrings::nMenu034, 0.f, 3.f, 0.f);
   m03->add_item(static_cast<RLIMenuItem*>(i034));
 
-  val_list.append(toQByteArray("ДА"));
-  val_list.append(toQByteArray("НЕТ"));
-  RLIMenuItemList* i035 = new RLIMenuItemList(RLIStrings::nMenu035, val_list, 0);
+  RLIMenuItemList* i035 = new RLIMenuItemList(RLIStrings::nMenu035, 0);
+  i035->addVariant(RLIStrings::YesNoArray[0]);
+  i035->addVariant(RLIStrings::YesNoArray[1]);
   m03->add_item(static_cast<RLIMenuItem*>(i035));
 
-  RLIMenuItemList* i036 = new RLIMenuItemList(RLIStrings::nMenu036, val_list, 1);
+  RLIMenuItemList* i036 = new RLIMenuItemList(RLIStrings::nMenu036, 1);
+  i036->addVariant(RLIStrings::YesNoArray[0]);
+  i036->addVariant(RLIStrings::YesNoArray[1]);
   m03->add_item(static_cast<RLIMenuItem*>(i036));
 
-  RLIMenuItemList* i037 = new RLIMenuItemList(RLIStrings::nMenu037, val_list, 1);
+  RLIMenuItemList* i037 = new RLIMenuItemList(RLIStrings::nMenu037, 1);
+  i037->addVariant(RLIStrings::YesNoArray[0]);
+  i037->addVariant(RLIStrings::YesNoArray[1]);
   m03->add_item(static_cast<RLIMenuItem*>(i037));
 
-  RLIMenuItemList* i038 = new RLIMenuItemList(RLIStrings::nMenu038, val_list, 1);
-  val_list.clear();
+  RLIMenuItemList* i038 = new RLIMenuItemList(RLIStrings::nMenu038, 1);
+  i038->addVariant(RLIStrings::YesNoArray[0]);
+  i038->addVariant(RLIStrings::YesNoArray[1]);
   m03->add_item(static_cast<RLIMenuItem*>(i038));
+
 
   // --------------------------
   RLIMenuItemMenu* m04 = new RLIMenuItemMenu(RLIStrings::nMenu04, m0);
@@ -286,10 +290,7 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemInt* i040 = new RLIMenuItemInt(RLIStrings::nMenu040, 1, 4, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i040));
 
-  val_list.append(toQByteArray("ОТКЛ"));
-  for (int i = 1; i < 11; i++)
-    val_list.append(toQByteArray(QString::number(i).toLocal8Bit()));
-  RLIMenuItemList* i041 = new RLIMenuItemList(RLIStrings::nMenu041, val_list, 0);
+  RLIMenuItemInt* i041 = new RLIMenuItemInt(RLIStrings::nMenu041, 0, 10, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i041));
 
   RLIMenuItemAction* i042 = new RLIMenuItemAction(RLIStrings::nMenu042);
@@ -301,15 +302,15 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemAction* i044 = new RLIMenuItemAction(RLIStrings::nMenu044);
   m04->add_item(static_cast<RLIMenuItem*>(i044));
 
-  RLIMenuItemList* i045 = new RLIMenuItemList(RLIStrings::nMenu045, val_list, 1);
-  val_list.clear();
+  RLIMenuItemInt* i045 = new RLIMenuItemInt(RLIStrings::nMenu045, 0, 10, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i045));
 
-  val_list.append(toQByteArray("#"));
-  val_list.append(toQByteArray("@"));
-  val_list.append(toQByteArray("&"));
-  RLIMenuItemList* i046 = new RLIMenuItemList(RLIStrings::nMenu046, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i046 = new RLIMenuItemList(RLIStrings::nMenu046, 0);
+  i046->addVariant(RLIStrings::nameSymb[0]);
+  i046->addVariant(RLIStrings::nameSymb[1]);
+  i046->addVariant(RLIStrings::nameSymb[2]);
+  i046->addVariant(RLIStrings::nameSymb[3]);
+  i046->addVariant(RLIStrings::nameSymb[4]);
   m04->add_item(static_cast<RLIMenuItem*>(i046));
 
   RLIMenuItemInt* i047 = new RLIMenuItemInt(RLIStrings::nMenu047, 1, 4, 1);
@@ -320,26 +321,22 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemMenu* m05 = new RLIMenuItemMenu(RLIStrings::nMenu05, m0);
   m0->add_item(m05);
 
-  val_list.append(toQByteArray("НЕТ"));
-  val_list.append(toQByteArray("СВОЙ"));
-  val_list.append(toQByteArray("ЧУЖОЙ"));
-  RLIMenuItemList* i050 = new RLIMenuItemList(RLIStrings::nMenu050, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i050 = new RLIMenuItemList(RLIStrings::nMenu050, 0);
+  i050->addVariant(RLIStrings::nameSign[0]);
+  i050->addVariant(RLIStrings::nameSign[1]);
+  i050->addVariant(RLIStrings::nameSign[2]);
   m05->add_item(static_cast<RLIMenuItem*>(i050));
 
-  val_list.append(toQByteArray("НЕТ"));
-  val_list.append(toQByteArray("КРУГ"));
-  val_list.append(toQByteArray("СЕКТ"));
-  RLIMenuItemList* i051 = new RLIMenuItemList(RLIStrings::nMenu051, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i051 = new RLIMenuItemList(RLIStrings::nMenu051, 0);
+  i051->addVariant(RLIStrings::nameRecog[0]);
+  i051->addVariant(RLIStrings::nameRecog[1]);
+  i051->addVariant(RLIStrings::nameRecog[2]);
   m05->add_item(static_cast<RLIMenuItem*>(i051));
 
-  val_list.append(toQByteArray("ОТКЛ"));
-  val_list.append(toQByteArray("ВКЛ"));
-  RLIMenuItemList* i052 = new RLIMenuItemList(RLIStrings::nMenu052, val_list, 0);
-  val_list.clear();
+  RLIMenuItemList* i052 = new RLIMenuItemList(RLIStrings::nMenu052, 0);
+  i052->addVariant(RLIStrings::OffOnArray[0]);
+  i052->addVariant(RLIStrings::OffOnArray[1]);
   m05->add_item(static_cast<RLIMenuItem*>(i052));
-
 
   // --------------------------
   _main_menu = m0;
@@ -508,7 +505,7 @@ void MenuEngine::update() {
 
     for (int i = 0; i < _menu->item_count(); i++) {
       drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, QColor(69, 251, 247));
-      drawText(_menu->item(i)->value(), i+1, ALIGN_RIGHT, QColor(255, 242, 216));
+      drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, QColor(255, 242, 216));
     }
 
     _prog->release();
