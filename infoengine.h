@@ -1,7 +1,7 @@
 #ifndef INFOENGINE_H
 #define INFOENGINE_H
 
-#include <QRectF>
+#include <QRect>
 #include <QVector>
 #include <QDebug>
 
@@ -15,6 +15,8 @@
 #include "asmfonts.h"
 #include "rlistrings.h"
 
+enum TextAllign { INFOTEXT_ALLIGN_LEFT, INFOTEXT_ALLIGN_RIGHT, INFOTEXT_ALLIGN_CENTER };
+
 struct InfoRect {
   QColor col;
   QRect  rect;
@@ -24,10 +26,10 @@ struct InfoText {
   QByteArray str[RLI_LANG_COUNT];
   QString font_tag;
   QColor color;
-  QPoint anchor;
-  bool anchor_left;
+  QRect rect;
+  TextAllign allign;
 
-  InfoText() { anchor_left = true; }
+  InfoText() { allign = INFOTEXT_ALLIGN_LEFT; }
 };
 
 
@@ -36,6 +38,7 @@ struct InfoText {
 class InfoBlock : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
+
   explicit InfoBlock(QObject* parent = 0);
   virtual ~InfoBlock();
 

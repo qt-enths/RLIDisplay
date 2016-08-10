@@ -51,10 +51,10 @@ void ValueBarController::initBlock(const QSize& size) {
 
   InfoRect r;
   r.col = brdCol;
-  r.rect = QRect(12*_title_width + 6, 0, 2, 23);
+  r.rect = QRect(4+12*_title_width+2, 0, 2, 23);
   _block->addRect(r);
 
-  r.rect = QRect(12*_title_width + 8, 14, 0, 15);
+  r.rect = QRect(4+12*_title_width+2, 14, 0, 15);
   _val_rect_id = _block->addRect(r);
 
   InfoText t;
@@ -62,17 +62,14 @@ void ValueBarController::initBlock(const QSize& size) {
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(_name[i]));
 
-  t.anchor = QPoint(4 + 6*(_title_width - t.str[0].size()), 5);
-  t.anchor_left = true;
+  t.rect = QRect(4, 6, 12*_title_width+2, 14);
+  t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = txtCol;
   _ttl_text_id = _block->addText(t);
 
-  t.anchor = QPoint(12*_title_width + 9, 5);
-  t.font_tag = "12x14";
+  t.rect = QRect(4+12*_title_width+4+2, 6, 12*4, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = QByteArray();
-  t.anchor_left = true;
-  t.color = txtCol;
   _val_text_id = _block->addText(t);
 
   onValueChanged(_val);
@@ -107,59 +104,57 @@ void CursorController::initBlock(const QSize& size) {
   const QColor brdCol(35, 255, 103, 255);
   const QColor bckCol(0, 0, 0, 255);
 
-  _block->setGeometry(QRect(size.width() - 224 - 10, size.height() - 64 - 10, 224, 70));
+  _block->setGeometry(QRect(size.width() - 224 - 10, size.height() - 64 - 10, 224, 64));
   _block->setBackColor(bckCol);
   _block->setBorder(2, brdCol);
 
   InfoText t;
 
-  //
   t.font_tag = "12x14";
-  t.anchor_left = true;
+  t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = txtStaticCol;
 
-  t.anchor = QPoint(80, 5);
+  t.rect = QRect(0, 6, 224, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nMrk[i]));
   _block->addText(t);
 
-  t.anchor = QPoint(4, 32);
+  t.rect = QRect(4, 26, 224-8, 14);
+  t.allign = INFOTEXT_ALLIGN_LEFT;
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nBear[i]));
   _block->addText(t);
 
-  t.anchor = QPoint(4, 52);
+  t.rect = QRect(4, 46, 224-8, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nRng[i]));
   _block->addText(t);
 
   //
   t.font_tag = "12x14";
-  t.anchor_left = false;
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = txtDynamicCol;
 
-  t.anchor = QPoint(184, 32);
+  t.rect = QRect(180, 26, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode("0"));
   _pel_text_id = _block->addText(t);
 
-  t.anchor = QPoint(184, 52);
+  t.rect = QRect(180, 46, 0, 14);
   _dis_text_id = _block->addText(t);
 
   t.font_tag = "8x14";
-  t.anchor_left = true;
+  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = txtStaticCol;
 
-  QByteArray str(" ");
-  str[0] = static_cast<unsigned char>(248);
+  t.rect = QRect(186, 26, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nGrad[i]));
-  t.anchor = QPoint(186, 32);
   _block->addText(t);
 
+  t.rect = QRect(186, 46, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nNM[i]));
-  t.anchor = QPoint(186, 52);
   _block->addText(t);
 }
 
@@ -194,23 +189,24 @@ void ClockController::initBlock(const QSize& size) {
 
   //
   t.font_tag = "12x14";
-  t.anchor_left = true;
   t.color = txtStaticCol;
-  t.anchor = QPoint(4, 3);
+  t.rect = QRect(4, 4, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nTime[i]));
   _block->addText(t);
 
   t.color = txtDynamicCol;
-  t.anchor_left = false;
-  t.anchor = QPoint(204, 3);
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  t.rect = QRect(224-4, 4, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = QTime::currentTime().toString().toLocal8Bit();
   _text_id = _block->addText(t);
 }
 
 void ClockController::second_changed() {
+  if (_text_id == -1)
+    return;
+
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     emit setText(_text_id, i, QTime::currentTime().toString().toLocal8Bit());
-
 }

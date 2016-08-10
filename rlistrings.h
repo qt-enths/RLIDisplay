@@ -9,10 +9,10 @@ namespace RLIStrings {
   static char* nEng[2] =     { "ENG",	"АНГЛ" };
   static char* nRus[2] =     { "RUS",	"РУС" };
 
-  static char* nEmsn[2] =    { "EMISSION ",	"ИЗЛУЧЕНИЕ" };
+  static char* nEmsn[2] =    { "EMISSION",	"ИЗЛУЧЕНИЕ" };
   static char* nGrad[2] =    { "°   ",	"°   " };
-  static char* nGain[2] =    { "  GAIN  ", "УСИЛЕНИЕ" };
-  static char* nRain[2] =    { "RAIN ", "ДОЖДЬ" };
+  static char* nGain[2] =    { "GAIN", "УСИЛЕНИЕ" };
+  static char* nRain[2] =    { "RAIN", "ДОЖДЬ" };
   static char* nRain1[2] =   { "RAIN 1", "ДОЖДЬ 1" };
   static char* nWave[2] =    { " SEA ", "ВОЛНЫ" };
   static char* nAfc[2] =     { "AFC", "АПЧ" };
@@ -68,8 +68,8 @@ namespace RLIStrings {
   static char* nTcc[2] =     { "TCC", "ВПК" };
   static char* nMrk[2] =     { "CURSOR", "КУРСОР" };
   static char* nBrn[2] =     { "HB       ", "КУРС.УГОЛ" };
-  static char* nOff[2] =     { " OFF", "ОТКЛ" };
-  static char* nOn[2] =      { "  ON", " ВКЛ" };
+  static char* nOff[2] =     { "OFF", "ОТКЛ" };
+  static char* nOn[2] =      { "ON", " ВКЛ" };
   static char* nAPZ[2] =     { "AUTO A/C", "АПЗ" };
   static char* nBandX[2] =   { "X-BAND", "Х-ДИАП" };
   static char* nBandS[2] =   { "S-BAND", "S-ДИАП" };

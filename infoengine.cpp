@@ -198,9 +198,21 @@ void InfoEngine::drawText(const InfoText& text) {
   QSize font_size = _fonts->getSize(text.font_tag);
 
   QVector<float> pos, ord, chars;
-  QPointF anchor = text.anchor;
-  if (!text.anchor_left)
-    anchor -= QPointF(text.str[_lang].size() * font_size.width(), 0);
+  QPointF anchor;
+  switch (text.allign) {
+    case INFOTEXT_ALLIGN_LEFT:
+      anchor = text.rect.topLeft();
+      break;
+    case INFOTEXT_ALLIGN_RIGHT:
+      anchor = text.rect.topRight() - QPointF(font_size.width()*text.str[_lang].size(), 0.f);
+      break;
+    case INFOTEXT_ALLIGN_CENTER:
+      anchor = text.rect.center() - QPointF((font_size.width()*text.str[_lang].size())/2.f, font_size.height()/2.f);
+      break;
+    default:
+      anchor = text.rect.topLeft();
+      break;
+  }
 
   for (int i = 0; i < text.str[_lang].size(); i++) {
     for (int j = 0; j < 4; j++) {
