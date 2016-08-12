@@ -1,5 +1,12 @@
 #include "menuengine.h"
 
+const QColor INFO_TEXT_STATIC_COLOR(0x00,0xFC,0xFC);
+const QColor INFO_TEXT_DYNAMIC_COLOR(0xFC,0xFC,0x54);
+
+const QColor INFO_BORDER_COLOR(0x40,0xFC,0x00);
+const QColor INFO_BACKGRD_COLOR(0x00,0x00,0x00);
+
+
 RLIMenuItem::RLIMenuItem(QObject* parent) : QObject(parent) {
   _enc = QTextCodec::codecForName("cp866")->makeEncoder();
   _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
@@ -462,7 +469,7 @@ void MenuEngine::update() {
 
   _fbo->bind();
 
-  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClearColor(INFO_BACKGRD_COLOR.redF(), INFO_BACKGRD_COLOR.greenF(), INFO_BACKGRD_COLOR.blueF(), 1.f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   glMatrixMode( GL_PROJECTION );
@@ -475,8 +482,8 @@ void MenuEngine::update() {
   glLineWidth(2.f);
 
   // Draw border
-  glBegin(GL_LINE_LOOP);
-  glColor3f(35.f/255.f, 255.f/255.f, 103.f/255.f);
+  glBegin(GL_LINE_LOOP);  
+  glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
   glVertex2f(1.f, 1.f);
   glVertex2f(1.f, _size.height() - 1.f);
   glVertex2f(_size.width() - 1.f, _size.height() - 1.f);
@@ -487,7 +494,7 @@ void MenuEngine::update() {
     QSize font_size = _fonts->getSize(_font_tag);
 
     glBegin(GL_LINES);
-    glColor3f(35.f/255.f, 255.f/255.f, 103.f/255.f);
+    glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
 
     // Header separator
     glVertex2f(0.f, 6.f + font_size.height());
@@ -501,11 +508,11 @@ void MenuEngine::update() {
 
     _prog->bind();
 
-    drawText(_menu->name(_lang), 0, ALIGN_CENTER, QColor(69, 251, 247));
+    drawText(_menu->name(_lang), 0, ALIGN_CENTER, INFO_TEXT_STATIC_COLOR);
 
     for (int i = 0; i < _menu->item_count(); i++) {
-      drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, QColor(69, 251, 247));
-      drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, QColor(255, 242, 216));
+      drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, INFO_TEXT_STATIC_COLOR);
+      drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, INFO_TEXT_DYNAMIC_COLOR);
     }
 
     _prog->release();
@@ -530,9 +537,10 @@ void MenuEngine::drawSelection() {
 
   glBegin(GL_LINE_LOOP);
   if (_selection_active)
-    glColor3f(255.f/255.f, 242.f/255.f, 216.f/255.f);
+    glColor3f(INFO_TEXT_DYNAMIC_COLOR.redF(), INFO_TEXT_DYNAMIC_COLOR.greenF(), INFO_TEXT_DYNAMIC_COLOR.blueF());
   else
-    glColor3f(69.f/255.f, 251.f/255.f, 247.f/255.f);
+    glColor3f(INFO_TEXT_STATIC_COLOR.redF(), INFO_TEXT_STATIC_COLOR.greenF(), INFO_TEXT_STATIC_COLOR.blueF());
+
 
   // Left border
   glVertex2f(3.f, 2.f + _selected_line*(6+font_size.height()));

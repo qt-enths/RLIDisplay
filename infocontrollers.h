@@ -31,6 +31,7 @@ protected:
 };
 
 
+
 class ValueBarController : public InfoBlockController {
   Q_OBJECT
 public:
@@ -58,6 +59,106 @@ private:
 };
 
 
+
+class ScaleController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit ScaleController(QObject* parent = 0);
+
+public slots:
+  void scale_changed(std::pair<int, int> scale);
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _scl1_text_id;
+  int _scl2_text_id;
+  int _unit_text_id;
+};
+
+
+
+class RegimeController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit RegimeController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+};
+
+
+
+class CourseController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit CourseController(QObject* parent = 0);
+
+public slots:
+  void course_changed(float course);
+  void speed_changed(float speed);
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _crs_text_id;
+  int _spd_text_id;
+};
+
+
+
+class PositionController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit PositionController(QObject* parent = 0);
+
+public slots:
+  void pos_changed(std::pair<float, float> pos);
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _lat_text_id;
+  int _lon_text_id;
+};
+
+
+
+class BlankController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit BlankController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+};
+
+
+
 class CursorController : public InfoBlockController {
   Q_OBJECT
 public:
@@ -76,6 +177,7 @@ private:
   int _pel_text_id;
   int _dis_text_id;
 };
+
 
 
 class ClockController : public InfoBlockController {

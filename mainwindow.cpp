@@ -28,23 +28,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
-  _gain_ctrl = new ValueBarController(RLIStrings::nGain, QPoint(10, 10), 8, 0, this);
+  _gain_ctrl = new ValueBarController(RLIStrings::nGain, QPoint(5, 5), 8, 0, this);
   connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onValueChanged(int)));
 
-  _water_ctrl = new ValueBarController(RLIStrings::nWave, QPoint(10, 10+23+4), 8, 0, this);
+  _water_ctrl = new ValueBarController(RLIStrings::nWave, QPoint(5, 5+23+4), 8, 0, this);
   connect(ui->wgtRLIControl, SIGNAL(waterChanged(int)), _water_ctrl, SLOT(onValueChanged(int)));
 
-  _rain_ctrl = new ValueBarController(RLIStrings::nRain, QPoint(10, 10+2*(23+4)), 8, 0, this);
+  _rain_ctrl = new ValueBarController(RLIStrings::nRain, QPoint(5, 5+2*(23+4)), 8, 0, this);
   connect(ui->wgtRLIControl, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
-  _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(10, 10+3*(23+4)), 8, 0, this);
-  _radiation_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(10+12*8+60+6, 10), 9, -1, this);
+  _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(5, 5+3*(23+4)), 8, 0, this);
+  _radiation_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
   connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(float,float)), _curs_ctrl, SLOT(cursor_moved(float,float)));
 
   _clck_ctrl = new ClockController(this);
   connect(ui->wgtRLIDisplay, SIGNAL(per_second()), _clck_ctrl, SLOT(second_changed()));
+
+  _scle_ctrl = new ScaleController(this);
+  _rgme_ctrl = new RegimeController(this);
+
+  _crse_ctrl = new CourseController(this);
+
+  _pstn_ctrl = new PositionController(this);
+  _blnk_ctrl = new BlankController(this);
 
   connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
   startTimer(33);
@@ -63,6 +71,14 @@ MainWindow::~MainWindow() {
   delete _rain_ctrl;
   delete _apch_ctrl;
   delete _radiation_ctrl;
+
+  delete _scle_ctrl;
+  delete _rgme_ctrl;
+
+  delete _crse_ctrl;
+
+  delete _pstn_ctrl;
+  delete _blnk_ctrl;
 
   delete _curs_ctrl;
   delete _clck_ctrl;
@@ -83,6 +99,14 @@ void MainWindow::onRLIWidgetInitialized() {
 
   setupInfoBlock(_curs_ctrl);
   setupInfoBlock(_clck_ctrl);
+
+  setupInfoBlock(_pstn_ctrl);
+  setupInfoBlock(_blnk_ctrl);
+
+  setupInfoBlock(_crse_ctrl);
+
+  setupInfoBlock(_scle_ctrl);
+  setupInfoBlock(_rgme_ctrl);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);

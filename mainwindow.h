@@ -41,6 +41,14 @@ private:
   CursorController* _curs_ctrl;
   ClockController* _clck_ctrl;
 
+  ScaleController* _scle_ctrl;
+  RegimeController* _rgme_ctrl;
+
+  CourseController* _crse_ctrl;
+
+  PositionController* _pstn_ctrl;
+  BlankController* _blnk_ctrl;
+
   ChartManager* _chart_mngr;
   RadarDataSource* _radar_ds;
 
