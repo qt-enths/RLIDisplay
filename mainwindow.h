@@ -43,6 +43,7 @@ private:
 
   ScaleController* _scle_ctrl;
   CourseController* _crse_ctrl;
+  DangerController* _dngr_ctrl;
 
   LabelController* _lbl1_ctrl;
   LabelController* _lbl2_ctrl;
@@ -50,6 +51,10 @@ private:
 
   PositionController* _pstn_ctrl;
   BlankController* _blnk_ctrl;
+  TailsController* _tals_ctrl;
+  DangerDetailsController* _dgdt_ctrl;
+  VectorController* _vctr_ctrl;
+  TargetsController* _trgs_ctrl;
 
   ChartManager* _chart_mngr;
   RadarDataSource* _radar_ds;

@@ -479,15 +479,15 @@ void MenuEngine::update() {
 
   glShadeModel( GL_FLAT );
 
-  glLineWidth(2.f);
+  glLineWidth(1.f);
 
   // Draw border
   glBegin(GL_LINE_LOOP);  
   glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
-  glVertex2f(1.f, 1.f);
-  glVertex2f(1.f, _size.height() - 1.f);
-  glVertex2f(_size.width() - 1.f, _size.height() - 1.f);
-  glVertex2f(_size.width() - 1.f, 1.f);
+  glVertex2f(1.f, 0.f);
+  glVertex2f(1.f, _size.height());
+  glVertex2f(_size.width(), _size.height()-1.f);
+  glVertex2f(_size.width(), 0.f);
   glEnd();
 
   if (_enabled) {

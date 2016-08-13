@@ -294,10 +294,10 @@ void RLIDisplayWidget::paintGL() {
 
   glBegin(GL_QUADS);
   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-  glTexCoord2f(0.0f, 0.0f); glVertex3f(width() - menuSize.width() - 5, 180 + menuSize.height(), 0.0f);
-  glTexCoord2f(1.0f, 0.0f); glVertex3f(width() - 5, 180 + menuSize.height(), 0.0f);
-  glTexCoord2f(1.0f, 1.0f); glVertex3f(width() - 5, 180, 0.0f);
-  glTexCoord2f(0.0f, 1.0f); glVertex3f(width() - menuSize.width() - 5, 180, 0.0f);
+  glTexCoord2f(0.0f, 0.0f); glVertex3f(width() - menuSize.width() - 5, 158 + menuSize.height(), 0.0f);
+  glTexCoord2f(1.0f, 0.0f); glVertex3f(width() - 5, 158 + menuSize.height(), 0.0f);
+  glTexCoord2f(1.0f, 1.0f); glVertex3f(width() - 5, 158, 0.0f);
+  glTexCoord2f(0.0f, 1.0f); glVertex3f(width() - menuSize.width() - 5, 158, 0.0f);
   glEnd();
 
   glBindTexture(GL_TEXTURE_2D, 0);

@@ -52,6 +52,7 @@ namespace RLIStrings {
   static char* nGPSS[2] =    { "GPS SPEED", "СКОР СНС " };
   static char* nDLGS[2] =    { "DLG SPEED", "СКОР ДЛГ " };
   static char* nVec[2] =     { "VECTOR", "ВЕКТОР" };
+  static char* nDng[2] =     { "DANGER TRG", "ОПАСНАЯ ЦЕЛЬ" };
   static char* nCPA[2] =     { "CPA LIMIT  ", "ОПАСНАЯ ДКС" };
   static char* nVks[2] =     { "TCPA LIMIT ", "ОПАСНОЕ ВКС" };
   static char* nTrgN[2] =    { "TRG  №    ALL", "ЦЕЛЬ №    ВСЕГО" };

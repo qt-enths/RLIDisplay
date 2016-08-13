@@ -56,6 +56,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _pstn_ctrl = new PositionController(this);
   _blnk_ctrl = new BlankController(this);
+  _dngr_ctrl = new DangerController(this);
+  _tals_ctrl = new TailsController(this);
+  _dgdt_ctrl = new DangerDetailsController(this);
+  _vctr_ctrl = new VectorController(this);
+  _trgs_ctrl = new TargetsController(this);
 
   connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
   startTimer(33);
@@ -85,9 +90,14 @@ MainWindow::~MainWindow() {
 
   delete _pstn_ctrl;
   delete _blnk_ctrl;
+  delete _dngr_ctrl;
 
   delete _curs_ctrl;
   delete _clck_ctrl;
+  delete _tals_ctrl;
+  delete _dgdt_ctrl;
+  delete _vctr_ctrl;
+  delete _trgs_ctrl;
 }
 
 void MainWindow::onRLIWidgetInitialized() {
@@ -115,6 +125,12 @@ void MainWindow::onRLIWidgetInitialized() {
   setupInfoBlock(_lbl1_ctrl);
   setupInfoBlock(_lbl2_ctrl);
   setupInfoBlock(_lbl3_ctrl);
+
+  setupInfoBlock(_dngr_ctrl);
+  setupInfoBlock(_tals_ctrl);
+  setupInfoBlock(_dgdt_ctrl);
+  setupInfoBlock(_vctr_ctrl);
+  setupInfoBlock(_trgs_ctrl);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);

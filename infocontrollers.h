@@ -168,6 +168,100 @@ private:
 
 
 
+class DangerController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit DangerController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+};
+
+
+
+class TailsController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit TailsController(QObject* parent = 0);
+
+public slots:
+  void tails_count_changed(int count);
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _min_text_id;
+};
+
+
+
+class DangerDetailsController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit DangerDetailsController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _dks_text_id;
+  int _vks_text_id;
+};
+
+
+
+class VectorController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit VectorController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+};
+
+
+
+class TargetsController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit TargetsController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _trg_text_id;
+  int _cnt_text_id;
+};
+
+
+
 class CursorController : public InfoBlockController {
   Q_OBJECT
 public:

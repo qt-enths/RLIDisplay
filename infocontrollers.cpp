@@ -17,11 +17,12 @@
 //#define cMSGERR 44	 // фон сообщения         /*2C*/{0xFC,0xFC,0x00}
 //#define cBLANKITEM 28	 // пропускаемый пункт меню /*1C*/{0xB4,0xB4,0xB4}
 
-const QColor INFO_TEXT_STATIC_COLOR(0x00,0xFC,0xFC);
-const QColor INFO_TEXT_DYNAMIC_COLOR(0xFC,0xFC,0x54);
+static const QColor INFO_TEXT_STATIC_COLOR(0x00,0xFC,0xFC);
+static const QColor INFO_TEXT_DYNAMIC_COLOR(0xFC,0xFC,0x54);
 
-const QColor INFO_BORDER_COLOR(0x40,0xFC,0x00);
-const QColor INFO_BACKGRD_COLOR(0x00,0x00,0x00);
+static const QColor INFO_TRANSPARENT_COLOR(0xFF,0xFF,0xFF,0x00);
+static const QColor INFO_BORDER_COLOR(0x40,0xFC,0x00);
+static const QColor INFO_BACKGRD_COLOR(0x00,0x00,0x00);
 
 
 InfoBlockController::InfoBlockController(QObject* parent) : QObject(parent) {
@@ -62,7 +63,7 @@ void ValueBarController::initBlock(const QSize& size) {
 
   _block->setGeometry(QRect(_left_top.x(), _left_top.y(), 12*_title_width + 60, 23));
   _block->setBackColor(INFO_BACKGRD_COLOR);
-  _block->setBorder(2, INFO_BORDER_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoRect r;
   r.col = INFO_BORDER_COLOR;
@@ -82,6 +83,7 @@ void ValueBarController::initBlock(const QSize& size) {
   t.color = INFO_TEXT_STATIC_COLOR;
   _ttl_text_id = _block->addText(t);
 
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
   t.rect = QRect(4+12*_title_width+4+2, 6, 12*4, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = QByteArray();
@@ -131,13 +133,13 @@ void LabelController::initBlock(const QSize& size) {
 
   _block->setGeometry(geometry);
   _block->setBackColor(INFO_BACKGRD_COLOR);
-  _block->setBorder(2, INFO_BORDER_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
 
   t.font_tag = "12x14";
   t.allign = INFOTEXT_ALLIGN_CENTER;
-  t.color = INFO_TEXT_STATIC_COLOR;
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
 
   t.rect = QRect(0, 5, _width, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
@@ -161,7 +163,7 @@ void ScaleController::scale_changed(std::pair<int, int> scale) {
 void ScaleController::initBlock(const QSize& size) {
   _block->setGeometry(QRect( size.width() - 19*12-4*2 - 5 - 5 - 236, 5, 236, 4+28+4));
   _block->setBackColor(INFO_BACKGRD_COLOR);
-  _block->setBorder(2, INFO_BORDER_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
 
@@ -221,9 +223,9 @@ void CourseController::initBlock(const QSize& size) {
   QSize font_size(12, 14);
 
   _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, 5
-                           , 19*font_size.width()+4*2, 2*(6+font_size.height()) + 2));
+                           , 19*font_size.width()+4*2, 2*(6+font_size.height()) + 1));
   _block->setBackColor(INFO_BACKGRD_COLOR);
-  _block->setBorder(2, INFO_BORDER_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
 
@@ -286,10 +288,10 @@ void PositionController::pos_changed(std::pair<float, float> pos) {
 void PositionController::initBlock(const QSize& size) {
   QSize font_size(12, 14);
 
-  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, 5 + 2*(6+font_size.height()) + 2 + 4
-                           , 19*font_size.width()+4*2, 2*(6+font_size.height()) + 2));
+  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, 5 + 2*(6+font_size.height()) + 1 + 4
+                           , 19*font_size.width()+4*2, 2*(6+font_size.height()) + 1));
   _block->setBackColor(INFO_BACKGRD_COLOR);
-  _block->setBorder(2, INFO_BORDER_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
 
@@ -316,10 +318,305 @@ BlankController::BlankController(QObject* parent) : InfoBlockController(parent) 
 void BlankController::initBlock(const QSize& size) {
   QSize font_size(12, 14);
 
-  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, 5 + 2*(2*(6+font_size.height()) + 2 + 4)
-                           , 19*font_size.width()+4*2, 2*(6+font_size.height()) + 2));
+  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, 5 + 2*(2*(6+font_size.height()) + 1 + 4)
+                           , 19*font_size.width()+4*2, 2*(6+font_size.height()) + 1));
   _block->setBackColor(INFO_BACKGRD_COLOR);
-  _block->setBorder(2, INFO_BORDER_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
+}
+
+//------------------------------------------------------------------------------
+
+DangerController::DangerController(QObject* parent) : InfoBlockController(parent) {
+}
+
+void DangerController::initBlock(const QSize& size) {
+  _block->setGeometry(QRect(size.width() - 236 - 5, size.height() - 340 - 5, 236, 22));
+  _block->setBackColor(INFO_TEXT_DYNAMIC_COLOR);
+
+  InfoText t;
+
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_CENTER;
+  t.color = INFO_BACKGRD_COLOR;
+  t.rect = QRect(1, 1, 236, 22);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nDng[i]));
+  _block->addText(t);
+}
+
+//------------------------------------------------------------------------------
+
+TailsController::TailsController(QObject* parent) : InfoBlockController(parent) {
+  _min_text_id = -1;
+}
+
+void TailsController::tails_count_changed(int count) {
+  Q_UNUSED(count);
+}
+
+void TailsController::initBlock(const QSize& size) {
+  QSize font_size(12, 14);
+
+  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, size.height() - 315 - 5
+                           , 19*font_size.width()+4*2, 6+font_size.height() + 2));
+  _block->setBackColor(INFO_BACKGRD_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
+
+  InfoText t;
+
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(4, 5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nTrl[i]));
+  _block->addText(t);
+
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
+
+  t.rect = QRect(180, 5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nOff[i]));
+  _min_text_id =_block->addText(t);
+
+  t.font_tag = "8x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(186, 5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nMin[i]));
+  _block->addText(t);
+}
+
+//------------------------------------------------------------------------------
+
+DangerDetailsController::DangerDetailsController(QObject* parent) : InfoBlockController(parent) {
+  _dks_text_id = -1;
+  _vks_text_id = -1;
+}
+
+void DangerDetailsController::initBlock(const QSize& size) {
+  QSize font_size(12, 14);
+
+  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, size.height() - 290 - 5
+                           , 19*font_size.width()+4*2, 2*(6+font_size.height()) + 1));
+  _block->setBackColor(INFO_BACKGRD_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
+
+  InfoText t;
+
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(4, 5, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nCPA[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 23, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nVks[i]));
+  _block->addText(t);
+
+
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
+
+  t.rect = QRect(180, 5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = QByteArray("0");
+  _dks_text_id = _block->addText(t);
+
+  t.rect = QRect(180, 23, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = QByteArray("0");
+  _vks_text_id =_block->addText(t);
+
+
+  t.font_tag = "8x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(186, 5, 32, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nNM[i]));
+  _block->addText(t);
+
+  t.rect = QRect(186, 23, 32, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nMin[i]));
+  _block->addText(t);
+}
+
+//------------------------------------------------------------------------------
+
+VectorController::VectorController(QObject* parent) : InfoBlockController(parent) {
+
+}
+
+void VectorController::initBlock(const QSize& size) {
+  QSize font_size(12, 14);
+
+  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, size.height() - 246 - 5
+                           , 19*font_size.width()+4*2, 6+font_size.height() + 2));
+  _block->setBackColor(INFO_BACKGRD_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
+
+  InfoText t;
+
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(4, 5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nVec[i]));
+  _block->addText(t);
+
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
+
+  t.rect = QRect(180, 5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = QByteArray("20");
+  _block->addText(t);
+
+  t.font_tag = "8x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(186, 5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nMin[i]));
+  _block->addText(t);
+}
+
+//------------------------------------------------------------------------------
+
+TargetsController::TargetsController(QObject* parent) : InfoBlockController(parent) {
+}
+
+void TargetsController::initBlock(const QSize& size) {
+  QSize font_size(12, 14);
+
+  _block->setGeometry(QRect( size.width() - 19*font_size.width()-4*2 - 5, size.height() - 221 - 5
+                           , 19*font_size.width()+4*2, 158));
+  _block->setBackColor(INFO_BACKGRD_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
+
+  InfoRect r;
+  r.col = INFO_BORDER_COLOR;
+  r.rect = QRect(0, 18, 236, 1);
+  _block->addRect(r);
+
+  r.rect = QRect(118, 0, 1, 18);
+  _block->addRect(r);
+
+  InfoText t;
+  // Header
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(4, 3, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nTrg[i]));
+  _block->addText(t);
+
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
+
+  t.rect = QRect(114, 3, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = QByteArray("1");
+  _trg_text_id = _block->addText(t);
+
+  t.rect = QRect(230, 3, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = QByteArray("1");
+  _cnt_text_id = _block->addText(t);
+
+
+
+  // Table
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(4, 18+5, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nBear[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 18+5+18, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nRng[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 18+5+2*18, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nCrsW[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 18+5+3*18, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nSpdW[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 18+5+4*18, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nTcpa[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 18+5+5*18, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nTtcpa[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 18+5+6*18, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nDcc[i]));
+  _block->addText(t);
+
+  t.rect = QRect(4, 18+5+7*18, 224-8, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nTcc[i]));
+  _block->addText(t);
+
+
+
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
+
+  t.rect = QRect(180, 18+5, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = QByteArray("0");
+  _block->addText(t);
+
+  t.rect = QRect(180, 18+23, 0, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = QByteArray("0");
+  _block->addText(t);
+
+
+  t.font_tag = "8x14";
+  t.allign = INFOTEXT_ALLIGN_LEFT;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(186, 18+5, 32, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nNM[i]));
+  _block->addText(t);
+
+  t.rect = QRect(186, 18+23, 32, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nMin[i]));
+  _block->addText(t);
 }
 
 //------------------------------------------------------------------------------
@@ -330,9 +627,9 @@ CursorController::CursorController(QObject* parent) : InfoBlockController(parent
 }
 
 void CursorController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() - 224 - 5, size.height() - 64 - 5, 224, 64));
+  _block->setGeometry(QRect(size.width() - 236 - 5, size.height() - 60 - 5, 236, 60));
   _block->setBackColor(INFO_BACKGRD_COLOR);
-  _block->setBorder(2, INFO_BORDER_COLOR);
+  _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
 
@@ -345,13 +642,13 @@ void CursorController::initBlock(const QSize& size) {
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nMrk[i]));
   _block->addText(t);
 
-  t.rect = QRect(4, 26, 224-8, 14);
+  t.rect = QRect(4, 24, 224-8, 14);
   t.allign = INFOTEXT_ALLIGN_LEFT;
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nBear[i]));
   _block->addText(t);
 
-  t.rect = QRect(4, 46, 224-8, 14);
+  t.rect = QRect(4, 42, 224-8, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nRng[i]));
   _block->addText(t);
@@ -361,24 +658,24 @@ void CursorController::initBlock(const QSize& size) {
   t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
-  t.rect = QRect(180, 26, 0, 14);
+  t.rect = QRect(180, 24, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode("0"));
   _pel_text_id = _block->addText(t);
 
-  t.rect = QRect(180, 46, 0, 14);
+  t.rect = QRect(180, 42, 0, 14);
   _dis_text_id = _block->addText(t);
 
   t.font_tag = "8x14";
   t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
 
-  t.rect = QRect(186, 26, 0, 14);
+  t.rect = QRect(186, 24, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nGrad[i]));
   _block->addText(t);
 
-  t.rect = QRect(186, 46, 0, 14);
+  t.rect = QRect(186, 42, 0, 14);
   for (int i = 0; i < RLI_LANG_COUNT; i++)
     t.str[i] = enc->fromUnicode(dec->toUnicode(RLIStrings::nNM[i]));
   _block->addText(t);
@@ -403,8 +700,8 @@ ClockController::ClockController(QObject* parent) : InfoBlockController(parent) 
 }
 
 void ClockController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() - 224 - 10, 144 + 10, 224, 20));
-  _block->setBackColor(INFO_BACKGRD_COLOR);
+  _block->setGeometry(QRect(size.width() - 224 - 10, 137, 224, 20));
+  _block->setBackColor(INFO_TRANSPARENT_COLOR);
 
   InfoText t;
 
