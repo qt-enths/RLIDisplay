@@ -107,15 +107,44 @@ void ValueBarController::onValueChanged(int val) {
 
 //------------------------------------------------------------------------------
 
-RegimeController::RegimeController(QObject* parent) : InfoBlockController(parent) {
 
+LabelController::LabelController(char** text, int width, const QPoint& anchor, bool anchor_left, QObject* parent)
+  : InfoBlockController(parent) {
+  _text_id = -1;
+  _text = text;
+  _anchor = anchor;
+  _anchor_left = anchor_left;
+  _width = width;
 }
 
-void RegimeController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect( size.width() - 19*12-4*2 - 5 - 5 - 120, 5+4+28+4+5, 120, 64));
+void LabelController::onTextChanged(char** text) {
+  Q_UNUSED(text);
+}
+
+void LabelController::initBlock(const QSize& size) {
+  QRect geometry;
+
+  if (_anchor_left)
+    geometry = QRect(_anchor.x(), _anchor.y(), _width, 4+14+4);
+  else
+    geometry = QRect(size.width() -_anchor.x()-_width, _anchor.y(), _width, 4+14+4);
+
+  _block->setGeometry(geometry);
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(2, INFO_BORDER_COLOR);
+
+  InfoText t;
+
+  t.font_tag = "12x14";
+  t.allign = INFOTEXT_ALLIGN_CENTER;
+  t.color = INFO_TEXT_STATIC_COLOR;
+
+  t.rect = QRect(0, 5, _width, 14);
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    t.str[i] = enc->fromUnicode(dec->toUnicode(_text[i]));;
+  _text_id = _block->addText(t);
 }
+
 
 //------------------------------------------------------------------------------
 

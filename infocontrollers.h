@@ -60,6 +60,32 @@ private:
 
 
 
+class LabelController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit LabelController(char** text, int width, const QPoint& anchor, bool anchor_left = false, QObject* parent = 0);
+
+public slots:
+  void onTextChanged(char** text);
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _width;
+  QPoint _anchor;
+  bool _anchor_left;
+  char** _text;
+  int _text_id;
+};
+
+
+
+
+
 class ScaleController : public InfoBlockController {
   Q_OBJECT
 public:
@@ -78,23 +104,6 @@ private:
   int _scl1_text_id;
   int _scl2_text_id;
   int _unit_text_id;
-};
-
-
-
-class RegimeController : public InfoBlockController {
-  Q_OBJECT
-public:
-  explicit RegimeController(QObject* parent = 0);
-
-public slots:
-
-signals:
-  void setRect(int rectId, const QRect& r);
-  void setText(int textId, int lang_id, const QByteArray& str);
-
-private:
-  void initBlock(const QSize& size);
 };
 
 

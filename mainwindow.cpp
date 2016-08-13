@@ -47,7 +47,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(ui->wgtRLIDisplay, SIGNAL(per_second()), _clck_ctrl, SLOT(second_changed()));
 
   _scle_ctrl = new ScaleController(this);
-  _rgme_ctrl = new RegimeController(this);
+
+  _lbl1_ctrl = new LabelController(RLIStrings::nNord, 120, QPoint(246, 45), false, this);
+  _lbl2_ctrl = new LabelController(RLIStrings::nRm, 120, QPoint(246, 70), false, this);
+  _lbl3_ctrl = new LabelController(RLIStrings::nWstab, 120, QPoint(246, 95), false, this);
 
   _crse_ctrl = new CourseController(this);
 
@@ -73,7 +76,10 @@ MainWindow::~MainWindow() {
   delete _radiation_ctrl;
 
   delete _scle_ctrl;
-  delete _rgme_ctrl;
+
+  delete _lbl1_ctrl;
+  delete _lbl2_ctrl;
+  delete _lbl3_ctrl;
 
   delete _crse_ctrl;
 
@@ -106,7 +112,9 @@ void MainWindow::onRLIWidgetInitialized() {
   setupInfoBlock(_crse_ctrl);
 
   setupInfoBlock(_scle_ctrl);
-  setupInfoBlock(_rgme_ctrl);
+  setupInfoBlock(_lbl1_ctrl);
+  setupInfoBlock(_lbl2_ctrl);
+  setupInfoBlock(_lbl3_ctrl);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);

@@ -42,9 +42,11 @@ private:
   ClockController* _clck_ctrl;
 
   ScaleController* _scle_ctrl;
-  RegimeController* _rgme_ctrl;
-
   CourseController* _crse_ctrl;
+
+  LabelController* _lbl1_ctrl;
+  LabelController* _lbl2_ctrl;
+  LabelController* _lbl3_ctrl;
 
   PositionController* _pstn_ctrl;
   BlankController* _blnk_ctrl;
