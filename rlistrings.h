@@ -76,6 +76,10 @@ namespace RLIStrings {
   static char* nBandS[2] =   { "S-BAND", "S-ДИАП" };
   static char* nBandK[2] =   { "K-BAND", "K-ДИАП" };
 
+  static char* nLod[2]   =   { "???", "ЛОД" };
+  static char* nCu[2]   =    { "??", "КУ" };
+  static char* nGradLb[2] =  { "°??",	"°ЛБ" };
+
   // для маршрута
   static char* nGO[2] =      { "GO TO RP", "ИДЕМ НА МТ" };
   static char* nPar[2] =     { "PARAM OF A ROUTE", "ПАРАМЕТРЫ МАРШРУТА" };

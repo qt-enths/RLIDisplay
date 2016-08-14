@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(ui->wgtRLIControl, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
   _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(5, 5+3*(23+4)), 8, 0, this);
-  _radiation_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
+  _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
   connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(float,float)), _curs_ctrl, SLOT(cursor_moved(float,float)));
@@ -48,12 +48,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _scle_ctrl = new ScaleController(this);
 
-  _lbl1_ctrl = new LabelController(RLIStrings::nNord, 120, QPoint(246, 45), false, this);
-  _lbl2_ctrl = new LabelController(RLIStrings::nRm, 120, QPoint(246, 70), false, this);
-  _lbl3_ctrl = new LabelController(RLIStrings::nWstab, 120, QPoint(246, 95), false, this);
+  _lbl1_ctrl = new LableController(RLIStrings::nNord, QRect(-246-120, 45, 120, 21), "12x14", this);
+  _lbl2_ctrl = new LableController(RLIStrings::nRm, QRect(-246-120, 70, 120, 21), "12x14", this);
+  _lbl3_ctrl = new LableController(RLIStrings::nWstab, QRect(-246-120, 95, 120, 21), "12x14", this);
+  _lbl4_ctrl = new LableController(RLIStrings::nLod, QRect(-246-96, -100, 96, 33), "16x28", this);
 
   _crse_ctrl = new CourseController(this);
-
   _pstn_ctrl = new PositionController(this);
   _blnk_ctrl = new BlankController(this);
   _dngr_ctrl = new DangerController(this);
@@ -61,6 +61,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   _dgdt_ctrl = new DangerDetailsController(this);
   _vctr_ctrl = new VectorController(this);
   _trgs_ctrl = new TargetsController(this);
+
+  _vn_ctrl = new VnController(this);
+  _vd_ctrl = new VdController(this);
 
   connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
   startTimer(33);
@@ -78,13 +81,14 @@ MainWindow::~MainWindow() {
   delete _water_ctrl;
   delete _rain_ctrl;
   delete _apch_ctrl;
-  delete _radiation_ctrl;
+  delete _rdtn_ctrl;
 
   delete _scle_ctrl;
 
   delete _lbl1_ctrl;
   delete _lbl2_ctrl;
   delete _lbl3_ctrl;
+  delete _lbl4_ctrl;
 
   delete _crse_ctrl;
 
@@ -98,6 +102,9 @@ MainWindow::~MainWindow() {
   delete _dgdt_ctrl;
   delete _vctr_ctrl;
   delete _trgs_ctrl;
+
+  delete _vn_ctrl;
+  delete _vd_ctrl;
 }
 
 void MainWindow::onRLIWidgetInitialized() {
@@ -107,30 +114,29 @@ void MainWindow::onRLIWidgetInitialized() {
 
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";
+
   setupInfoBlock(_gain_ctrl);
   setupInfoBlock(_water_ctrl);
   setupInfoBlock(_rain_ctrl);
   setupInfoBlock(_apch_ctrl);
-  setupInfoBlock(_radiation_ctrl);
-
+  setupInfoBlock(_rdtn_ctrl);
   setupInfoBlock(_curs_ctrl);
   setupInfoBlock(_clck_ctrl);
-
   setupInfoBlock(_pstn_ctrl);
   setupInfoBlock(_blnk_ctrl);
-
   setupInfoBlock(_crse_ctrl);
-
   setupInfoBlock(_scle_ctrl);
   setupInfoBlock(_lbl1_ctrl);
   setupInfoBlock(_lbl2_ctrl);
   setupInfoBlock(_lbl3_ctrl);
-
+  setupInfoBlock(_lbl4_ctrl);
   setupInfoBlock(_dngr_ctrl);
   setupInfoBlock(_tals_ctrl);
   setupInfoBlock(_dgdt_ctrl);
   setupInfoBlock(_vctr_ctrl);
   setupInfoBlock(_trgs_ctrl);
+  setupInfoBlock(_vn_ctrl);
+  setupInfoBlock(_vd_ctrl);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);

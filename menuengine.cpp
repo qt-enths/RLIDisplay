@@ -482,26 +482,33 @@ void MenuEngine::update() {
   glLineWidth(1.f);
 
   // Draw border
-  glBegin(GL_LINE_LOOP);  
-  glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
-  glVertex2f(1.f, 0.f);
-  glVertex2f(1.f, _size.height());
-  glVertex2f(_size.width(), _size.height()-1.f);
-  glVertex2f(_size.width(), 0.f);
+  glBegin(GL_LINES);
+    glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
+    glVertex2f(0.5f, 0.f);
+    glVertex2f(0.5f, _size.height());
+
+    glVertex2f(0.f, 0.5f);
+    glVertex2f(_size.width(), 0.5f);
+
+    glVertex2f(_size.width()-0.5f, 0.f);
+    glVertex2f(_size.width()-0.5f, _size.height());
+
+    glVertex2f(0.f, _size.height()-0.5f);
+    glVertex2f(_size.width(), _size.height()-0.5f);
   glEnd();
 
   if (_enabled) {
     QSize font_size = _fonts->getSize(_font_tag);
 
     glBegin(GL_LINES);
-    glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
+      glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
 
-    // Header separator
-    glVertex2f(0.f, 6.f + font_size.height());
-    glVertex2f(_size.width(), 6.f + font_size.height());
-    // Footer separator
-    glVertex2f(0.f, 2.f + 12*(6+font_size.height()));
-    glVertex2f(_size.width(), 2.f + 12*(6+font_size.height()));
+      // Header separator
+      glVertex2f(0.f, 6.5f + font_size.height());
+      glVertex2f(_size.width(), 6.5f + font_size.height());
+      // Footer separator
+      glVertex2f(0.f, 2.5f + 12*(6+font_size.height()));
+      glVertex2f(_size.width(), 2.5f + 12*(6+font_size.height()));
     glEnd();
 
     glEnable(GL_BLEND);
@@ -543,10 +550,10 @@ void MenuEngine::drawSelection() {
 
 
   // Left border
-  glVertex2f(3.f, 2.f + _selected_line*(6+font_size.height()));
-  glVertex2f(3.f, (_selected_line+1)*(6+font_size.height()));
-  glVertex2f(_size.width() - 3.f, (_selected_line+1)*(6+font_size.height()));
-  glVertex2f(_size.width() - 3.f, 2.f + _selected_line*(6+font_size.height()));
+  glVertex2f(2.f, 2.f + _selected_line*(6+font_size.height()));
+  glVertex2f(2.f, (_selected_line+1)*(6+font_size.height()));
+  glVertex2f(_size.width() - 2.f, (_selected_line+1)*(6+font_size.height()));
+  glVertex2f(_size.width() - 2.f, 2.f + _selected_line*(6+font_size.height()));
 
   glEnd();
 }

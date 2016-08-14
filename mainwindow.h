@@ -36,7 +36,7 @@ private:
   ValueBarController* _water_ctrl;
   ValueBarController* _rain_ctrl;
   ValueBarController* _apch_ctrl;
-  ValueBarController* _radiation_ctrl;
+  ValueBarController* _rdtn_ctrl;
 
   CursorController* _curs_ctrl;
   ClockController* _clck_ctrl;
@@ -45,9 +45,10 @@ private:
   CourseController* _crse_ctrl;
   DangerController* _dngr_ctrl;
 
-  LabelController* _lbl1_ctrl;
-  LabelController* _lbl2_ctrl;
-  LabelController* _lbl3_ctrl;
+  LableController* _lbl1_ctrl;
+  LableController* _lbl2_ctrl;
+  LableController* _lbl3_ctrl;
+  LableController* _lbl4_ctrl;
 
   PositionController* _pstn_ctrl;
   BlankController* _blnk_ctrl;
@@ -55,6 +56,9 @@ private:
   DangerDetailsController* _dgdt_ctrl;
   VectorController* _vctr_ctrl;
   TargetsController* _trgs_ctrl;
+
+  VnController* _vn_ctrl;
+  VdController* _vd_ctrl;
 
   ChartManager* _chart_mngr;
   RadarDataSource* _radar_ds;

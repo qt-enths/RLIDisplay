@@ -24,6 +24,8 @@ signals:
 
 protected:
   virtual void initBlock(const QSize& size) = 0;
+  void setInfoTextStr(InfoText& t, char** str);
+  void setInfoTextBts(InfoText& t, QByteArray str);
 
   InfoBlock* _block;
   QTextEncoder* enc;
@@ -60,10 +62,10 @@ private:
 
 
 
-class LabelController : public InfoBlockController {
+class LableController : public InfoBlockController {
   Q_OBJECT
 public:
-  explicit LabelController(char** text, int width, const QPoint& anchor, bool anchor_left = false, QObject* parent = 0);
+  explicit LableController(char** text, const QRect& r, QString font_tag, QObject* parent = 0);
 
 public slots:
   void onTextChanged(char** text);
@@ -75,9 +77,8 @@ signals:
 private:
   void initBlock(const QSize& size);
 
-  int _width;
-  QPoint _anchor;
-  bool _anchor_left;
+  QString _font_tag;
+  QRect _geom;
   char** _text;
   int _text_id;
 };
@@ -300,5 +301,43 @@ private:
   int _text_id;
 };
 
+
+
+class VnController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit VnController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _p_text_id;
+  int _cu_text_id;
+};
+
+
+
+class VdController : public InfoBlockController {
+  Q_OBJECT
+public:
+  explicit VdController(QObject* parent = 0);
+
+public slots:
+
+signals:
+  void setRect(int rectId, const QRect& r);
+  void setText(int textId, int lang_id, const QByteArray& str);
+
+private:
+  void initBlock(const QSize& size);
+
+  int _vd_text_id;
+};
 
 #endif // INFOCONTROLLERS_H
