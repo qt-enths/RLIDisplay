@@ -124,6 +124,12 @@ void RadarEngine::resize(uint pel_count, uint pel_len) {
   if (_initialized) {
     delete _fbo;
     _fbo = new QGLFramebufferObject(getSize(), getSize(), _fbo_format);
+
+    glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     clearData();
     clearTexture();
   }
@@ -136,6 +142,11 @@ bool RadarEngine::init(const QGLContext* context) {
   initializeGLFunctions(context);
 
   _fbo = new QGLFramebufferObject(getSize(), getSize(), _fbo_format);
+
+  glBindTexture(GL_TEXTURE_2D, _fbo->texture());
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   glGenBuffers(ATTR_CNT, _vbo_ids);
 
