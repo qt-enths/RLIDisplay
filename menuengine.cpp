@@ -1,22 +1,19 @@
 #include "menuengine.h"
 
-const QColor INFO_TEXT_STATIC_COLOR(0x00,0xFC,0xFC);
-const QColor INFO_TEXT_DYNAMIC_COLOR(0xFC,0xFC,0x54);
 
-const QColor INFO_BORDER_COLOR(0x40,0xFC,0x00);
-const QColor INFO_BACKGRD_COLOR(0x00,0x00,0x00);
+const QColor MENU_LOCKED_ITEM_COLOR   (0xB4, 0xB4, 0xB4);
+const QColor MENU_DISABLED_ITEM_COLOR (0xFC, 0x54, 0x54);
+const QColor MENU_TEXT_STATIC_COLOR   (0x00, 0xFC, 0xFC);
+const QColor MENU_TEXT_DYNAMIC_COLOR  (0xFC, 0xFC, 0x54);
 
+const QColor MENU_BORDER_COLOR        (0x40, 0xFC, 0x00);
+const QColor MENU_BACKGRD_COLOR       (0x00, 0x00, 0x00);
 
-RLIMenuItem::RLIMenuItem(QObject* parent) : QObject(parent) {
-  _enc = QTextCodec::codecForName("cp866")->makeEncoder();
-  _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
-
-  for (int i = 0; i < RLI_LANG_COUNT; i++) {
-    _name[i] = QByteArray();
-  }
-}
 
 RLIMenuItem::RLIMenuItem(char** name, QObject* parent) : QObject(parent) {
+  _enabled = true;
+  _locked = false;
+
   _enc = QTextCodec::codecForName("cp866")->makeEncoder();
   _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
 
@@ -182,14 +179,17 @@ void MenuEngine::initMenuTree() {
   m01->add_item(static_cast<RLIMenuItem*>(i014));
 
   RLIMenuItemAction* i015 = new RLIMenuItemAction(RLIStrings::nMenu015);
+  i015->setLocked(true);
   m01->add_item(static_cast<RLIMenuItem*>(i015));
 
   RLIMenuItemAction* i016 = new RLIMenuItemAction(RLIStrings::nMenu016);
+  i016->setLocked(true);
   m01->add_item(static_cast<RLIMenuItem*>(i016));
 
   RLIMenuItemList* i017 = new RLIMenuItemList(RLIStrings::nMenu017, 0);
   i017->addVariant(RLIStrings::tvecApArray[0]);
   i017->addVariant(RLIStrings::tvecApArray[1]);
+  i017->setLocked(true);
   m01->add_item(static_cast<RLIMenuItem*>(i017));
 
 
@@ -236,6 +236,7 @@ void MenuEngine::initMenuTree() {
   m02->add_item(i028);
 
   RLIMenuItemInt* i029 = new RLIMenuItemInt(RLIStrings::nMenu029, 1, 100, 1);
+  i029->setLocked(true);
   m02->add_item(i029);
 
   RLIMenuItemList* i02A = new RLIMenuItemList(RLIStrings::nMenu02A, 0);
@@ -277,16 +278,19 @@ void MenuEngine::initMenuTree() {
   RLIMenuItemList* i036 = new RLIMenuItemList(RLIStrings::nMenu036, 1);
   i036->addVariant(RLIStrings::YesNoArray[0]);
   i036->addVariant(RLIStrings::YesNoArray[1]);
+  i036->setEnabled(false);
   m03->add_item(static_cast<RLIMenuItem*>(i036));
 
   RLIMenuItemList* i037 = new RLIMenuItemList(RLIStrings::nMenu037, 1);
   i037->addVariant(RLIStrings::YesNoArray[0]);
   i037->addVariant(RLIStrings::YesNoArray[1]);
+  i037->setEnabled(false);
   m03->add_item(static_cast<RLIMenuItem*>(i037));
 
   RLIMenuItemList* i038 = new RLIMenuItemList(RLIStrings::nMenu038, 1);
   i038->addVariant(RLIStrings::YesNoArray[0]);
   i038->addVariant(RLIStrings::YesNoArray[1]);
+  i038->setEnabled(false);
   m03->add_item(static_cast<RLIMenuItem*>(i038));
 
 
@@ -301,6 +305,7 @@ void MenuEngine::initMenuTree() {
   m04->add_item(static_cast<RLIMenuItem*>(i041));
 
   RLIMenuItemAction* i042 = new RLIMenuItemAction(RLIStrings::nMenu042);
+  i042->setLocked(true);
   m04->add_item(static_cast<RLIMenuItem*>(i042));
 
   RLIMenuItemInt* i043 = new RLIMenuItemInt(RLIStrings::nMenu043, 40, 1000, 200);
@@ -469,7 +474,7 @@ void MenuEngine::update() {
 
   _fbo->bind();
 
-  glClearColor(INFO_BACKGRD_COLOR.redF(), INFO_BACKGRD_COLOR.greenF(), INFO_BACKGRD_COLOR.blueF(), 1.f);
+  glClearColor(MENU_BACKGRD_COLOR.redF(), MENU_BACKGRD_COLOR.greenF(), MENU_BACKGRD_COLOR.blueF(), 1.f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   glMatrixMode( GL_PROJECTION );
@@ -483,7 +488,7 @@ void MenuEngine::update() {
 
   // Draw border
   glBegin(GL_LINES);
-    glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
+    glColor3f(MENU_BORDER_COLOR.redF(), MENU_BORDER_COLOR.greenF(), MENU_BORDER_COLOR.blueF());
     glVertex2f(0.5f, 0.f);
     glVertex2f(0.5f, _size.height());
 
@@ -501,7 +506,7 @@ void MenuEngine::update() {
     QSize font_size = _fonts->getSize(_font_tag);
 
     glBegin(GL_LINES);
-      glColor3f(INFO_BORDER_COLOR.redF(), INFO_BORDER_COLOR.greenF(), INFO_BORDER_COLOR.blueF());
+      glColor3f(MENU_BORDER_COLOR.redF(), MENU_BORDER_COLOR.greenF(), MENU_BORDER_COLOR.blueF());
 
       // Header separator
       glVertex2f(0.f, 6.5f + font_size.height());
@@ -515,11 +520,19 @@ void MenuEngine::update() {
 
     _prog->bind();
 
-    drawText(_menu->name(_lang), 0, ALIGN_CENTER, INFO_TEXT_STATIC_COLOR);
+    drawText(_menu->name(_lang), 0, ALIGN_CENTER, MENU_TEXT_STATIC_COLOR);
 
     for (int i = 0; i < _menu->item_count(); i++) {
-      drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, INFO_TEXT_STATIC_COLOR);
-      drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, INFO_TEXT_DYNAMIC_COLOR);
+      if (_menu->item(i)->locked()) {
+        drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, MENU_LOCKED_ITEM_COLOR);
+        drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, MENU_LOCKED_ITEM_COLOR);
+      } else if (_menu->item(i)->enabled()) {
+        drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, MENU_TEXT_STATIC_COLOR);
+        drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, MENU_TEXT_DYNAMIC_COLOR);
+      } else {
+        drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, MENU_LOCKED_ITEM_COLOR);
+        drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, MENU_DISABLED_ITEM_COLOR);
+      }
     }
 
     _prog->release();
@@ -544,9 +557,9 @@ void MenuEngine::drawSelection() {
 
   glBegin(GL_LINE_LOOP);
   if (_selection_active)
-    glColor3f(INFO_TEXT_DYNAMIC_COLOR.redF(), INFO_TEXT_DYNAMIC_COLOR.greenF(), INFO_TEXT_DYNAMIC_COLOR.blueF());
+    glColor3f(MENU_TEXT_DYNAMIC_COLOR.redF(), MENU_TEXT_DYNAMIC_COLOR.greenF(), MENU_TEXT_DYNAMIC_COLOR.blueF());
   else
-    glColor3f(INFO_TEXT_STATIC_COLOR.redF(), INFO_TEXT_STATIC_COLOR.greenF(), INFO_TEXT_STATIC_COLOR.blueF());
+    glColor3f(MENU_TEXT_STATIC_COLOR.redF(), MENU_TEXT_STATIC_COLOR.greenF(), MENU_TEXT_STATIC_COLOR.blueF());
 
 
   // Left border

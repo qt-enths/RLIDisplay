@@ -6,6 +6,7 @@
 enum RLILang { RLI_LANG_ENGLISH = 0, RLI_LANG_RUSSIAN = 1, RLI_LANG_COUNT = 2 };
 
 namespace RLIStrings {
+  static char* nBlank[2] =   { "",	"" };
   static char* nEng[2] =     { "ENG",	"АНГЛ" };
   static char* nRus[2] =     { "RUS",	"РУС" };
 
@@ -144,7 +145,7 @@ namespace RLIStrings {
 
   static char* nMenu040[2] = { "CALL ROUTE №", "ВЫЗОВ КАРТЫ №" };
   static char* nMenu041[2] = { "TAILS/PNT", "СЛЕДЫ/ТЧК" };
-  static char* nMenu042[2] = { "-------------------------", "-------------------------" };
+  static char* nMenu042[2] = { "-------------------", "-------------------" };
   static char* nMenu043[2] = { "CALL ROUTE №", "ВЫЗОВ КАРТЫ №" };
   static char* nMenu044[2] = { "LINE OF A ROUTE", "ЛИНИЯ МАРШРУТА" };
   static char* nMenu045[2] = { "POINT NUMBER", "НОМЕР ТОЧКИ" };

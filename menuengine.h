@@ -16,13 +16,18 @@
 class RLIMenuItem : public QObject {
   Q_OBJECT
 public:
-  RLIMenuItem(QObject* parent = 0);
   RLIMenuItem(char** name, QObject* parent = 0);
 
   virtual ~RLIMenuItem() {  }
 
   virtual QByteArray name(int lang_id) { return _name[lang_id]; }
   virtual QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QByteArray(); }
+
+  inline bool enabled() { return _enabled; }
+  inline void setEnabled(bool val) { _enabled = val; }
+
+  inline bool locked() { return _locked; }
+  inline void setLocked(bool val) { _locked = val; }
 
   virtual void up() { }
   virtual void down() { }
@@ -37,6 +42,9 @@ protected:
 
   QTextEncoder* _enc;
   QTextDecoder* _dec;
+
+  bool _enabled;
+  bool _locked;
 
 private:
   QByteArray _name[RLI_LANG_COUNT];
