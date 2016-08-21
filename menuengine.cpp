@@ -61,25 +61,79 @@ void RLIMenuItemList::addVariant(char** values) {
 void RLIMenuItemList::up() {
   if (_index < _variants[RLI_LANG_RUSSIAN].size() - 1) {
     _index++;
-    emit onValueChanged(_variants[RLI_LANG_RUSSIAN][_index]);
+    emit valueChanged(_variants[RLI_LANG_RUSSIAN][_index]);
   }
 }
 
 void RLIMenuItemList::down() {
   if (_index > 0) {
     _index--;
-    emit onValueChanged(_variants[RLI_LANG_RUSSIAN][_index]);
+    emit valueChanged(_variants[RLI_LANG_RUSSIAN][_index]);
   }
 }
 
 
 
-RLIMenuItemInt::RLIMenuItemInt(char** name, int min, int max, int def)  : RLIMenuItem(name) {
+RLIMenuItemInt::RLIMenuItemInt(char** name, int min, int max, int def, QObject* parent)
+  : RLIMenuItem(name, parent) {
   _type = INT;
+
   _min = min;
   _max = max;
   _value = def;
+
+  _change_start_time = QDateTime::currentDateTime().addSecs(-1);
+  _last_change_time = QDateTime::currentDateTime().addSecs(-1);
+
+  _delta=1;
 }
+
+void RLIMenuItemInt::up() {
+  if (_value < _max) {
+    adjustDelta();
+
+    _value += _delta;
+
+    if (_value > _max)
+      _value = _max;
+
+    emit valueChanged(_value);
+  }
+}
+
+void RLIMenuItemInt::down() {
+  if (_value > _min) {
+    adjustDelta();
+
+    _value -= _delta;
+
+    if (_value < _min)
+      _value = _min;
+
+    emit valueChanged(_value);
+  }
+}
+
+void RLIMenuItemInt::adjustDelta() {
+  QDateTime currentTime = QDateTime::currentDateTime();
+
+  if (currentTime > _last_change_time.addSecs(1)) {
+    _last_change_time = currentTime;
+    _change_start_time = currentTime;
+    _delta = 1;
+  } else {
+    if (_change_start_time.msecsTo(currentTime) > 5000) {
+      _delta = 100;
+    } else if (_change_start_time.msecsTo(currentTime) > 3000) {
+      _delta = 10;
+    } else {
+      _delta = 1;
+    }
+
+    _last_change_time = currentTime;
+  }
+}
+
 
 
 
@@ -123,6 +177,7 @@ void MenuEngine::initMenuTree() {
   m0->add_item(m00);
 
   RLIMenuItemInt* i000 = new RLIMenuItemInt(RLIStrings::nMenu000, 0, 255, 255);
+  connect(i000, SIGNAL(valueChanged(int)), this, SIGNAL(radarBrightnessChanged(int)));
   m00->add_item(static_cast<RLIMenuItem*>(i000));
 
   RLIMenuItemInt* i001 = new RLIMenuItemInt(RLIStrings::nMenu001, 0, 255, 255);
@@ -416,6 +471,11 @@ void MenuEngine::onDown() {
 }
 
 void MenuEngine::onEnter() {
+  if ( (_menu->item(_selected_line-1)->locked()
+        || !_menu->item(_selected_line-1)->enabled() )
+       && !_selection_active)
+    return;
+
   if (_menu->item(_selected_line - 1)->type() == RLIMenuItem::MENU) {
     _menu = dynamic_cast<RLIMenuItemMenu*>(_menu->item(_selected_line - 1));
     _selected_line = 1;

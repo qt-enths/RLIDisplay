@@ -58,6 +58,8 @@ public slots:
   void clearTexture();
   void clearData();
 
+  void onBrightnessChanged(int br);
+
   void updateTexture();
   void updateData(uint offset, uint count, float* divs, float* amps);
 

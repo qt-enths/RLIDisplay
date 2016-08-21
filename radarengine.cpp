@@ -45,7 +45,7 @@ void RadarPalette::updatePalette() {
       { 50,  10,  50,  76,  24,  76, 160,  52, 160, 244,  80, 244,  60, 150,  60,      0,      0 } }
     };
 
-  float br = ((float)brightnessRLI) / 255.f; // Вычисление коэффициента яркости
+  float br = ((float) brightnessRLI) / 255.f; // Вычисление коэффициента яркости
 
   // Расчёт цветового расстояния между точками на кривой преобразования амплитуды в цвет
   float kR[2][4], kG[2][4], kB[2][4];
@@ -115,6 +115,10 @@ RadarEngine::~RadarEngine() {
   }
 
   delete _prog;
+}
+
+void RadarEngine::onBrightnessChanged(int br) {
+  _pal->setBrightness(br);
 }
 
 void RadarEngine::resize(uint pel_count, uint pel_len) {

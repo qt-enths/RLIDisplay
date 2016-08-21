@@ -2,6 +2,7 @@
 #define MENUENGINE_H
 
 #include <QDebug>
+#include <QDateTime>
 #include <QByteArray>
 #include <QTextEncoder>
 #include <QTextDecoder>
@@ -97,7 +98,7 @@ public:
   void down();
 
 signals:
-  void onValueChanged(const QByteArray);
+  void valueChanged(const QByteArray);
 
 private:
   int _index;
@@ -106,16 +107,27 @@ private:
 
 
 class RLIMenuItemInt : public RLIMenuItem {
+    Q_OBJECT
 public:
-  RLIMenuItemInt(char** name, int min, int max, int def);
+  RLIMenuItemInt(char** name, int min, int max, int def, QObject* parent = 0);
   ~RLIMenuItemInt() {}
 
   inline QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QString::number(_value).toLatin1(); }
 
-  inline void up() { if (_value < _max) _value++; }
-  inline void down() { if (_value > _min) _value--; }
+  void up();
+  void down();
+
+signals:
+  void valueChanged(int);
 
 private:
+  void adjustDelta();
+
+  QDateTime _change_start_time;
+  QDateTime _last_change_time;
+
+  int _delta;
+
   int _value;
   int _min, _max;
 };
@@ -159,6 +171,7 @@ public:
 
 signals:
   void languageChanged(const QByteArray& lang);
+  void radarBrightnessChanged(int br);
 
 public slots:
   void setVisibility(bool val);

@@ -150,6 +150,9 @@ void MainWindow::onRLIWidgetInitialized() {
 
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
          , ui->wgtRLIDisplay->menuEngine(), SLOT(onLanguageChanged(QByteArray)));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
+         , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
