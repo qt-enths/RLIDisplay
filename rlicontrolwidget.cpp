@@ -151,3 +151,10 @@ void RLIControlWidget::on_btnTrace6_clicked() {
   }
 }
 
+
+void RLIControlWidget::on_btnConfigMenu_clicked() {
+  if (_reciever != NULL) {
+    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
+    qApp->postEvent(_reciever, e);
+  }
+}

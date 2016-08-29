@@ -41,6 +41,9 @@ private slots:
   void on_btnTrace5_clicked();
   void on_btnTrace6_clicked();
 
+
+  void on_btnConfigMenu_clicked();
+
 signals:
   void gainChanged(int val);
   void waterChanged(int val);

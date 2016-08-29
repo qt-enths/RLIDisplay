@@ -93,6 +93,14 @@ namespace RLIStrings {
   static char* nEcho[2] =    { "DEPTH", "ГЛУБИНА" };
   static char* nMetrs[2] =   { "METRS", "МЕТРЫ" };
 
+  static char* nMenu1[2] =   { "CONFIG", "КОНФИГУРАЦИЯ" };
+
+  static char* nMenu10[2] =  { "TUNINGS", "НАСТРОЙКИ" };
+  static char* nMenu11[2] =  { "TUNINGS PIKO", "НАСТРОЙКИ ПИКО" };
+  static char* nMenu12[2] =  { "NMEA ACCEPT", "ПРИЕМ NMEA" };
+  static char* nMenu13[2] =  { "NMEA TRANSM", "ПЕРЕДАЧА NMEA" };
+
+
   static char* nMenu0[2] =   { "MAIN MENU", "ГЛАВНОЕ МЕНЮ" };
 
   static char* nMenu00[2] =  { "BRIGHTNESS", "ЯРКОСТЬ" };

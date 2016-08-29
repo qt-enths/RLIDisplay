@@ -34,7 +34,7 @@
   <property name="autoFillBackground">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1,0">
+  <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1,0,0">
    <property name="spacing">
     <number>2</number>
    </property>
@@ -1022,6 +1022,13 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnConfigMenu">
+     <property name="text">
+      <string>Config Menu</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

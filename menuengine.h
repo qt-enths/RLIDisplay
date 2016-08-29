@@ -155,6 +155,10 @@ private:
 class MenuEngine : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
+  enum MenuState {
+    DISABLED, MAIN, CONFIG
+  };
+
   explicit MenuEngine  (const QSize& font_size, QObject* parent = 0);
   virtual ~MenuEngine  ();
 
@@ -166,7 +170,8 @@ public:
   bool init     (const QGLContext* context);
   void resize   (const QSize& font_size);
 
-  inline bool visible() { return _enabled; }
+  inline MenuState state() { return _state; }
+  inline bool visible() { return _state != DISABLED; }
   inline QByteArray toQByteArray(const char* str) { return _enc->fromUnicode(_dec->toUnicode(str)); }
 
 signals:
@@ -174,7 +179,7 @@ signals:
   void radarBrightnessChanged(int br);
 
 public slots:
-  void setVisibility(bool val);
+  void setState(MenuState state);
   void onLanguageChanged(const QByteArray& lang);
 
   void update();
@@ -185,7 +190,8 @@ public slots:
   void onBack();
 
 private:
-  void initMenuTree();
+  void initMainMenuTree();
+  void initCnfgMenuTree();
   bool initShader();
 
   enum TextAllignement {
@@ -198,14 +204,16 @@ private:
   bool _initialized;
   bool _need_update;
 
-  bool _enabled;
+  MenuState _state;
 
   QSize _size;
   QString _font_tag;
+  QDateTime _last_action_time;
 
   RLIMenuItemMenu* _menu;
 
   RLIMenuItemMenu* _main_menu;
+  RLIMenuItemMenu* _cnfg_menu;
 
   int _selected_line;
   bool _selection_active;

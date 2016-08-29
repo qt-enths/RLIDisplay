@@ -164,12 +164,39 @@ MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent
   _initialized = false;
   _selected_line = 1;
   _selection_active = false;
-  _enabled = false;
+  _state = DISABLED;
 
-  initMenuTree();
+  initMainMenuTree();
+  initCnfgMenuTree();
+
+  _menu = NULL;
+  _last_action_time = QDateTime::currentDateTime();
 }
 
-void MenuEngine::initMenuTree() {
+void MenuEngine::initCnfgMenuTree() {
+  RLIMenuItemMenu* m1 = new RLIMenuItemMenu(RLIStrings::nMenu1, NULL);
+
+  // --------------------------
+  RLIMenuItemMenu* m10 = new RLIMenuItemMenu(RLIStrings::nMenu10, m1);
+  m1->add_item(m10);
+
+  // --------------------------
+  RLIMenuItemMenu* m11 = new RLIMenuItemMenu(RLIStrings::nMenu11, m1);
+  m1->add_item(m11);
+
+  // --------------------------
+  RLIMenuItemMenu* m12 = new RLIMenuItemMenu(RLIStrings::nMenu12, m1);
+  m1->add_item(m12);
+
+  // --------------------------
+  RLIMenuItemMenu* m13 = new RLIMenuItemMenu(RLIStrings::nMenu13, m1);
+  m1->add_item(m13);
+
+  // --------------------------
+  _cnfg_menu = m1;
+}
+
+void MenuEngine::initMainMenuTree() {
   RLIMenuItemMenu* m0 = new RLIMenuItemMenu(RLIStrings::nMenu0, NULL);
 
   // --------------------------
@@ -407,7 +434,6 @@ void MenuEngine::initMenuTree() {
 
   // --------------------------
   _main_menu = m0;
-  _menu = m0;
 }
 
 MenuEngine::~MenuEngine() {
@@ -421,9 +447,21 @@ MenuEngine::~MenuEngine() {
   delete _main_menu;
 }
 
-void MenuEngine::setVisibility(bool val) {
-  _enabled = val;
+void MenuEngine::setState(MenuState state) {
+  _state = state;
+  switch (_state) {
+  case DISABLED:
+      _menu = NULL;
+      break;
+  case MAIN:
+      _menu = _main_menu;
+      break;
+  case CONFIG:
+      _menu = _cnfg_menu;
+      break;
+  }
   _need_update = true;
+  _last_action_time = QDateTime::currentDateTime();
 }
 
 void MenuEngine::onLanguageChanged(const QByteArray& lang) {
@@ -443,7 +481,7 @@ void MenuEngine::onLanguageChanged(const QByteArray& lang) {
 }
 
 void MenuEngine::onUp() {
-  if (!_enabled)
+  if (_menu == NULL)
     return;
 
   if (!_selection_active) {
@@ -453,11 +491,12 @@ void MenuEngine::onUp() {
     _menu->item(_selected_line - 1)->up();
   }
 
+  _last_action_time = QDateTime::currentDateTime();
   _need_update = true;
 }
 
 void MenuEngine::onDown() {
-  if (!_enabled)
+  if (_menu == NULL)
     return;
 
   if (!_selection_active) {
@@ -467,6 +506,7 @@ void MenuEngine::onDown() {
     _menu->item(_selected_line - 1)->down();
   }
 
+  _last_action_time = QDateTime::currentDateTime();
   _need_update = true;
 }
 
@@ -482,6 +522,7 @@ void MenuEngine::onEnter() {
   } else
     _selection_active = !_selection_active;
 
+  _last_action_time = QDateTime::currentDateTime();
   _need_update = true;
 }
 
@@ -494,6 +535,8 @@ void MenuEngine::onBack() {
 
      _selected_line = _new_selection;
      _menu = _menu->parent();
+
+     _last_action_time = QDateTime::currentDateTime();
      _need_update = true;
   }
 }
@@ -525,6 +568,9 @@ void MenuEngine::resize(const QSize& font_size) {
 }
 
 void MenuEngine::update() {
+  if (visible() && _last_action_time.secsTo(QDateTime::currentDateTime()) > 15)
+      setState(DISABLED);
+
   if (!_initialized || !_need_update)
     return;
 
@@ -562,7 +608,7 @@ void MenuEngine::update() {
     glVertex2f(_size.width(), _size.height()-0.5f);
   glEnd();
 
-  if (_enabled) {
+  if (_menu != NULL) {
     QSize font_size = _fonts->getSize(_font_tag);
 
     glBegin(GL_LINES);

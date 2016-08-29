@@ -379,8 +379,17 @@ bool RLIDisplayWidget::event(QEvent* e) {
         _controlsEngine->setPlVisibility(!_controlsEngine->isPlVisible());
         break;
       case RLIControlEvent::Menu:
-        _menuEngine->setVisibility(!_menuEngine->visible());
+        if (_menuEngine->state() == MenuEngine::MAIN)
+          _menuEngine->setState(MenuEngine::DISABLED);
+        else
+          _menuEngine->setState(MenuEngine::MAIN);
         break;
+    case RLIControlEvent::ConfigMenu:
+      if (_menuEngine->state() == MenuEngine::CONFIG)
+        _menuEngine->setState(MenuEngine::DISABLED);
+      else
+        _menuEngine->setState(MenuEngine::CONFIG);
+      break;
       case RLIControlEvent::Up:
         if (_menuEngine->visible())
           _menuEngine->onUp();

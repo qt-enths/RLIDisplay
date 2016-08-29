@@ -24,7 +24,8 @@ public:
                          , Up
                          , Down
                          , Enter
-                         , Back };
+                         , Back
+                         , ConfigMenu};
 
   explicit RLIControlEvent(RLIControlButtons b = NoButton
                          , RLIControlSpinners s = NoSpinner
