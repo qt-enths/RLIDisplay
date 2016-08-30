@@ -180,21 +180,152 @@ void MenuEngine::initCnfgMenuTree() {
   RLIMenuItemMenu* m10 = new RLIMenuItemMenu(RLIStrings::nMenu10, m1);
   m1->add_item(m10);
 
+  RLIMenuItemList* i100 = new RLIMenuItemList(RLIStrings::nMenu100, 4);
+  i100->addVariant(RLIStrings::logSignal[0]);
+  i100->addVariant(RLIStrings::logSignal[1]);
+  i100->addVariant(RLIStrings::logSignal[2]);
+  i100->addVariant(RLIStrings::logSignal[3]);
+  i100->addVariant(RLIStrings::logSignal[4]);
+  i100->addVariant(RLIStrings::logSignal[5]);
+  i100->addVariant(RLIStrings::logSignal[6]);
+  i100->addVariant(RLIStrings::logSignal[7]);
+  m10->add_item(static_cast<RLIMenuItem*>(i100));
+
+  RLIMenuItemInt* i101 = new RLIMenuItemInt(RLIStrings::nMenu101, 0, 255, 0);
+  m10->add_item(static_cast<RLIMenuItem*>(i101));
+
+  RLIMenuItemFloat* i102 = new RLIMenuItemFloat(RLIStrings::nMenu102, -179.9f, 179.9f, 0.f);
+  m10->add_item(static_cast<RLIMenuItem*>(i102));
+
+  RLIMenuItemFloat* i103 = new RLIMenuItemFloat(RLIStrings::nMenu103, 0.f, 359.9f, 0.f);
+  m10->add_item(static_cast<RLIMenuItem*>(i103));
+
+  RLIMenuItemFloat* i104 = new RLIMenuItemFloat(RLIStrings::nMenu104, 0.f, 359.9f, 0.f);
+  m10->add_item(static_cast<RLIMenuItem*>(i104));
+
+  RLIMenuItemList* i105 = new RLIMenuItemList(RLIStrings::nMenu105, 0);
+  i105->addVariant(RLIStrings::bandArray[0]);
+  i105->addVariant(RLIStrings::bandArray[1]);
+  i105->addVariant(RLIStrings::bandArray[2]);
+  m10->add_item(static_cast<RLIMenuItem*>(i105));
+
+  RLIMenuItemList* i106 = new RLIMenuItemList(RLIStrings::nMenu106, 0);
+  i106->addVariant(RLIStrings::OffOnArray[0]);
+  i106->addVariant(RLIStrings::OffOnArray[1]);
+  m10->add_item(static_cast<RLIMenuItem*>(i106));
+
+  RLIMenuItemInt* i107 = new RLIMenuItemInt(RLIStrings::nMenu107, 25, 100, 80);
+  m10->add_item(static_cast<RLIMenuItem*>(i107));
+
+
   // --------------------------
   RLIMenuItemMenu* m11 = new RLIMenuItemMenu(RLIStrings::nMenu11, m1);
   m1->add_item(m11);
+
+  RLIMenuItemFloat* i110 = new RLIMenuItemFloat(RLIStrings::nMenu110, -5.f, 5.f, -4.4f);
+  m11->add_item(static_cast<RLIMenuItem*>(i110));
+
+  RLIMenuItemInt* i111 = new RLIMenuItemInt(RLIStrings::nMenu111, 1, 255, 170);
+  m11->add_item(static_cast<RLIMenuItem*>(i111));
+
+  RLIMenuItemInt* i112 = new RLIMenuItemInt(RLIStrings::nMenu112, -100, 100, 0);
+  m11->add_item(static_cast<RLIMenuItem*>(i112));
+
+  RLIMenuItemInt* i113 = new RLIMenuItemInt(RLIStrings::nMenu113, 1, 255, 25);
+  m11->add_item(static_cast<RLIMenuItem*>(i113));
+
+  RLIMenuItemInt* i114 = new RLIMenuItemInt(RLIStrings::nMenu114, 0, 255, 18);
+  m11->add_item(static_cast<RLIMenuItem*>(i114));
+
+  RLIMenuItemInt* i115 = new RLIMenuItemInt(RLIStrings::nMenu115, 0, 255, 16);
+  m11->add_item(static_cast<RLIMenuItem*>(i115));
+
+  RLIMenuItemInt* i116 = new RLIMenuItemInt(RLIStrings::nMenu116, 0, 4096, 100);
+  m11->add_item(static_cast<RLIMenuItem*>(i116));
+
+  RLIMenuItemInt* i117 = new RLIMenuItemInt(RLIStrings::nMenu117, 0, 255, 30);
+  m11->add_item(static_cast<RLIMenuItem*>(i117));
+
+  RLIMenuItemInt* i118 = new RLIMenuItemInt(RLIStrings::nMenu118, -20, 20, -2);
+  m11->add_item(static_cast<RLIMenuItem*>(i118));
+
+  RLIMenuItemInt* i119 = new RLIMenuItemInt(RLIStrings::nMenu119, -20, 20, -2);
+  m11->add_item(static_cast<RLIMenuItem*>(i119));
+
+  RLIMenuItemInt* i1110 = new RLIMenuItemInt(RLIStrings::nMenu1110, -20, 20, 0);
+  m11->add_item(static_cast<RLIMenuItem*>(i1110));
 
   // --------------------------
   RLIMenuItemMenu* m12 = new RLIMenuItemMenu(RLIStrings::nMenu12, m1);
   m1->add_item(m12);
 
+  RLIMenuItemList* i120 = new RLIMenuItemList(RLIStrings::nMenu120, 0);
+  i120->addVariant(RLIStrings::OffOnArray[0]);
+  i120->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i120));
+
+  RLIMenuItemList* i121 = new RLIMenuItemList(RLIStrings::nMenu121, 0);
+  i121->addVariant(RLIStrings::OffOnArray[0]);
+  i121->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i121));
+
+  RLIMenuItemList* i122 = new RLIMenuItemList(RLIStrings::nMenu122, 0);
+  i122->addVariant(RLIStrings::OffOnArray[0]);
+  i122->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i122));
+
+  RLIMenuItemList* i123 = new RLIMenuItemList(RLIStrings::nMenu123, 0);
+  i123->addVariant(RLIStrings::OffOnArray[0]);
+  i123->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i123));
+
+  RLIMenuItemList* i124 = new RLIMenuItemList(RLIStrings::nMenu124, 0);
+  i124->addVariant(RLIStrings::OffOnArray[0]);
+  i124->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i124));
+
+  RLIMenuItemList* i125 = new RLIMenuItemList(RLIStrings::nMenu125, 0);
+  i125->addVariant(RLIStrings::OffOnArray[0]);
+  i125->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i125));
+
+  RLIMenuItemList* i126 = new RLIMenuItemList(RLIStrings::nMenu126, 0);
+  i126->addVariant(RLIStrings::OffOnArray[0]);
+  i126->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i126));
+
+  RLIMenuItemList* i127 = new RLIMenuItemList(RLIStrings::nMenu127, 0);
+  i127->addVariant(RLIStrings::OffOnArray[0]);
+  i127->addVariant(RLIStrings::OffOnArray[1]);
+  m12->add_item(static_cast<RLIMenuItem*>(i127));
+
   // --------------------------
   RLIMenuItemMenu* m13 = new RLIMenuItemMenu(RLIStrings::nMenu13, m1);
   m1->add_item(m13);
 
+  RLIMenuItemList* i130 = new RLIMenuItemList(RLIStrings::nMenu130, 1);
+  i130->addVariant(RLIStrings::OffOnArray[0]);
+  i130->addVariant(RLIStrings::OffOnArray[1]);
+  m13->add_item(static_cast<RLIMenuItem*>(i130));
+
+  RLIMenuItemList* i131 = new RLIMenuItemList(RLIStrings::nMenu131, 1);
+  i131->addVariant(RLIStrings::OffOnArray[0]);
+  i131->addVariant(RLIStrings::OffOnArray[1]);
+  m13->add_item(static_cast<RLIMenuItem*>(i131));
+
+  RLIMenuItemList* i132 = new RLIMenuItemList(RLIStrings::nMenu132, 1);
+  i132->addVariant(RLIStrings::OffOnArray[0]);
+  i132->addVariant(RLIStrings::OffOnArray[1]);
+  m13->add_item(static_cast<RLIMenuItem*>(i132));
+
+  RLIMenuItemInt* i133 = new RLIMenuItemInt(RLIStrings::nMenu133, 4800, 38400, 4800);
+  m11->add_item(static_cast<RLIMenuItem*>(i133));
+
+
   // --------------------------
   _cnfg_menu = m1;
 }
+
 
 void MenuEngine::initMainMenuTree() {
   RLIMenuItemMenu* m0 = new RLIMenuItemMenu(RLIStrings::nMenu0, NULL);
@@ -460,6 +591,7 @@ void MenuEngine::setState(MenuState state) {
       _menu = _cnfg_menu;
       break;
   }
+  _selected_line = 1;
   _need_update = true;
   _last_action_time = QDateTime::currentDateTime();
 }

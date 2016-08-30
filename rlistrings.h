@@ -93,14 +93,7 @@ namespace RLIStrings {
   static char* nEcho[2] =    { "DEPTH", "ГЛУБИНА" };
   static char* nMetrs[2] =   { "METRS", "МЕТРЫ" };
 
-  static char* nMenu1[2] =   { "CONFIG", "КОНФИГУРАЦИЯ" };
-
-  static char* nMenu10[2] =  { "TUNINGS", "НАСТРОЙКИ" };
-  static char* nMenu11[2] =  { "TUNINGS PIKO", "НАСТРОЙКИ ПИКО" };
-  static char* nMenu12[2] =  { "NMEA ACCEPT", "ПРИЕМ NMEA" };
-  static char* nMenu13[2] =  { "NMEA TRANSM", "ПЕРЕДАЧА NMEA" };
-
-
+  // для главного меню
   static char* nMenu0[2] =   { "MAIN MENU", "ГЛАВНОЕ МЕНЮ" };
 
   static char* nMenu00[2] =  { "BRIGHTNESS", "ЯРКОСТЬ" };
@@ -162,7 +155,7 @@ namespace RLIStrings {
 
   static char* nMenu050[2] = { "SIGN", "ПРИЗНАК" };
   static char* nMenu051[2] = { "REQUEST", "ЗАПРОС" };
-  static char* nMenu052[2] = { "ABORT EMIS", "ЗАПРЕТ ИЗЛУЧ" };
+  static char* nMenu052[2] = { "ABORT EMIS", "ЗАПРЕТ ИЗЛУЧ" }; 
 
   // выбор день/ночь
   static char* dayArray[2][2] = { { "NIGHT", "НОЧЬ" }
@@ -213,8 +206,6 @@ namespace RLIStrings {
                                 , { "╠", "╠" } // береговой ориентир   0xcc в cp866
                                 };
 
-
-
   // опознавание
   static char *nameRecog[3][2] = { { "OFF", "НЕТ" }
                                  , { "ROUND", "КРУГ" }
@@ -223,6 +214,70 @@ namespace RLIStrings {
   static char *nameSign[3][2] = { { "UNINDENT", "НЕТ" }
                                 , { "FRIENDLY", "СВОЙ" }
                                 , { "ENEMY", "ЧУЖОЙ" } };
+
+
+  // для меню конфигурация
+  static char* nMenu1[2] =   { "CONFIG", "КОНФИГУРАЦИЯ" };
+
+  static char* nMenu10[2] =  { "TUNINGS", "НАСТРОЙКИ" };
+
+  static char* nMenu100[2] =  { "LOG SIGNAL", "СИГНАЛ ЛАГА" };
+  static char* nMenu101[2] =  { "RANGE CCN", "КОР ДАЛЬН" };
+  static char* nMenu102[2] =  { "BEARING CCN", "КОР НАПР" };
+  static char* nMenu103[2] =  { "BEGIN TR OFF", "НАЧ ОТКЛ ПП" };
+  static char* nMenu104[2] =  { "END TR OFF", "КОН ОТКЛ ПП" };
+  static char* nMenu105[2] =  { "BAND    ", "ДИАПАЗОН" };
+  static char* nMenu106[2] =  { "GRAPH AFC", "ГРАФИК АПЧ" };
+  static char* nMenu107[2] =  { "MASTER BRIGHTN", "ОБЩАЯ ЯРКОСТЬ" };
+
+  static char* nMenu11[2] =  { "TUNINGS PIKO", "НАСТРОЙКИ ПИКО" };
+
+  static char* nMenu110[2] =  { "MAX VIDEO", "ДИН ДИАП ВС" };
+  static char* nMenu111[2] =  { "TOP MARGIN", "ОГРАН ВЕРХОВ" };
+  static char* nMenu112[2] =  { "ANALOG ZERO", "АНАЛОГ 0 ВС" };
+  static char* nMenu113[2] =  { "NOISE MARGIN", "ОГРАН ШУМОВ" };
+  static char* nMenu114[2] =  { "TRESH AT", "ПОРОГ АС" };
+  static char* nMenu115[2] =  { "TRESH AT", "ПОРОГ СЛЕДОВ" };
+  static char* nMenu116[2] =  { "THRESH ZONE", "ПОРОГ ЗОНЫ" };
+  static char* nMenu117[2] =  { "THRESH ACCUM", "ПОР ЯРК НАКОП" };
+  static char* nMenu118[2] =  { "DELTA ARPA 6", "ДЕЛЬТА САРП 6" };
+  static char* nMenu119[2] =  { "DELTA ZONE 6", "ДЕЛЬТА ЗОНЫ 6" };
+  static char* nMenu1110[2] =  { "DELTA ZONE 12", "ДЕЛЬТА ЗОНЫ 12" };
+
+  static char* nMenu12[2] =  { "NMEA ACCEPT", "ПРИЕМ NMEA" };
+
+  static char* nMenu120[2] =  { "GGA ", "GGA " };
+  static char* nMenu121[2] =  { "ZDA ", "ZDA " };
+  static char* nMenu122[2] =  { "VTG ", "VTG " };
+  static char* nMenu123[2] =  { "DPT ", "DPT " };
+  static char* nMenu124[2] =  { "DBT ", "DBT " };
+  static char* nMenu125[2] =  { "VBW ", "VBW " };
+  static char* nMenu126[2] =  { "VHW ", "VHW " };
+  static char* nMenu127[2] =  { "RMC ", "RMC " };
+
+  static char* nMenu13[2] =  { "NMEA TRANSM", "ПЕРЕДАЧА NMEA" };
+
+  static char* nMenu130[2] =  { "TTM", "TTM" };
+  static char* nMenu131[2] =  { "VHW", "VHW" };
+  static char* nMenu132[2] =  { "RSD", "RSD" };
+  static char* nMenu133[2] =  { "BAUDRATE", "СК ОБМЕНА" };
+
+
+
+  // выбор типа лага
+  static char *logSignal[8][2] = { { "200-", "200-" }
+                                 , { "500-", "500-" }
+                                 , { "COD-", "КОД-" }
+                                 , { "NMEA", "NMEA" }
+                                 , { "COD+", "КОД+" }
+                                 , { "500+", "500+" }
+                                 , { "200+", "200+" }
+                                 , { "GPS", "СНС" } };
+
+  // выбор диапазона
+  static char *bandArray[3][2] = { { "X", "X" }
+                                 , { "S", "S" }
+                                 , { "K", "K" } };
 }
 
 #endif // RLISTRINGS_H

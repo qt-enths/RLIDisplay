@@ -155,9 +155,7 @@ private:
 class MenuEngine : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
-  enum MenuState {
-    DISABLED, MAIN, CONFIG
-  };
+  enum MenuState { DISABLED, MAIN, CONFIG };
 
   explicit MenuEngine  (const QSize& font_size, QObject* parent = 0);
   virtual ~MenuEngine  ();
@@ -194,9 +192,7 @@ private:
   void initCnfgMenuTree();
   bool initShader();
 
-  enum TextAllignement {
-    ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
-  };
+  enum TextAllignement { ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT };
 
   void drawSelection();
   void drawText(const QByteArray& text, int line, TextAllignement align, const QColor& col);
