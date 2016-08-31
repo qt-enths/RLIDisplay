@@ -179,7 +179,7 @@ void RadarEngine::initShader() {
   _attr_locs[ATTR_POS] = _prog->attributeLocation("pos");
   _attr_locs[ATTR_FST] = _prog->attributeLocation("first");
   _attr_locs[ATTR_AMP] = _prog->attributeLocation("amp");
-  _attr_locs[ATTR_DIV] = _prog->attributeLocation("div");
+  //_attr_locs[ATTR_DIV] = _prog->attributeLocation("div");
 
   _prog->release();
 }
@@ -236,30 +236,34 @@ void RadarEngine::clearData() {
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
   glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), amps.data(), GL_DYNAMIC_DRAW);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_DIV]);
-  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), divs.data(), GL_DYNAMIC_DRAW);
+  //glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_DIV]);
+  //glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), divs.data(), GL_DYNAMIC_DRAW);
 
   _draw_circle       = true;
   _last_drawn_peleng = _peleng_count - 1;
   _last_added_peleng = _peleng_count - 1;
 }
 
-void RadarEngine::updateData(uint offset, uint count, float* divs, float* amps) {
+void RadarEngine::updateData(uint offset, uint count/*, float* divs*/, float* amps) {
   if (!_initialized)
     return;
 
   // Replicate divs
+  /*
   float* long_divs = new float[count*_peleng_len];
   for (uint i = 0; i < count; i++)
     std::fill(&long_divs[i*_peleng_len], &long_divs[(i+1)*_peleng_len], divs[i]);
+  */
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
   glBufferSubData(GL_ARRAY_BUFFER, offset*_peleng_len*sizeof(GLfloat), count*_peleng_len*sizeof(GLfloat), amps);
 
+  /*
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_DIV]);
   glBufferSubData(GL_ARRAY_BUFFER, offset*_peleng_len*sizeof(GLfloat), count*_peleng_len*sizeof(GLfloat), long_divs);
 
   delete[] long_divs;
+  */
 
   // New last added peleng
   uint nlap = (offset + count - 1) % _peleng_count;
@@ -340,9 +344,11 @@ void RadarEngine::drawPelengs(uint first, uint last) {
   glVertexAttribPointer(_attr_locs[ATTR_AMP], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
   glEnableVertexAttribArray(_attr_locs[ATTR_AMP]);
 
+  /*
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_DIV]);
   glVertexAttribPointer(_attr_locs[ATTR_DIV], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
   glEnableVertexAttribArray(_attr_locs[ATTR_DIV]);
+  */
 
   glDepthFunc(GL_ALWAYS);
   glUniform1f(_unif_locs[UNIF_CLR], 1.f);

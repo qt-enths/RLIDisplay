@@ -109,8 +109,8 @@ MainWindow::~MainWindow() {
 
 void MainWindow::onRLIWidgetInitialized() {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
-  connect(_radar_ds, SIGNAL(updateData(uint,uint,float*,float*))
-        , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint,uint,float*,float*)));
+  connect(_radar_ds, SIGNAL(updateData(uint,uint,/*float*,*/float*))
+        , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint,uint,/*float*,*/float*)));
 
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";

@@ -439,7 +439,7 @@ void MenuEngine::initMainMenuTree() {
   RLIMenuItemList* i026 = new RLIMenuItemList(RLIStrings::nMenu026, 1);
   i026->addVariant(RLIStrings::langArray[0]);
   i026->addVariant(RLIStrings::langArray[1]);
-  connect(i026, SIGNAL(onValueChanged(QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
+  connect(i026, SIGNAL(valueChanged(QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
   m02->add_item(i026);
 
   RLIMenuItemFloat* i027 = new RLIMenuItemFloat(RLIStrings::nMenu027, 0.f, 359.9f, 0.f);

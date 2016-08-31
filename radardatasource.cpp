@@ -279,7 +279,7 @@ void RadarDataSource::worker() {
   while(!finish_flag) {
     qSleep(19);
 
-    emit updateData(offset, BLOCK_TO_SEND, &file_divs[file][offset], &file_amps[file][offset*PELENG_SIZE]);
+    emit updateData(offset, BLOCK_TO_SEND/*, &file_divs[file][offset]*/, &file_amps[file][offset*PELENG_SIZE]);
 
     offset = (offset + BLOCK_TO_SEND) % BEARINGS_PER_CYCLE;
     if (offset == 0) file = 1 - file;
@@ -472,9 +472,9 @@ bool RadarDataSource::loadData() {
   char file2[25] = "res/pelengs/r1nm6h0_4096";
   //char file3[23] = "res/pelengs/simout.bin";
 
-  if (!loadObserves1(file1, file_divs[0], file_amps[0]))
+  if (!loadObserves1(file1/*, file_divs[0]*/, file_amps[0]))
     return false;
-  if (!loadObserves1(file2, file_divs[1], file_amps[1]))
+  if (!loadObserves1(file2/*, file_divs[1]*/, file_amps[1]))
     return false;
 
   /*
@@ -499,7 +499,7 @@ bool RadarDataSource::loadData() {
   return true;
 }
 
-bool RadarDataSource::loadObserves2(char* filename, float* divs, float* amps) {
+bool RadarDataSource::loadObserves2(char* filename/*, float* divs*/, float* amps) {
   std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
   //uint32_t bearing - номер пеленга (0...4095)
   //uint32_t datalen - 800 (800 32-битных амплитуд)
@@ -525,10 +525,10 @@ bool RadarDataSource::loadObserves2(char* filename, float* divs, float* amps) {
       //int32_t datalen = memblock[803*BEARINGS_PER_CYCLE+1];
       //int32_t bearlen = memblock[803*BEARINGS_PER_CYCLE+2];
 
-      divs[i] = 4;
+      //divs[i] = 4;
       for (int j = 0; j < PELENG_SIZE; j++) {
         if (j < 800) {
-          amps[i*PELENG_SIZE + j] = memblock[803*BEARINGS_PER_CYCLE+3+j];
+          amps[i*PELENG_SIZE + j] = memblock[803*BEARINGS_PER_CYCLE+3+j] / 4;
 
           //if (amps[i*PELENG_SIZE + j] > max_amp)
           //  max_amp = amps[i*PELENG_SIZE + j];
@@ -556,18 +556,18 @@ bool RadarDataSource::loadObserves2(char* filename, float* divs, float* amps) {
   return true;
 }
 
-bool RadarDataSource::initWithDummy(float* divs, float* amps) {
+bool RadarDataSource::initWithDummy(/*float* divs, */float* amps) {
   for (uint i = 0; i < BEARINGS_PER_CYCLE; i++) {
     for (uint j = 0; j < PELENG_SIZE; j++) {
       amps[i*PELENG_SIZE+j] = (255.f * ((j + i/2) % PELENG_SIZE)) / PELENG_SIZE;
-      divs[i] = 1;
+      //divs[i] = 1;
     }
   }
 
   return true;
 }
 
-bool RadarDataSource::loadObserves1(char* filename, float* divs, float* amps) {
+bool RadarDataSource::loadObserves1(char* filename/*, float* divs*/, float* amps) {
   std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
 
   // 16 and 3204 in bytes, we will use INT16
@@ -583,9 +583,10 @@ bool RadarDataSource::loadObserves1(char* filename, float* divs, float* amps) {
     file.close();
 
     for (int i = 0; i < BEARINGS_PER_CYCLE; i++) {
-      divs[i] = memblock[headerSize + i*dataSize + 1];
+      //divs[i] = memblock[headerSize + i*dataSize + 1];
+      float div = memblock[headerSize + i*dataSize + 1];
       for (int j = 0; j < PELENG_SIZE; j++)
-        amps[i*PELENG_SIZE + j] = memblock[headerSize + i*dataSize + 2 + j];
+        amps[i*PELENG_SIZE + j] = memblock[headerSize + i*dataSize + 2 + j] / div;
     }
 
     delete[] memblock;
@@ -808,7 +809,7 @@ int RadarDataSource::processBearings(void) {
       if(amps > PELENG_SIZE)
         amps = PELENG_SIZE;
 
-      file_divs[0][processed_bearing] = (div < 32) ? div : 1; // After debugging "div"
+      //file_divs[0][processed_bearing] = (div < 32) ? div : 1; // After debugging "div"
       ptr = &(scans[activescan][processed_bearing]->ptr[3]);
 
       for(uint32_t j = 0; j < amps; j++)
@@ -818,7 +819,7 @@ int RadarDataSource::processBearings(void) {
     }
 
     if(num) {
-      emit updateData(firstbrg, num, &file_divs[0][firstbrg], &file_amps[0][firstbrg * PELENG_SIZE]);
+      //emit updateData(firstbrg, num, &file_divs[0][firstbrg], &file_amps[0][firstbrg * PELENG_SIZE]);
     }
 
     res      += num;
@@ -858,7 +859,7 @@ int RadarDataSource::processBearings(void) {
     if (amps > PELENG_SIZE)
       amps = PELENG_SIZE;
 
-    file_divs[0][processed_bearing] = div;
+    //file_divs[0][processed_bearing] = div;
     //(div < 32) ? div : 1; // After debugging "div"
     ptr = &(scans[activescan][processed_bearing]->ptr[3]);
 
@@ -869,7 +870,7 @@ int RadarDataSource::processBearings(void) {
   }
 
   if(num) {
-    emit updateData(firstbrg, num, &file_divs[0][firstbrg], &file_amps[0][firstbrg * PELENG_SIZE]);
+    //emit updateData(firstbrg, num, &file_divs[0][firstbrg], &file_amps[0][firstbrg * PELENG_SIZE]);
   }
 
   return res;

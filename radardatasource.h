@@ -59,16 +59,16 @@ public:
   void finish();
 
 signals:
-  void updateData(uint offset, uint count, float* divs, float* amps);
+  void updateData(uint offset, uint count/*, float* divs*/, float* amps);
 
 private:
   bool loadData();
-  bool initWithDummy(float* divs, float* amps);
-  bool loadObserves1(char* filename, float* divs, float* amps);
-  bool loadObserves2(char* filename, float* divs, float* amps);
+  bool initWithDummy(/*float* divs, */float* amps);
+  bool loadObserves1(char* filename/*, float* divs*/, float* amps);
+  bool loadObserves2(char* filename/*, float* divs*/, float* amps);
 
   bool finish_flag;
-  float file_divs[2][BEARINGS_PER_CYCLE];
+  //float file_divs[2][BEARINGS_PER_CYCLE];
   float file_amps[2][BEARINGS_PER_CYCLE * PELENG_SIZE];
   uint  file_curr;
 
