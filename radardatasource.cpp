@@ -478,19 +478,17 @@ bool RadarDataSource::loadData() {
     return false;
 
   /*
-  if (!loadObserves2(file3, file_divs[0], file_amps[0]))
+  if (!loadObserves2(file3, file_amps[0]))
     return false;
-  if (!initWithDummy(file_divs[1], file_amps[1]))
+  if (!initWithDummy(file_amps[1]))
     return false;
   */
-  /*for(int i = 0; i < 2; i++)
-  {
+
+  /*for(int i = 0; i < 2; i++) {
       float amp = (i + 1) * 64;
-      for(int j = 0; j < BEARINGS_PER_CYCLE; j++)
-      {
+      for(int j = 0; j < BEARINGS_PER_CYCLE; j++) {
           file_divs[i][j] = 1.0;
-          for(int k = 0; k < PELENG_SIZE; k++)
-          {
+          for(int k = 0; k < PELENG_SIZE; k++) {
               file_amps[i][(j * PELENG_SIZE) + k] = amp;
           }
       }
@@ -499,7 +497,7 @@ bool RadarDataSource::loadData() {
   return true;
 }
 
-bool RadarDataSource::loadObserves2(char* filename/*, float* divs*/, float* amps) {
+bool RadarDataSource::loadObserves2(char* filename, GLubyte* amps) {
   std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
   //uint32_t bearing - номер пеленга (0...4095)
   //uint32_t datalen - 800 (800 32-битных амплитуд)
@@ -509,8 +507,6 @@ bool RadarDataSource::loadObserves2(char* filename/*, float* divs*/, float* amps
   if (file.is_open()) {
     std::streampos size = file.tellg();
     int32_t* memblock = new int32_t[size/4];
-
-    //qDebug() << "size: " << size;
 
     file.seekg(0, std::ios::beg);
     file.read((char*) memblock, size);
@@ -541,11 +537,7 @@ bool RadarDataSource::loadObserves2(char* filename/*, float* divs*/, float* amps
       }
     }
 
-    //qDebug() << "Max amp: " << max_amp;
-    //qDebug() << "Min amp: " << min_amp;
-
     delete[] memblock;
-    //exit(0);
     return true;
   }
   else {
@@ -556,18 +548,15 @@ bool RadarDataSource::loadObserves2(char* filename/*, float* divs*/, float* amps
   return true;
 }
 
-bool RadarDataSource::initWithDummy(/*float* divs, */float* amps) {
-  for (uint i = 0; i < BEARINGS_PER_CYCLE; i++) {
-    for (uint j = 0; j < PELENG_SIZE; j++) {
+bool RadarDataSource::initWithDummy(GLubyte* amps) {
+  for (uint i = 0; i < BEARINGS_PER_CYCLE; i++)
+    for (uint j = 0; j < PELENG_SIZE; j++)
       amps[i*PELENG_SIZE+j] = (255.f * ((j + i/2) % PELENG_SIZE)) / PELENG_SIZE;
-      //divs[i] = 1;
-    }
-  }
 
   return true;
 }
 
-bool RadarDataSource::loadObserves1(char* filename/*, float* divs*/, float* amps) {
+bool RadarDataSource::loadObserves1(char* filename, GLubyte* amps) {
   std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
 
   // 16 and 3204 in bytes, we will use INT16
@@ -583,7 +572,6 @@ bool RadarDataSource::loadObserves1(char* filename/*, float* divs*/, float* amps
     file.close();
 
     for (int i = 0; i < BEARINGS_PER_CYCLE; i++) {
-      //divs[i] = memblock[headerSize + i*dataSize + 1];
       float div = memblock[headerSize + i*dataSize + 1];
       for (int j = 0; j < PELENG_SIZE; j++)
         amps[i*PELENG_SIZE + j] = memblock[headerSize + i*dataSize + 2 + j] / div;

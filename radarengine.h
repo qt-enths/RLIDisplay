@@ -61,7 +61,7 @@ public slots:
   void onBrightnessChanged(int br);
 
   void updateTexture();
-  void updateData(uint offset, uint count/*, float* divs*/, float* amps);
+  void updateData(uint offset, uint count, GLubyte* amps);
 
 private:
   void initShader();
@@ -83,7 +83,6 @@ private:
 
   QGLShaderProgram* _prog;
 
-  //enum { ATTR_POS = 0, ATTR_FST = 1, ATTR_AMP = 2, ATTR_DIV = 3, ATTR_CNT = 4 } ;
   enum { ATTR_POS = 0, ATTR_FST = 1, ATTR_AMP = 2, ATTR_CNT = 3 } ;
   enum { UNIF_CLR = 0, UNIF_PAL = 1, UNIF_THR = 2, UNIF_CNT = 3 } ;
 
