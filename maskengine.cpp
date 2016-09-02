@@ -226,7 +226,7 @@ void MaskEngine::initLineBuffers() {
     angle[2*a+0] = angle[2*a+1] = a;
     order[2*a+0] = 0.f;
     order[2*a+1] = 1.f;
-    chars[2*a+0] = chars[2*a+1] = -1.f;
+    chars[2*a+0] = chars[2*a+1] = 0;
 
     float s = 1.5f;
     if (a%5  == 0) s =  4.f;
@@ -250,14 +250,9 @@ void MaskEngine::initTextBuffers() {
   for (int i = 0; i < 360; i += 10) {
     QByteArray tm = QString::number(i).toLatin1();
 
-    //qDebug() << i;
-
     for (int l = 0; l < tm.size(); l++) {
       angles.push_back(i);
       chars.push_back(tm[l]);
-
-      //qDebug() << static_cast<int>(tm[l]);
-
       orders.push_back(l);
       shifts.push_back(14);
       _text_point_count++;
@@ -273,7 +268,7 @@ void MaskEngine::initHoleBuffers() {
   for (int a = 0; a < _hole_point_count; a++) {
     angle.push_back((static_cast<float>(a) / (_hole_point_count - 1)) * 360);
     order.push_back(1);
-    chars.push_back(-1);
+    chars.push_back(0);
     shift.push_back(-0.5f);
   }
 

@@ -15,7 +15,7 @@ varying float v_char_val;
 vec2 intersectRayCircle(vec2 o, float r, vec2 p, float phi);
 
 void main() {
-  if (char_val == -1) {
+  if (char_val == 0) {
 
     if (order == 0) {
       gl_Position = gl_ProjectionMatrix * vec4(cursor_pos, 0, 1);

@@ -197,17 +197,19 @@ void InfoEngine::drawText(const InfoText& text) {
   GLuint tex_id = _fonts->getTextureId(text.font_tag);
   QSize font_size = _fonts->getSize(text.font_tag);
 
-  QVector<float> pos, ord, chars;
-  QPointF anchor;
+  std::vector<GLshort> pos;
+  std::vector<GLubyte> ord, chars;
+
+  QPoint anchor;
   switch (text.allign) {
     case INFOTEXT_ALLIGN_LEFT:
       anchor = text.rect.topLeft();
       break;
     case INFOTEXT_ALLIGN_RIGHT:
-      anchor = text.rect.topRight() - QPointF(font_size.width()*text.str[_lang].size(), 0.f);
+      anchor = text.rect.topRight() - QPoint(font_size.width()*text.str[_lang].size(), 0);
       break;
     case INFOTEXT_ALLIGN_CENTER:
-      anchor = text.rect.center() - QPointF((font_size.width()*text.str[_lang].size())/2.f, font_size.height()/2.f);
+      anchor = text.rect.center() - QPoint((font_size.width()*text.str[_lang].size()) / 2, font_size.height() / 2);
       break;
     default:
       anchor = text.rect.topLeft();
@@ -216,7 +218,8 @@ void InfoEngine::drawText(const InfoText& text) {
 
   for (int i = 0; i < text.str[_lang].size(); i++) {
     for (int j = 0; j < 4; j++) {
-      QPointF lefttop = anchor + QPointF(i * font_size.width(), 0);
+      QPoint lefttop = anchor + QPoint(i * font_size.width(), 0);
+
       pos.push_back(lefttop.x());
       pos.push_back(lefttop.y());
       ord.push_back(j);
@@ -228,18 +231,18 @@ void InfoEngine::drawText(const InfoText& text) {
   glUniform4f(_uniform_locs[INFO_UNIFORM_COLOR], text.color.redF(), text.color.greenF(), text.color.blueF(), 1.f);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[INFO_ATTR_POSITION]);
-  glBufferData(GL_ARRAY_BUFFER, pos.size()*sizeof(GLfloat), pos.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(_attr_locs[INFO_ATTR_POSITION], 2, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glBufferData(GL_ARRAY_BUFFER, pos.size()*sizeof(GLshort), pos.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(_attr_locs[INFO_ATTR_POSITION], 2, GL_SHORT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(_attr_locs[INFO_ATTR_POSITION]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[INFO_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, ord.size()*sizeof(GLfloat), ord.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(_attr_locs[INFO_ATTR_ORDER], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glBufferData(GL_ARRAY_BUFFER, ord.size()*sizeof(GLubyte), ord.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(_attr_locs[INFO_ATTR_ORDER], 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(_attr_locs[INFO_ATTR_ORDER]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[INFO_ATTR_CHAR_VAL]);
-  glBufferData(GL_ARRAY_BUFFER, chars.size()*sizeof(GLfloat), chars.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(_attr_locs[INFO_ATTR_CHAR_VAL], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glBufferData(GL_ARRAY_BUFFER, chars.size()*sizeof(GLubyte), chars.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(_attr_locs[INFO_ATTR_CHAR_VAL], 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(_attr_locs[INFO_ATTR_CHAR_VAL]);
 
   glActiveTexture(GL_TEXTURE0);
