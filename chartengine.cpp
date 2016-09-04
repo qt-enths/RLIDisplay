@@ -396,6 +396,7 @@ void ChartEngine::setChart(S52Chart* chrt, S52References* ref) {
 
   setSndgLayer(chrt, ref);
   setting_up = false;
+
   draw();
 }
 
@@ -407,7 +408,7 @@ void ChartEngine::update(QVector2D center, float radius, float angle) {
   QDateTime curTime = QDateTime::currentDateTime();
   if (initialized && _lastUpdate.msecsTo(curTime) > 1000) {
     _lastUpdate = curTime;
-      draw();
+    draw();
   }
 }
 
@@ -424,6 +425,7 @@ void ChartEngine::draw() {
   glClear(GL_COLOR_BUFFER_BIT);
 
   drawLayers();
+
   glFlush();
 
   glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
@@ -459,7 +461,6 @@ void ChartEngine::drawLayers() {
     if (!settings->isLayerVisible(displayOrder[i]))
       displayOrder.removeAt(i);
 
-
   shaders->getChartAreaProgram()->bind();
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
@@ -485,7 +486,6 @@ void ChartEngine::drawLayers() {
       mark_engines[s]->draw(shaders, canvas, _center, _radius, _angle);
   }
   shaders->getChartMarkProgram()->release();
-
 
   /*
   shaders->getChartTextProgram()->bind();

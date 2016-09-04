@@ -109,19 +109,19 @@ void ChartAreaEngine::setData(S52AreaLayer* layer, S52Assets* assets, S52Referen
   color_table = ref->getColorTable();
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[AREA_ATTRIBUTES_COORDS]);
-  glBufferData(GL_ARRAY_BUFFER, layer->triangles.size() * sizeof(GLfloat), &(layer->triangles[0]), GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, layer->triangles.size() * sizeof(GLfloat), &(layer->triangles[0]), GL_DYNAMIC_DRAW);
 
   if (!is_color_uniform) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[AREA_ATTRIBUTES_COLOR_INDEX]);
-    glBufferData(GL_ARRAY_BUFFER, color_inds.size() * sizeof(GLfloat), &color_inds[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, color_inds.size() * sizeof(GLfloat), &color_inds[0], GL_DYNAMIC_DRAW);
   }
 
   if (!is_pattern_uniform) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[AREA_ATTRIBUTES_PATTERN_INDEX]);
-    glBufferData(GL_ARRAY_BUFFER, tex_inds.size() * sizeof(GLfloat), &tex_inds[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, tex_inds.size() * sizeof(GLfloat), &tex_inds[0], GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[AREA_ATTRIBUTES_PATTERN_DIM]);
-    glBufferData(GL_ARRAY_BUFFER, tex_dims.size() * sizeof(GLfloat), &tex_dims[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, tex_dims.size() * sizeof(GLfloat), &tex_dims[0], GL_DYNAMIC_DRAW);
   }
 }
 
@@ -148,6 +148,8 @@ void ChartAreaEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cu
 
     glUniform1f(shaders->getAreaUniformLoc(AREA_UNIFORMS_COLOR_INDEX), -1);
   } else {
+    glDisableVertexAttribArray(shaders->getAreaAttributeLoc(AREA_ATTRIBUTES_COLOR_INDEX));
+
     glUniform1f(shaders->getAreaUniformLoc(AREA_UNIFORMS_COLOR_INDEX), color_ind);
   }
 
@@ -163,6 +165,9 @@ void ChartAreaEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cu
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_INDEX), -1, -1);
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_DIM), -1, -1);
   } else {
+    glDisableVertexAttribArray(shaders->getAreaAttributeLoc(AREA_ATTRIBUTES_PATTERN_INDEX));
+    glDisableVertexAttribArray(shaders->getAreaAttributeLoc(AREA_ATTRIBUTES_PATTERN_DIM));
+
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_INDEX), patternIdx.x(), patternIdx.y());
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_DIM), patternDim.x(), patternDim.y());
   }
