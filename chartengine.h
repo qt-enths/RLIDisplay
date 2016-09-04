@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QAbstractTableModel>
 
+#include <QtOpenGL/QGLFramebufferObject>
 #include <QtOpenGL/QGLFunctions>
 #include <QtOpenGL/QGLShaderProgram>
 
@@ -94,7 +95,7 @@ public:
   void setChart(S52Chart* chrt, S52References* ref);
   void update(QVector2D center, float radius, float angle);
 
-  GLuint getTextureId();
+  inline GLuint getTextureId() { return _fbo->texture(); }
 
 private:
   bool initialized;
@@ -106,13 +107,12 @@ private:
   ChartShaders* shaders;
   ChartSettingsModel* settings;
 
-  QVector2D canvas;
+  QSize canvas;
   QVector2D _center;
   float _radius;
   float _angle;
 
-  GLuint fbo_tex_id;
-  GLuint fbo_id;
+  QGLFramebufferObject* _fbo;
 
   S52Assets* assets;
   const QGLContext* ctxt;

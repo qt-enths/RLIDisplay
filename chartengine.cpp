@@ -303,9 +303,6 @@ ChartEngine::ChartEngine() {
 }
 
 ChartEngine::~ChartEngine() {
-  glDeleteFramebuffers(1, &fbo_id);
-  glDeleteTextures(1, &fbo_tex_id);
-
   if (sndg_engine != NULL)
     delete sndg_engine;
 
@@ -318,6 +315,9 @@ ChartEngine::~ChartEngine() {
     delete mark_engines[layer_names[i]];
   for (int i = 0; i < (layer_names = text_engines.keys()).size(); i++)
     delete text_engines[layer_names[i]];
+
+  if (initialized)
+    delete _fbo;
 
   delete shaders;
   delete assets;
@@ -336,25 +336,8 @@ bool ChartEngine::init(S52References* ref, int w, int h, const QGLContext* conte
   shaders = new ChartShaders();
   shaders->init(context);
 
-  canvas = QVector2D(w, h);
-
-	glGenTextures(1, &fbo_tex_id);
-	glBindTexture(GL_TEXTURE_2D, fbo_tex_id);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, canvas.x(), canvas.y(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glGenFramebuffers(1, &fbo_id);
-	glBindFramebuffer(GL_FRAMEBUFFER_EXT, fbo_id);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, fbo_tex_id, 0);
-
-	glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+  canvas = QSize(w, h);
+  _fbo = new QGLFramebufferObject(canvas);
 
   initialized = true;
 
@@ -367,15 +350,11 @@ void ChartEngine::resize(int w, int h) {
   if (!initialized)
       return;
 
-  canvas = QVector2D(w, h);
+  canvas = QSize(w, h);
 
-  glBindTexture(GL_TEXTURE_2D, fbo_tex_id);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, canvas.x(), canvas.y(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  delete _fbo;
+  _fbo = new QGLFramebufferObject(canvas);
+
 
   draw();
 }
@@ -418,8 +397,9 @@ void ChartEngine::draw() {
 
   //qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Update chart";
 
-  glViewport(0, 0, canvas.x(), canvas.y());
-  glBindFramebuffer(GL_FRAMEBUFFER_EXT, fbo_id);
+  glViewport(0, 0, canvas.width(), canvas.height());
+
+  _fbo->bind();
 
   glClearColor(back_color.redF(), back_color.greenF(), back_color.blueF(), 1.f);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -428,12 +408,9 @@ void ChartEngine::draw() {
 
   glFlush();
 
-  glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+  _fbo->release();
 }
 
-GLuint ChartEngine::getTextureId() {
-  return fbo_tex_id;
-}
 
 void ChartEngine::clear() {
   if (!initialized)
