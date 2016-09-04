@@ -40,7 +40,7 @@ void ChartManager::chartLoadingWorker() {
     delete[] c_chart_path;
 
     qDebug()  << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": "<< "Loaded: " << fileList[i];
-    emit new_chart_available(fileList[i]);
+    //emit new_chart_available(fileList[i]);
   }
 
   qDebug()  << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": "<< "Charts loading finished";
