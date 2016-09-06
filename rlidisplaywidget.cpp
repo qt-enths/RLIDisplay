@@ -177,9 +177,7 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
   _controlsEngine->setCenterPos(_maskEngine->getCenter());
 
-  glDisable(GL_BLEND);
-  _maskEngine->update();
-  glEnable(GL_BLEND);
+  _radarEngine->resizeTexture(_maskEngine->getRadius());
 
   emit resized(QSize(w, h));
 }
@@ -193,20 +191,6 @@ void RLIDisplayWidget::paintGL() {
     _last_second = curr_second;
     emit per_second();
   }
-
-  glDisable(GL_BLEND);
-  glEnable(GL_DEPTH);
-  glEnable(GL_DEPTH_TEST);
-  _radarEngine->updateTexture();
-  glDisable(GL_DEPTH);
-  glDisable(GL_DEPTH_TEST);
-
-  _maskEngine->update();
-  _menuEngine->update();
-  _infoEngine->update();
-
-  glEnable(GL_BLEND);
-  _chartEngine->update(QVector2D(12.192f, -80.974f), 50000.f, 0.f);
 
   glViewport(0, 0, width(), height());
 
@@ -222,6 +206,32 @@ void RLIDisplayWidget::paintGL() {
 
   fillWithTexture(_chartEngine->getTextureId());
 
+  QPoint hole_center = _maskEngine->getCenter();
+
+  glMatrixMode( GL_MODELVIEW );
+  glPushMatrix();
+  glLoadIdentity();
+  glTranslatef(hole_center.x()+.5f, hole_center.y()+.5f, 0);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, _radarEngine->getTextureId());
+
+  float radar_rad = _radarEngine->getSize() / 2.f;
+
+  glBegin(GL_QUADS);
+  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+  glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
+  glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
+  glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
+  glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
+  glEnd();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glMatrixMode( GL_MODELVIEW );
+  glPopMatrix();
+
+
   QPoint center = _controlsEngine->getCenterPos();
 
   glMatrixMode( GL_MODELVIEW );
@@ -229,46 +239,14 @@ void RLIDisplayWidget::paintGL() {
   glLoadIdentity();
   glTranslatef(center.x()+.5f, center.y()+.5f, 0);
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _radarEngine->getTextureId());
-
-  float radar_rad = _radarEngine->getSize() / 2.f;
-  int mRadius = _maskEngine->getRadius() + 1;
-  QPoint mCenter = _maskEngine->getCenter();
-
-  int l = -mRadius + (mCenter.x() - center.x());
-  int r = mRadius + (mCenter.x() - center.x());
-  int b = mRadius + (mCenter.y() - center.y());
-  int t = -mRadius + (mCenter.y() - center.y());
-
-  float tl = 0.5 - abs(l) / (2.f * radar_rad);
-  float tr = 0.5 + abs(r) / (2.f * radar_rad);
-  float tb = 0.5 - abs(b) / (2.f * radar_rad);
-  float tt = 0.5 + abs(t) / (2.f * radar_rad);
-
-  glBegin(GL_QUADS);
-  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-  glTexCoord2f(tl, tb); glVertex3f(l, b, 0.0f);
-  glTexCoord2f(tr, tb); glVertex3f(r, b, 0.0f);
-  glTexCoord2f(tr, tt); glVertex3f(r, t, 0.0f);
-  glTexCoord2f(tl, tt); glVertex3f(l, t, 0.0f);
-
-  /*
-  glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
-  glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
-  glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
-  glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
-  */
-  glEnd();
-
-  glBindTexture(GL_TEXTURE_2D, 0);
-
   _controlsEngine->draw();
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();
 
+
   fillWithTexture(_maskEngine->getTextureId());
+
 
   for (int i = 0; i < _infoEngine->getBlockCount(); i++) {
     QRectF blockRect = _infoEngine->getBlockGeometry(i);
@@ -306,6 +284,21 @@ void RLIDisplayWidget::paintGL() {
   glPopMatrix();
 
   glFlush();
+
+
+  glDisable(GL_BLEND);
+  glEnable(GL_DEPTH);
+  glEnable(GL_DEPTH_TEST);
+  _radarEngine->updateTexture();
+  glDisable(GL_DEPTH);
+  glDisable(GL_DEPTH_TEST);
+
+  _maskEngine->update();
+  _menuEngine->update();
+  _infoEngine->update();
+
+  glEnable(GL_BLEND);
+  _chartEngine->update(QVector2D(12.192f, -80.974f), 50000.f, 0.f);
 }
 
 
@@ -372,6 +365,9 @@ bool RLIDisplayWidget::event(QEvent* e) {
         if (QLineF(cursor_pos, _maskEngine->getCenter()).length() < _maskEngine->getRadius()) {
           _maskEngine->setCursorPos(cursor_pos);
           _controlsEngine->setCenterPos(cursor_pos);
+
+          QPoint hole_center = _maskEngine->getCenter();
+          _radarEngine->shiftCenter(cursor_pos-hole_center);
           moveCoursor(cursor_pos);
         }
         break;

@@ -98,6 +98,11 @@ void RadarPalette::updatePalette() {
 RadarEngine::RadarEngine(uint pel_count, uint pel_len) {
   _initialized = false;
 
+  resizeTexture(256);
+  resizeData(pel_count, pel_len);
+
+  _center = QPoint(0, 0);
+
   _fbo_format.setAttachment(QGLFramebufferObject::Depth);
   _fbo_format.setMipmap(false);
   _fbo_format.setSamples(0);
@@ -105,8 +110,6 @@ RadarEngine::RadarEngine(uint pel_count, uint pel_len) {
 
   _prog  = new QGLShaderProgram();
   _pal = new RadarPalette();
-
-  resize(pel_count, pel_len);
 }
 
 
@@ -125,23 +128,37 @@ void RadarEngine::onBrightnessChanged(int br) {
 }
 
 
-void RadarEngine::resize(uint pel_count, uint pel_len) {
+void RadarEngine::resizeData(uint pel_count, uint pel_len) {
+  if (_peleng_count == pel_count && _peleng_len == pel_len)
+    return;
+
   _peleng_count = pel_count;
-  _peleng_len   = pel_len;
+  _peleng_len = pel_len;
+
+  if (_initialized)
+    clearData();
+}
+
+void RadarEngine::resizeTexture(uint radius) {
+  if (_radius == radius)
+    return;
+
+  _radius = radius;
 
   if (_initialized) {
     delete _fbo;
     _fbo = new QGLFramebufferObject(getSize(), getSize(), _fbo_format);
-
-    glBindTexture(GL_TEXTURE_2D, _fbo->texture());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    clearData();
     clearTexture();
   }
 }
+
+void RadarEngine::shiftCenter(QPoint center) {
+  _center = center;
+
+  if (_initialized)
+    clearTexture();
+}
+
 
 
 bool RadarEngine::init(const QGLContext* context) {
@@ -288,7 +305,7 @@ void RadarEngine::updateTexture() {
   glMatrixMode( GL_MODELVIEW );
   glPushMatrix();
   glLoadIdentity();
-  glTranslatef(_peleng_len-.5f, _peleng_len-.5f, 0);
+  glTranslatef(_radius+_center.x()-.5f, _radius+_center.y()-.5f, 0);
 
   _prog->bind();
   if (first_peleng_to_draw <= last_peleng_to_draw) {

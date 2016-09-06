@@ -48,10 +48,12 @@ public:
   explicit RadarEngine  (uint pel_count, uint pel_len);
   virtual ~RadarEngine  ();
 
-  bool init     (const QGLContext* context);
-  void resize   (uint pel_count, uint pel_len);
+  bool init           (const QGLContext* context);
+  void resizeData     (uint pel_count, uint pel_len);
+  void resizeTexture  (uint radius);
+  void shiftCenter    (QPoint center);
 
-  inline uint  getSize()        { return 2*_peleng_len-1; }
+  inline uint  getSize()        { return 2*_radius + 1; }
   inline uint  getTextureId ()  { return _fbo->texture(); }
 
 public slots:
@@ -70,8 +72,10 @@ private:
   bool _initialized;
 
   // Radar parameters
-  uint  _peleng_count;
-  uint  _peleng_len;
+  QPoint  _center;
+  uint    _radius;
+  uint    _peleng_count;
+  uint    _peleng_len;
 
   bool  _draw_circle;
   uint  _last_drawn_peleng;
@@ -80,7 +84,6 @@ private:
   // Framebuffer vars
   QGLFramebufferObjectFormat _fbo_format;
   QGLFramebufferObject* _fbo;
-
   QGLShaderProgram* _prog;
 
   enum { ATTR_POS = 0, ATTR_FST = 1, ATTR_AMP = 2, ATTR_CNT = 3 } ;
