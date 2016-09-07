@@ -497,7 +497,7 @@ bool RadarDataSource::loadData() {
   return true;
 }
 
-bool RadarDataSource::loadObserves2(char* filename, GLubyte* amps) {
+bool RadarDataSource::loadObserves2(char* filename, GLfloat* amps) {
   std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
   //uint32_t bearing - номер пеленга (0...4095)
   //uint32_t datalen - 800 (800 32-битных амплитуд)
@@ -548,7 +548,7 @@ bool RadarDataSource::loadObserves2(char* filename, GLubyte* amps) {
   return true;
 }
 
-bool RadarDataSource::initWithDummy(GLubyte* amps) {
+bool RadarDataSource::initWithDummy(GLfloat* amps) {
   for (uint i = 0; i < BEARINGS_PER_CYCLE; i++)
     for (uint j = 0; j < PELENG_SIZE; j++)
       amps[i*PELENG_SIZE+j] = (255.f * ((j + i/2) % PELENG_SIZE)) / PELENG_SIZE;
@@ -556,7 +556,7 @@ bool RadarDataSource::initWithDummy(GLubyte* amps) {
   return true;
 }
 
-bool RadarDataSource::loadObserves1(char* filename, GLubyte* amps) {
+bool RadarDataSource::loadObserves1(char* filename, GLfloat* amps) {
   std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
 
   // 16 and 3204 in bytes, we will use INT16

@@ -198,7 +198,7 @@ void InfoEngine::drawText(const InfoText& text) {
   QSize font_size = _fonts->getSize(text.font_tag);
 
   std::vector<GLshort> pos;
-  std::vector<GLubyte> ord, chars;
+  std::vector<GLshort> ord, chars;
 
   QPoint anchor;
   switch (text.allign) {
@@ -236,13 +236,13 @@ void InfoEngine::drawText(const InfoText& text) {
   glEnableVertexAttribArray(_attr_locs[INFO_ATTR_POSITION]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[INFO_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, ord.size()*sizeof(GLubyte), ord.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(_attr_locs[INFO_ATTR_ORDER], 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void*) (0));
+  glBufferData(GL_ARRAY_BUFFER, ord.size()*sizeof(GLshort), ord.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(_attr_locs[INFO_ATTR_ORDER], 1, GL_SHORT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(_attr_locs[INFO_ATTR_ORDER]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[INFO_ATTR_CHAR_VAL]);
-  glBufferData(GL_ARRAY_BUFFER, chars.size()*sizeof(GLubyte), chars.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(_attr_locs[INFO_ATTR_CHAR_VAL], 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void*) (0));
+  glBufferData(GL_ARRAY_BUFFER, chars.size()*sizeof(GLshort), chars.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(_attr_locs[INFO_ATTR_CHAR_VAL], 1, GL_SHORT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(_attr_locs[INFO_ATTR_CHAR_VAL]);
 
   glActiveTexture(GL_TEXTURE0);

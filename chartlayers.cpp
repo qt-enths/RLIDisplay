@@ -749,11 +749,11 @@ void ChartSndgEngine::setPatternTexture(GLuint tex_id, QVector2D size) {
 void ChartSndgEngine::setData(S52SndgLayer* layer, S52Assets* /*assets*/, S52References* ref) {
   std::vector<GLfloat> world_coords;
 
-  std::vector<GLubyte> vertex_orders;
-  std::vector<GLubyte> symbol_orders;
+  std::vector<GLshort> vertex_orders;
+  std::vector<GLshort> symbol_orders;
 
-  std::vector<GLubyte> symbol_fracs;
-  std::vector<GLubyte> symbol_counts;
+  std::vector<GLshort> symbol_fracs;
+  std::vector<GLshort> symbol_counts;
   std::vector<GLshort> symbol_origins;
   std::vector<GLshort> symbol_sizes;
   std::vector<GLshort> symbol_pivots;
@@ -811,16 +811,16 @@ void ChartSndgEngine::setData(S52SndgLayer* layer, S52Assets* /*assets*/, S52Ref
   glBufferData(GL_ARRAY_BUFFER, world_coords.size() * sizeof(GLfloat), &world_coords[0], GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_VERTEX_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, vertex_orders.size() * sizeof(GLubyte), &vertex_orders[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vertex_orders.size() * sizeof(GLshort), &vertex_orders[0], GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, symbol_orders.size() * sizeof(GLubyte), &symbol_orders[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, symbol_orders.size() * sizeof(GLshort), &symbol_orders[0], GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_FRAC]);
-  glBufferData(GL_ARRAY_BUFFER, symbol_fracs.size() * sizeof(GLubyte), &symbol_fracs[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, symbol_fracs.size() * sizeof(GLshort), &symbol_fracs[0], GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_COUNT]);
-  glBufferData(GL_ARRAY_BUFFER, symbol_counts.size() * sizeof(GLubyte), &symbol_counts[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, symbol_counts.size() * sizeof(GLshort), &symbol_counts[0], GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_ORIGIN]);
   glBufferData(GL_ARRAY_BUFFER, symbol_origins.size() * sizeof(GLshort), &symbol_origins[0], GL_STATIC_DRAW);
@@ -847,19 +847,19 @@ void ChartSndgEngine::draw(ChartShaders* shaders, QSize canvas, QVector2D cur_co
   glEnableVertexAttribArray(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_WORLD_COORDS));
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_VERTEX_ORDER]);
-  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_VERTEX_ORDER), 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void *) 0);
+  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_VERTEX_ORDER), 1, GL_SHORT, GL_FALSE, 0, (void *) 0);
   glEnableVertexAttribArray(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_VERTEX_ORDER));
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_ORDER]);
-  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_ORDER), 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void *) 0);
+  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_ORDER), 1, GL_SHORT, GL_FALSE, 0, (void *) 0);
   glEnableVertexAttribArray(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_ORDER));
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_FRAC]);
-  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_FRAC), 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void *) 0);
+  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_FRAC), 1, GL_SHORT, GL_FALSE, 0, (void *) 0);
   glEnableVertexAttribArray(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_FRAC));
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_COUNT]);
-  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_COUNT), 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void *) 0);
+  glVertexAttribPointer(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_COUNT), 1, GL_SHORT, GL_FALSE, 0, (void *) 0);
   glEnableVertexAttribArray(shaders->getSndgAttributeLoc(SNDG_ATTRIBUTES_SYMBOL_COUNT));
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[SNDG_ATTRIBUTES_SYMBOL_ORIGIN]);

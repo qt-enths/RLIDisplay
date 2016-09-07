@@ -89,8 +89,8 @@ public:
   explicit ChartEngine();
   virtual ~ChartEngine();
 
-  bool init(S52References* ref, int w, int h, const QGLContext* context);
-  void resize(int w, int h);
+  bool init(S52References* ref, const QGLContext* context);
+  void resize(uint radius);
 
   void setChart(S52Chart* chrt, S52References* ref);
   void update(QVector2D center, float radius, float angle);

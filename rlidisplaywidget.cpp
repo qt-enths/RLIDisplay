@@ -124,7 +124,7 @@ void RLIDisplayWidget::initializeGL() {
   glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Chart engine init start";
-  if (!_chartEngine->init(_chrt_mngr->refs(), width(), height(), context()))
+  if (!_chartEngine->init(_chrt_mngr->refs(), context()))
     return;
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Chart engine init finish";
 
@@ -170,7 +170,6 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
 
   glViewport(0, 0, w, h);
 
-  _chartEngine->resize(w, h);
   _maskEngine->resize(QSize(w, h));
 
   _maskEngine->setCursorPos(_maskEngine->getCenter());
@@ -178,6 +177,7 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
   _controlsEngine->setCenterPos(_maskEngine->getCenter());
 
   _radarEngine->resizeTexture(_maskEngine->getRadius());
+  _chartEngine->resize(_maskEngine->getRadius());
 
   emit resized(QSize(w, h));
 }
@@ -204,8 +204,6 @@ void RLIDisplayWidget::paintGL() {
   glLoadIdentity();
   glOrtho(0, width(), height(), 0, -1, 1 );
 
-  fillWithTexture(_chartEngine->getTextureId());
-
   QPoint hole_center = _maskEngine->getCenter();
 
   glMatrixMode( GL_MODELVIEW );
@@ -213,10 +211,11 @@ void RLIDisplayWidget::paintGL() {
   glLoadIdentity();
   glTranslatef(hole_center.x()+.5f, hole_center.y()+.5f, 0);
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _radarEngine->getTextureId());
-
   float radar_rad = _radarEngine->getSize() / 2.f;
+
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, _chartEngine->getTextureId());
 
   glBegin(GL_QUADS);
   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -225,6 +224,21 @@ void RLIDisplayWidget::paintGL() {
   glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
   glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
   glEnd();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, _radarEngine->getTextureId());
+
+  glBegin(GL_QUADS);
+  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+  glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
+  glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
+  glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
+  glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
+  glEnd();
+
 
   glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -298,7 +312,7 @@ void RLIDisplayWidget::paintGL() {
   _infoEngine->update();
 
   glEnable(GL_BLEND);
-  _chartEngine->update(QVector2D(12.192f, -80.974f), 50000.f, 0.f);
+  _chartEngine->update(QVector2D(12.250f, -81.350f), 50000.f, 0.f);
 }
 
 

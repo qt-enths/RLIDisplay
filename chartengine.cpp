@@ -323,7 +323,7 @@ ChartEngine::~ChartEngine() {
   delete assets;
 }
 
-bool ChartEngine::init(S52References* ref, int w, int h, const QGLContext* context) {
+bool ChartEngine::init(S52References* ref, const QGLContext* context) {
   if (initialized)
     return false;
 
@@ -336,7 +336,7 @@ bool ChartEngine::init(S52References* ref, int w, int h, const QGLContext* conte
   shaders = new ChartShaders();
   shaders->init(context);
 
-  canvas = QSize(w, h);
+  canvas = QSize(255, 255);
   _fbo = new QGLFramebufferObject(canvas);
 
   initialized = true;
@@ -346,15 +346,14 @@ bool ChartEngine::init(S52References* ref, int w, int h, const QGLContext* conte
   return true;
 }
 
-void ChartEngine::resize(int w, int h) {
+void ChartEngine::resize(uint radius) {
+  canvas = QSize(2*radius+1, 2*radius+1);
+
   if (!initialized)
       return;
 
-  canvas = QSize(w, h);
-
   delete _fbo;
   _fbo = new QGLFramebufferObject(canvas);
-
 
   draw();
 }

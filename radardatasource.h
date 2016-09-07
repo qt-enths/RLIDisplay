@@ -60,16 +60,16 @@ public:
   void finish();
 
 signals:
-  void updateData(uint offset, uint count, GLubyte* amps);
+  void updateData(uint offset, uint count, GLfloat* amps);
 
 private:
   bool loadData();
-  bool initWithDummy(GLubyte* amps);
-  bool loadObserves1(char* filename, GLubyte* amps);
-  bool loadObserves2(char* filename, GLubyte* amps);
+  bool initWithDummy(GLfloat* amps);
+  bool loadObserves1(char* filename, GLfloat* amps);
+  bool loadObserves2(char* filename, GLfloat* amps);
 
   bool finish_flag;
-  GLubyte file_amps[2][BEARINGS_PER_CYCLE * PELENG_SIZE];
+  GLfloat file_amps[2][BEARINGS_PER_CYCLE * PELENG_SIZE];
   uint  file_curr;
 
   void worker();

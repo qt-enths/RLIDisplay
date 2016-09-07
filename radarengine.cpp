@@ -224,7 +224,9 @@ void RadarEngine::clearTexture() {
 
 void RadarEngine::clearData() {
   std::vector<GLshort> poss;
-  std::vector<GLubyte> amps, fsts;
+  std::vector<GLfloat> amps;
+  std::vector<GLshort> fsts;
+
   QVector<QPoint> points;
 
   for (uint index = 0; index < _peleng_count; index++) {
@@ -253,10 +255,10 @@ void RadarEngine::clearData() {
   glBufferData(GL_ARRAY_BUFFER, 2*_peleng_count*_peleng_len*sizeof(GLshort), poss.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_FST]);
-  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLubyte), fsts.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLshort), fsts.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
-  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLubyte), amps.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), amps.data(), GL_DYNAMIC_DRAW);
 
   _draw_circle       = true;
   _last_drawn_peleng = _peleng_count - 1;
@@ -264,12 +266,12 @@ void RadarEngine::clearData() {
 }
 
 
-void RadarEngine::updateData(uint offset, uint count, GLubyte* amps) {
+void RadarEngine::updateData(uint offset, uint count, GLfloat* amps) {
   if (!_initialized)
     return;
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
-  glBufferSubData(GL_ARRAY_BUFFER, offset*_peleng_len*sizeof(GLubyte), count*_peleng_len*sizeof(GLubyte), amps);
+  glBufferSubData(GL_ARRAY_BUFFER, offset*_peleng_len*sizeof(GLfloat), count*_peleng_len*sizeof(GLfloat), amps);
 
   // New last added peleng
   uint nlap = (offset + count - 1) % _peleng_count;
@@ -345,11 +347,11 @@ void RadarEngine::drawPelengs(uint first, uint last) {
   glEnableVertexAttribArray(_attr_locs[ATTR_POS]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_FST]);
-  glVertexAttribPointer(_attr_locs[ATTR_FST], 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLubyte)));
+  glVertexAttribPointer(_attr_locs[ATTR_FST], 1, GL_SHORT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLshort)));
   glEnableVertexAttribArray(_attr_locs[ATTR_FST]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
-  glVertexAttribPointer(_attr_locs[ATTR_AMP], 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLubyte)));
+  glVertexAttribPointer(_attr_locs[ATTR_AMP], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
   glEnableVertexAttribArray(_attr_locs[ATTR_AMP]);
 
   glDepthFunc(GL_ALWAYS);

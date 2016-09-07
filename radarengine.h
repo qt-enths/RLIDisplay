@@ -63,7 +63,7 @@ public slots:
   void onBrightnessChanged(int br);
 
   void updateTexture();
-  void updateData(uint offset, uint count, GLubyte* amps);
+  void updateData(uint offset, uint count, GLfloat* amps);
 
 private:
   void initShader();
