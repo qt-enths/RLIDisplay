@@ -70,15 +70,15 @@ void MaskEngine::bindBuffers(GLuint* vbo_ids) {
   glEnableVertexAttribArray(loc_angle);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_CHAR_VAL]);
-  glVertexAttribPointer(loc_char_val, 1, GL_SHORT, GL_FALSE, 0, (void*) (0));
+  glVertexAttribPointer(loc_char_val, 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(loc_char_val);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_ORDER]);
-  glVertexAttribPointer(loc_order, 1, GL_SHORT, GL_FALSE, 0, (void*) (0));
+  glVertexAttribPointer(loc_order, 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(loc_order);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_SHIFT]);
-  glVertexAttribPointer(loc_shift, 1, GL_SHORT, GL_FALSE, 0, (void*) (0));
+  glVertexAttribPointer(loc_shift, 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(loc_shift);
 }
 
@@ -199,9 +199,9 @@ bool MaskEngine::initShaders() {
 
 void MaskEngine::initLineBuffers() {
   GLfloat angle[2*360];
-  GLshort chars[2*360];
-  GLshort order[2*360];
-  GLshort shift[2*360];
+  GLfloat chars[2*360];
+  GLfloat order[2*360];
+  GLfloat shift[2*360];
 
   for (int a = 0; a < 360; a++) {
     angle[2*a+0] = angle[2*a+1] = a;
@@ -222,9 +222,9 @@ void MaskEngine::initLineBuffers() {
 
 void MaskEngine::initTextBuffers() {
   QVector<GLfloat> angles;
-  QVector<GLshort> chars;
-  QVector<GLshort> orders;
-  QVector<GLshort> shifts;
+  QVector<GLfloat> chars;
+  QVector<GLfloat> orders;
+  QVector<GLfloat> shifts;
 
   _text_point_count = 0;
 
@@ -245,7 +245,7 @@ void MaskEngine::initTextBuffers() {
 
 void MaskEngine::initHoleBuffers() {
   QVector<GLfloat> angle;
-  QVector<GLshort> chars, order, shift;
+  QVector<GLfloat> chars, order, shift;
 
   for (int a = 0; a < _hole_point_count; a++) {
     angle.push_back((static_cast<float>(a) / (_hole_point_count - 1)) * 360);
@@ -257,18 +257,18 @@ void MaskEngine::initHoleBuffers() {
   setBuffers(vbo_ids_hole, _hole_point_count, angle.data(), chars.data(), order.data(), shift.data());
 }
 
-void MaskEngine::setBuffers(GLuint* vbo_ids, int count, GLfloat* angles, GLshort* chars, GLshort* orders, GLshort* shifts) {
+void MaskEngine::setBuffers(GLuint* vbo_ids, int count, GLfloat* angles, GLfloat* chars, GLfloat* orders, GLfloat* shifts) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_ANGLE]);
   glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), angles, GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_CHAR_VAL]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLshort), chars, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), chars, GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLshort), orders, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), orders, GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_SHIFT]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLshort), shifts, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), shifts, GL_STATIC_DRAW);
 }
 
 

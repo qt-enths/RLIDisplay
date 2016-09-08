@@ -223,9 +223,9 @@ void RadarEngine::clearTexture() {
 
 
 void RadarEngine::clearData() {
-  std::vector<GLshort> poss;
+  std::vector<GLfloat> poss;
   std::vector<GLfloat> amps;
-  std::vector<GLshort> fsts;
+  std::vector<GLfloat> fsts;
 
   QVector<QPoint> points;
 
@@ -252,10 +252,10 @@ void RadarEngine::clearData() {
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
-  glBufferData(GL_ARRAY_BUFFER, 2*_peleng_count*_peleng_len*sizeof(GLshort), poss.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 2*_peleng_count*_peleng_len*sizeof(GLfloat), poss.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_FST]);
-  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLshort), fsts.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), fsts.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
   glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), amps.data(), GL_DYNAMIC_DRAW);
@@ -343,11 +343,11 @@ void RadarEngine::drawPelengs(uint first, uint last) {
   glUniform1f(_unif_locs[UNIF_THR], 4);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
-  glVertexAttribPointer(_attr_locs[ATTR_POS], 2, GL_SHORT, GL_FALSE, 0, (void*) (2 * first * _peleng_len * sizeof(GLshort)));
+  glVertexAttribPointer(_attr_locs[ATTR_POS], 2, GL_FLOAT, GL_FALSE, 0, (void*) (2 * first * _peleng_len * sizeof(GLfloat)));
   glEnableVertexAttribArray(_attr_locs[ATTR_POS]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_FST]);
-  glVertexAttribPointer(_attr_locs[ATTR_FST], 1, GL_SHORT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLshort)));
+  glVertexAttribPointer(_attr_locs[ATTR_FST], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
   glEnableVertexAttribArray(_attr_locs[ATTR_FST]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);

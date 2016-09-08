@@ -45,7 +45,7 @@ private:
   void initHoleBuffers();
 
   void bindBuffers(GLuint* vbo_ids);
-  void setBuffers(GLuint* vbo_ids, int count, GLfloat* angles, GLshort* chars, GLshort* orders, GLshort* shifts);
+  void setBuffers(GLuint* vbo_ids, int count, GLfloat* angles, GLfloat* chars, GLfloat* orders, GLfloat* shifts);
 
   AsmFonts* _fonts;
 
