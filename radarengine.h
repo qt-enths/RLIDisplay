@@ -86,8 +86,8 @@ private:
   QGLFramebufferObject* _fbo;
   QGLShaderProgram* _prog;
 
-  enum { ATTR_POS = 0, ATTR_FST = 1, ATTR_AMP = 2, ATTR_CNT = 3 } ;
-  enum { UNIF_CLR = 0, UNIF_PAL = 1, UNIF_THR = 2, UNIF_CNT = 3 } ;
+  enum { ATTR_POS = 0, /*ATTR_FST = 1, */ATTR_AMP = 1, ATTR_CNT = 2 } ;
+  enum { UNIF_CLR = 0, UNIF_PEL_LEN = 1, UNIF_SQ_SD = 2, UNIF_PAL = 3, UNIF_THR = 4, UNIF_CNT = 5 } ;
 
   GLuint _vbo_ids[ATTR_CNT];
   GLuint _unif_locs[UNIF_CNT];
