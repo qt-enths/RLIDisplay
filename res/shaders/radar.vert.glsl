@@ -17,14 +17,16 @@ void main() {
   float x = (abs(pos) / square_side) - pel_len + 1;
   vec2 pos2 = vec2(x, y);
 
-  if (clear == 0) {
+  gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos2, -amp/255, 1);
+
+  /*if (clear == 0) {
     gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos2, -amp/255, 1);
   } else {
     if (pos < 0)
       gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos2, 1, 1);
     else
       gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(0, 0, 0, 0);
-  }
+  }*/
 
   /*if (clear == 0) {
     gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos, -amp/255, 1);
