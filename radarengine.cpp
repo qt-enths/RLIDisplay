@@ -257,7 +257,7 @@ void RadarEngine::clearData() {
     }
   }
 
-  qDebug() << _vbo_ids[ATTR_POS];
+  delete[] used_pixel_map;
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
   glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), poss.data(), GL_DYNAMIC_DRAW);
