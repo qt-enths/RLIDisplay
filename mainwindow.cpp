@@ -365,8 +365,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::onRLIWidgetInitialized() {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
-  connect(_radar_ds, SIGNAL(updateData(uint,uint,float*,float*))
-        , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint,uint,float*,float*)));
+  connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
+        , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
 
   connect(this, SIGNAL(scale_changed(std::pair<QByteArray, QByteArray>))
         , _scle_ctrl, SLOT(scale_changed(std::pair<QByteArray, QByteArray>)));

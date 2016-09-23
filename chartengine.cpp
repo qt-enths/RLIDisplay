@@ -304,9 +304,6 @@ ChartEngine::ChartEngine() {
 }
 
 ChartEngine::~ChartEngine() {
-  glDeleteFramebuffers(1, &fbo_id);
-  glDeleteTextures(1, &fbo_tex_id);
-
   if (sndg_engine != NULL)
     delete sndg_engine;
 
@@ -320,11 +317,14 @@ ChartEngine::~ChartEngine() {
   for (int i = 0; i < (layer_names = text_engines.keys()).size(); i++)
     delete text_engines[layer_names[i]];
 
+  if (initialized)
+    delete _fbo;
+
   delete shaders;
   delete assets;
 }
 
-bool ChartEngine::init(S52References* ref, int w, int h, const QGLContext* context) {
+bool ChartEngine::init(S52References* ref, const QGLContext* context) {
   if (initialized)
     return false;
 
@@ -337,25 +337,8 @@ bool ChartEngine::init(S52References* ref, int w, int h, const QGLContext* conte
   shaders = new ChartShaders();
   shaders->init(context);
 
-  canvas = QVector2D(w, h);
-
-	glGenTextures(1, &fbo_tex_id);
-	glBindTexture(GL_TEXTURE_2D, fbo_tex_id);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, canvas.x(), canvas.y(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glGenFramebuffers(1, &fbo_id);
-	glBindFramebuffer(GL_FRAMEBUFFER_EXT, fbo_id);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, fbo_tex_id, 0);
-
-	glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+  canvas = QSize(255, 255);
+  _fbo = new QGLFramebufferObject(canvas);
 
   initialized = true;
 
@@ -364,19 +347,14 @@ bool ChartEngine::init(S52References* ref, int w, int h, const QGLContext* conte
   return true;
 }
 
-void ChartEngine::resize(int w, int h) {
+void ChartEngine::resize(uint radius) {
+  canvas = QSize(2*radius+1, 2*radius+1);
+
   if (!initialized)
       return;
 
-  canvas = QVector2D(w, h);
-
-  glBindTexture(GL_TEXTURE_2D, fbo_tex_id);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, canvas.x(), canvas.y(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  delete _fbo;
+  _fbo = new QGLFramebufferObject(canvas);
 
   draw();
 }
@@ -397,6 +375,7 @@ void ChartEngine::setChart(S52Chart* chrt, S52References* ref) {
 
   setSndgLayer(chrt, ref);
   setting_up = false;
+
   draw();
 }
 
@@ -408,7 +387,7 @@ void ChartEngine::update(QVector2D center, float radius, float angle) {
   QDateTime curTime = QDateTime::currentDateTime();
   if (initialized && _lastUpdate.msecsTo(curTime) > 1000) {
     _lastUpdate = curTime;
-      draw();
+    draw();
   }
 }
 
@@ -418,21 +397,20 @@ void ChartEngine::draw() {
 
   //qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Update chart";
 
-  glViewport(0, 0, canvas.x(), canvas.y());
-  glBindFramebuffer(GL_FRAMEBUFFER_EXT, fbo_id);
+  glViewport(0, 0, canvas.width(), canvas.height());
+
+  _fbo->bind();
 
   glClearColor(back_color.redF(), back_color.greenF(), back_color.blueF(), 1.f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   drawLayers();
+
   glFlush();
 
-  glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+  _fbo->release();
 }
 
-GLuint ChartEngine::getTextureId() {
-  return fbo_tex_id;
-}
 
 void ChartEngine::clear() {
   if (!initialized)
@@ -460,7 +438,6 @@ void ChartEngine::drawLayers() {
     if (!settings->isLayerVisible(displayOrder[i]))
       displayOrder.removeAt(i);
 
-
   shaders->getChartAreaProgram()->bind();
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
@@ -487,8 +464,6 @@ void ChartEngine::drawLayers() {
   }
   shaders->getChartMarkProgram()->release();
 
-
-  /*
   shaders->getChartTextProgram()->bind();
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
@@ -496,7 +471,6 @@ void ChartEngine::drawLayers() {
       text_engines[s]->draw(shaders, canvas, _center, _radius, _angle);
   }
   shaders->getChartTextProgram()->release();
-  */
 
   if (sndg_engine != NULL && settings->areSoundingsVisible()) {
     shaders->getChartSndgProgram()->bind();

@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <QObject>
+#include <QtOpenGL>
 
 #if QT_VERSION >= 0x050000
     #include <QtConcurrent/QtConcurrentRun>
@@ -67,17 +68,16 @@ public:
   int preprocessBearing(u_int32_t * brgdata, bool inv);
 
 signals:
-  void updateData(uint offset, uint count, float* divs, float* amps);
+  void updateData(uint offset, uint count, GLfloat* amps);
 
 private:
   bool loadData();
-  bool initWithDummy(float* divs, float* amps);
-  bool loadObserves1(char* filename, float* divs, float* amps);
-  bool loadObserves2(char* filename, float* divs, float* amps);
+  bool initWithDummy(GLfloat* amps);
+  bool loadObserves1(char* filename, GLfloat* amps);
+  bool loadObserves2(char* filename, GLfloat* amps);
 
   bool finish_flag;
-  float file_divs[2][BEARINGS_PER_CYCLE];
-  float file_amps[2][BEARINGS_PER_CYCLE * PELENG_SIZE];
+  GLfloat file_amps[2][BEARINGS_PER_CYCLE * PELENG_SIZE];
   uint  file_curr;
 
   void worker();

@@ -10,12 +10,6 @@ MaskEngine::MaskEngine(const QSize& sz) {
 
   _prog = new QGLShaderProgram();
 
-  format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-  format.setMipmap(true);
-  format.setSamples(1);
-  format.setTextureTarget(GL_TEXTURE_2D);
-  format.setInternalTextureFormat(GL_RGBA8);
-
   resize(sz);
 
   _angle_shift = 0;
@@ -30,8 +24,8 @@ MaskEngine::~MaskEngine() {
   glDeleteBuffers(MARK_ATTR_COUNT, vbo_ids_mark);
   glDeleteBuffers(MARK_ATTR_COUNT, vbo_ids_text);
   glDeleteBuffers(MARK_ATTR_COUNT, vbo_ids_hole);
-  delete render_fbo;
-  delete texture_fbo;
+
+  delete _fbo;
 
   delete _prog;
 }
@@ -41,8 +35,7 @@ bool MaskEngine::init(const QGLContext* context) {
 
   initializeGLFunctions(context);
 
-  render_fbo = new QGLFramebufferObject(_size.width(), _size.height(), format);
-  texture_fbo = new QGLFramebufferObject(_size.width(), _size.height());
+  _fbo = new QGLFramebufferObject(_size.width(), _size.height());
 
   glGenBuffers(MARK_ATTR_COUNT, vbo_ids_mark);
   glGenBuffers(MARK_ATTR_COUNT, vbo_ids_text);
@@ -66,10 +59,8 @@ void MaskEngine::resize(const QSize& sz) {
   _cursor_pos = _hole_center;
 
   if (_initialized) {
-    delete render_fbo;
-    delete texture_fbo;
-    render_fbo = new QGLFramebufferObject(_size.width(), _size.height(), format);
-    texture_fbo = new QGLFramebufferObject(_size.width(), _size.height());
+    delete _fbo;
+    _fbo = new QGLFramebufferObject(_size.width(), _size.height());
   }
 }
 
@@ -97,9 +88,7 @@ void MaskEngine::update() {
 
   glViewport(0, 0, _size.width(), _size.height());
 
-  render_fbo->bind();
-
-  glEnable(GL_MULTISAMPLE);
+  _fbo->bind();
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -137,11 +126,8 @@ void MaskEngine::update() {
   bindBuffers(vbo_ids_mark);
   glLineWidth(1);
   glDrawArrays(GL_LINES, 0, 2*360);
-
-  //glEnableVertexAttribArray(loc_point);
   // ---------------------------------------------------------------------
 
-  glDisable(GL_MULTISAMPLE);
 
   // Draw text mark
   // ---------------------------------------------------------------------
@@ -177,12 +163,7 @@ void MaskEngine::update() {
 
   glFlush();
 
-  render_fbo->release();
-
-  QRect rect(0, 0, render_fbo->width(), render_fbo->height());
-  QGLFramebufferObject::blitFramebuffer(texture_fbo, rect, render_fbo, rect);
-
-  glFlush();
+  _fbo->release();
 }
 
 bool MaskEngine::initShaders() {
@@ -217,21 +198,21 @@ bool MaskEngine::initShaders() {
 }
 
 void MaskEngine::initLineBuffers() {
-  float angle[2*360];
-  float chars[2*360];
-  float order[2*360];
-  float shift[2*360];
+  GLfloat angle[2*360];
+  GLfloat chars[2*360];
+  GLfloat order[2*360];
+  GLfloat shift[2*360];
 
   for (int a = 0; a < 360; a++) {
     angle[2*a+0] = angle[2*a+1] = a;
-    order[2*a+0] = 0.f;
-    order[2*a+1] = 1.f;
-    chars[2*a+0] = chars[2*a+1] = -1.f;
+    order[2*a+0] = 0;
+    order[2*a+1] = 1;
+    chars[2*a+0] = chars[2*a+1] = 0;
 
-    float s = 1.5f;
-    if (a%5  == 0) s =  4.f;
-    if (a%10 == 0) s =  7.f;
-    if (a%30 == 0) s = 12.f;
+    char s = 2;
+    if (a%5  == 0) s =  4;
+    if (a%10 == 0) s =  7;
+    if (a%30 == 0) s = 12;
 
     shift[2*a+0] = shift[2*a+1] = s;
   }
@@ -240,24 +221,19 @@ void MaskEngine::initLineBuffers() {
 }
 
 void MaskEngine::initTextBuffers() {
-  QVector<float> angles;
-  QVector<float> chars;
-  QVector<float> orders;
-  QVector<float> shifts;
+  QVector<GLfloat> angles;
+  QVector<GLfloat> chars;
+  QVector<GLfloat> orders;
+  QVector<GLfloat> shifts;
 
   _text_point_count = 0;
 
   for (int i = 0; i < 360; i += 10) {
     QByteArray tm = QString::number(i).toLatin1();
 
-    //qDebug() << i;
-
     for (int l = 0; l < tm.size(); l++) {
       angles.push_back(i);
       chars.push_back(tm[l]);
-
-      //qDebug() << static_cast<int>(tm[l]);
-
       orders.push_back(l);
       shifts.push_back(14);
       _text_point_count++;
@@ -268,13 +244,14 @@ void MaskEngine::initTextBuffers() {
 }
 
 void MaskEngine::initHoleBuffers() {
-  QVector<float> angle, chars, order, shift;
+  QVector<GLfloat> angle;
+  QVector<GLfloat> chars, order, shift;
 
   for (int a = 0; a < _hole_point_count; a++) {
     angle.push_back((static_cast<float>(a) / (_hole_point_count - 1)) * 360);
     order.push_back(1);
-    chars.push_back(-1);
-    shift.push_back(-0.5f);
+    chars.push_back(0);
+    shift.push_back(0);
   }
 
   setBuffers(vbo_ids_hole, _hole_point_count, angle.data(), chars.data(), order.data(), shift.data());
@@ -282,16 +259,16 @@ void MaskEngine::initHoleBuffers() {
 
 void MaskEngine::setBuffers(GLuint* vbo_ids, int count, GLfloat* angles, GLfloat* chars, GLfloat* orders, GLfloat* shifts) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_ANGLE]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), angles, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), angles, GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_CHAR_VAL]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), chars, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), chars, GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), orders, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), orders, GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_SHIFT]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), shifts, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), shifts, GL_STATIC_DRAW);
 }
 
 

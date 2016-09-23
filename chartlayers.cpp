@@ -125,13 +125,13 @@ void ChartAreaEngine::setData(S52AreaLayer* layer, S52Assets* assets, S52Referen
   }
 }
 
-void ChartAreaEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cur_coords, float radius, float angle) {
+void ChartAreaEngine::draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle) {
   if (!initialized
    || pattern_tex_id == -1
    || point_count <= 0)
     return;
 
-  glUniform2f(shaders->getAreaUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.x(), canvas.y());
+  glUniform2f(shaders->getAreaUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.width(), canvas.height());
   glUniform2f(shaders->getAreaUniformLoc(COMMON_UNIFORMS_CENTER), cur_coords.x(), cur_coords.y());
   glUniform1f(shaders->getAreaUniformLoc(COMMON_UNIFORMS_RADIUS), radius);
   glUniform1f(shaders->getAreaUniformLoc(COMMON_UNIFORMS_NORTH), angle);
@@ -148,6 +148,8 @@ void ChartAreaEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cu
 
     glUniform1f(shaders->getAreaUniformLoc(AREA_UNIFORMS_COLOR_INDEX), -1);
   } else {
+    glDisableVertexAttribArray(shaders->getAreaAttributeLoc(AREA_ATTRIBUTES_COLOR_INDEX));
+
     glUniform1f(shaders->getAreaUniformLoc(AREA_UNIFORMS_COLOR_INDEX), color_ind);
   }
 
@@ -163,6 +165,9 @@ void ChartAreaEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cu
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_INDEX), -1, -1);
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_DIM), -1, -1);
   } else {
+    glDisableVertexAttribArray(shaders->getAreaAttributeLoc(AREA_ATTRIBUTES_PATTERN_INDEX));
+    glDisableVertexAttribArray(shaders->getAreaAttributeLoc(AREA_ATTRIBUTES_PATTERN_DIM));
+
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_INDEX), patternIdx.x(), patternIdx.y());
     glUniform2f(shaders->getAreaUniformLoc(AREA_UNIFORMS_PATTERN_DIM), patternDim.x(), patternDim.y());
   }
@@ -336,13 +341,13 @@ void ChartLineEngine::setData(S52LineLayer* layer, S52Assets* assets, S52Referen
   }
 }
 
-void ChartLineEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cur_coords, float radius, float angle) {
+void ChartLineEngine::draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle) {
   if (!initialized
    || pattern_tex_id == -1
    || point_count <= 0)
     return;
 
-  glUniform2f(shaders->getLineUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.x(), canvas.y());
+  glUniform2f(shaders->getLineUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.width(), canvas.height());
   glUniform2f(shaders->getLineUniformLoc(COMMON_UNIFORMS_CENTER), cur_coords.x(), cur_coords.y());
   glUniform1f(shaders->getLineUniformLoc(COMMON_UNIFORMS_RADIUS), radius);
   glUniform1f(shaders->getLineUniformLoc(COMMON_UNIFORMS_NORTH), angle);
@@ -376,6 +381,9 @@ void ChartLineEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cu
     glUniform2f(shaders->getLineUniformLoc(LINE_UNIFORMS_PATTERN_INDEX), -1, -1);
     glUniform2f(shaders->getLineUniformLoc(LINE_UNIFORMS_PATTERN_DIM), -1, -1);
   } else {
+    glDisableVertexAttribArray(shaders->getLineAttributeLoc(LINE_ATTRIBUTES_PATTERN_INDEX));
+    glDisableVertexAttribArray(shaders->getLineAttributeLoc(LINE_ATTRIBUTES_PATTERN_DIM));
+
     glUniform2f(shaders->getLineUniformLoc(LINE_UNIFORMS_PATTERN_INDEX), patternIdx.x(), patternIdx.y());
     glUniform2f(shaders->getLineUniformLoc(LINE_UNIFORMS_PATTERN_DIM), patternDim.x(), patternDim.y());
   }
@@ -387,6 +395,8 @@ void ChartLineEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cu
 
     glUniform1f(shaders->getLineUniformLoc(LINE_UNIFORMS_COLOR_INDEX), -1);
   } else {
+    glDisableVertexAttribArray(shaders->getLineAttributeLoc(LINE_ATTRIBUTES_COLOR_INDEX));
+
     glUniform1f(shaders->getLineUniformLoc(LINE_UNIFORMS_COLOR_INDEX), color_ind);
   }
 
@@ -478,13 +488,13 @@ void ChartTextEngine::setData(S52TextLayer* layer) {
   glBufferData(GL_ARRAY_BUFFER, char_values.size() * sizeof(GLfloat), &char_values[0], GL_STATIC_DRAW);
 }
 
-void ChartTextEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cur_coords, float radius, float angle) {
+void ChartTextEngine::draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle) {
   if (!initialized
    || glyph_tex_id == -1
    || point_count <= 0)
     return;
 
-  glUniform2f(shaders->getTextUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.x(), canvas.y());
+  glUniform2f(shaders->getTextUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.width(), canvas.height());
   glUniform2f(shaders->getTextUniformLoc(COMMON_UNIFORMS_CENTER), cur_coords.x(), cur_coords.y());
   glUniform1f(shaders->getTextUniformLoc(COMMON_UNIFORMS_RADIUS), radius);
   glUniform1f(shaders->getTextUniformLoc(COMMON_UNIFORMS_NORTH),  angle);
@@ -630,13 +640,13 @@ void ChartMarkEngine::setData(S52MarkLayer* layer, S52Assets* /*assets*/, S52Ref
   }
 }
 
-void ChartMarkEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cur_coords, float radius, float angle) {
+void ChartMarkEngine::draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle) {
   if (!initialized
    || pattern_tex_id == -1
    || point_count <= 0)
     return;
 
-  glUniform2f(shaders->getMarkUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.x(), canvas.y());
+  glUniform2f(shaders->getMarkUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.width(), canvas.height());
   glUniform2f(shaders->getMarkUniformLoc(COMMON_UNIFORMS_CENTER), cur_coords.x(), cur_coords.y());
   glUniform1f(shaders->getMarkUniformLoc(COMMON_UNIFORMS_RADIUS), radius);
   glUniform1f(shaders->getMarkUniformLoc(COMMON_UNIFORMS_NORTH),  angle);
@@ -670,6 +680,10 @@ void ChartMarkEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cu
     glUniform2f(shaders->getMarkUniformLoc(MARK_UNIFORMS_SYMBOL_ORIGIN), patternOrigin.x(), patternOrigin.y());
     glUniform2f(shaders->getMarkUniformLoc(MARK_UNIFORMS_SYMBOL_SIZE), patternSize.x(), patternSize.y());
     glUniform2f(shaders->getMarkUniformLoc(MARK_UNIFORMS_SYMBOL_PIVOT), patternPivot.x(), patternPivot.y());
+
+    glDisableVertexAttribArray(shaders->getMarkAttributeLoc(MARK_ATTRIBUTES_SYMBOL_ORIGIN));
+    glDisableVertexAttribArray(shaders->getMarkAttributeLoc(MARK_ATTRIBUTES_SYMBOL_SIZE));
+    glDisableVertexAttribArray(shaders->getMarkAttributeLoc(MARK_ATTRIBUTES_SYMBOL_PIVOT));
   }
 
   glUniform1f(shaders->getLineUniformLoc(COMMON_UNIFORMS_PATTERN_TEX_ID), 0);
@@ -822,11 +836,11 @@ void ChartSndgEngine::setData(S52SndgLayer* layer, S52Assets* /*assets*/, S52Ref
   glBufferData(GL_ARRAY_BUFFER, symbol_pivots.size() * sizeof(GLfloat), &symbol_pivots[0], GL_STATIC_DRAW);
 }
 
-void ChartSndgEngine::draw(ChartShaders* shaders, QVector2D canvas, QVector2D cur_coords, float radius, float angle) {
+void ChartSndgEngine::draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle) {
   if (!initialized || pattern_tex_id == -1 || point_count <= 0)
     return;
 
-  glUniform2f(shaders->getSndgUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.x(), canvas.y());
+  glUniform2f(shaders->getSndgUniformLoc(COMMON_UNIFORMS_CANVAS), canvas.width(), canvas.height());
   glUniform2f(shaders->getSndgUniformLoc(COMMON_UNIFORMS_CENTER), cur_coords.x(), cur_coords.y());
   glUniform1f(shaders->getSndgUniformLoc(COMMON_UNIFORMS_RADIUS), radius);
   glUniform1f(shaders->getSndgUniformLoc(COMMON_UNIFORMS_NORTH),  angle);

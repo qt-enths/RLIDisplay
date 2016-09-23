@@ -197,17 +197,19 @@ void InfoEngine::drawText(const InfoText& text) {
   GLuint tex_id = _fonts->getTextureId(text.font_tag);
   QSize font_size = _fonts->getSize(text.font_tag);
 
-  QVector<float> pos, ord, chars;
-  QPointF anchor;
+  std::vector<GLfloat> pos;
+  std::vector<GLfloat> ord, chars;
+
+  QPoint anchor;
   switch (text.allign) {
     case INFOTEXT_ALLIGN_LEFT:
       anchor = text.rect.topLeft();
       break;
     case INFOTEXT_ALLIGN_RIGHT:
-      anchor = text.rect.topRight() - QPointF(font_size.width()*text.str[_lang].size(), 0.f);
+      anchor = text.rect.topRight() - QPoint(font_size.width()*text.str[_lang].size(), 0);
       break;
     case INFOTEXT_ALLIGN_CENTER:
-      anchor = text.rect.center() - QPointF((font_size.width()*text.str[_lang].size())/2.f, font_size.height()/2.f);
+      anchor = text.rect.center() - QPoint((font_size.width()*text.str[_lang].size()) / 2, font_size.height() / 2);
       break;
     default:
       anchor = text.rect.topLeft();
@@ -216,7 +218,8 @@ void InfoEngine::drawText(const InfoText& text) {
 
   for (int i = 0; i < text.str[_lang].size(); i++) {
     for (int j = 0; j < 4; j++) {
-      QPointF lefttop = anchor + QPointF(i * font_size.width(), 0);
+      QPoint lefttop = anchor + QPoint(i * font_size.width(), 0);
+
       pos.push_back(lefttop.x());
       pos.push_back(lefttop.y());
       ord.push_back(j);

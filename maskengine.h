@@ -26,7 +26,7 @@ public:
   inline void setCursorPos  (const QPoint& p)   { _cursor_pos = p; }
   inline void setFonts      (AsmFonts* fonts)   { _fonts = fonts; }
 
-  inline GLuint  getTextureId   ()   { return texture_fbo->texture(); }
+  inline GLuint  getTextureId   ()   { return _fbo->texture(); }
   inline QPoint  getCenter      ()   { return _hole_center; }
   inline uint    getRadius      ()   { return _hole_radius; }
   inline float   getAngleShift  ()   { return _angle_shift; }
@@ -51,24 +51,20 @@ private:
 
   float     _angle_shift;
   float     _hole_radius;
+
   QPoint    _hole_center;
   QPoint    _cursor_pos;
+
   QSize     _size;
 
   // Framebuffer vars
-  QGLFramebufferObjectFormat format;
-  QGLFramebufferObject* render_fbo;
-  QGLFramebufferObject* texture_fbo;
+  QGLFramebufferObject* _fbo;
 
   // Mask shader programs
   QGLShaderProgram* _prog;
 
   // -----------------------------------------------
-  enum { MARK_ATTR_ANGLE = 0
-       , MARK_ATTR_CHAR_VAL = 1
-       , MARK_ATTR_ORDER = 2
-       , MARK_ATTR_SHIFT = 3
-       , MARK_ATTR_COUNT = 4 } ;
+  enum { MARK_ATTR_ANGLE = 0, MARK_ATTR_CHAR_VAL = 1, MARK_ATTR_ORDER = 2, MARK_ATTR_SHIFT = 3, MARK_ATTR_COUNT = 4 } ;
 
   GLuint vbo_ids_mark  [MARK_ATTR_COUNT];
 

@@ -454,7 +454,7 @@ void MenuEngine::initMainMenuTree() {
   RLIMenuItemList* i026 = new RLIMenuItemList(RLIStrings::nMenu026, 1);
   i026->addVariant(RLIStrings::langArray[0]);
   i026->addVariant(RLIStrings::langArray[1]);
-  connect(i026, SIGNAL(onValueChanged(const QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
+  connect(i026, SIGNAL(valueChanged(QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
   m02->add_item(i026);
 
   RLIMenuItemFloat* i027 = new RLIMenuItemFloat(RLIStrings::nMenu027, 0.f, 359.9f, 0.f);
@@ -829,7 +829,9 @@ void MenuEngine::drawText(const QByteArray& text, int line, TextAllignement alig
   GLuint tex_id = _fonts->getTextureId(_font_tag);
   QSize font_size = _fonts->getSize(_font_tag);
 
-  QVector<float> pos, ord, chars;
+  std::vector<GLfloat> pos;
+  std::vector<GLfloat> ord, chars;
+
   QPoint anchor = QPoint(0, 4 + (font_size.height() + 6) * line);
 
   switch (align) {
@@ -849,7 +851,7 @@ void MenuEngine::drawText(const QByteArray& text, int line, TextAllignement alig
   // From text to vertex data
   for (int i = 0; i < text.size(); i++) {
     for (int j = 0; j < 4; j++) {
-      QPointF lefttop = anchor + QPointF(i * font_size.width(), 0);
+      QPoint lefttop = anchor + QPoint(i * font_size.width(), 0);
       pos.push_back(lefttop.x());
       pos.push_back(lefttop.y());
       ord.push_back(j);
