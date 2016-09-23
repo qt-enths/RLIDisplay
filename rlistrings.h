@@ -3,7 +3,7 @@
 
 #include <QByteArray>
 
-enum RLILang { RLI_LANG_ENGLISH = 0, RLI_LANG_RUSSIAN = 1, RLI_LANG_COUNT = 2 };
+enum RLILang { RLI_LANG_FIRST = 0, RLI_LANG_ENGLISH = 0, RLI_LANG_RUSSIAN = 1, RLI_LANG_LAST = 1, RLI_LANG_COUNT = 2 };
 
 namespace RLIStrings {
   static char* nBlank[2] =   { "",	"" };
@@ -80,6 +80,8 @@ namespace RLIStrings {
   static char* nLod[2]   =   { "???", "ЛОД" };
   static char* nCu[2]   =    { "??", "КУ" };
   static char* nGradLb[2] =  { "°??",	"°ЛБ" };
+
+  static char* nTmInfo[2] =  { "TIME", "ВРЕМЯ" };
 
   // для маршрута
   static char* nGO[2] =      { "GO TO RP", "ИДЕМ НА МТ" };

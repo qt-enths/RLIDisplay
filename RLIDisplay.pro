@@ -15,7 +15,7 @@ unix:QMAKE_CXXFLAGS += -Wno-unused-variable
 win32:INCLUDEPATH += C:/GDAL/include
 unix:INCLUDEPATH += /usr/local/include/
 
-unix:LIBS += -lgdal
+unix:LIBS += -lgdal  -lrt
 win32:LIBS += -lgdal_i -lgeos_i
 
 SOURCES += main.cpp\
@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     triangulate.cpp \
     chartengine.cpp \
     chartlayers.cpp \
-    chartshaders.cpp
+    chartshaders.cpp \
+    radarscale.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
@@ -62,7 +63,8 @@ HEADERS  += mainwindow.h \
     chartlayers.h \
     chartshaders.h \
     apctrl.h \
-    rlistrings.h
+    rlistrings.h \
+    radarscale.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

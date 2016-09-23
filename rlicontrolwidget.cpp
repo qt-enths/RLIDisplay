@@ -14,15 +14,15 @@ RLIControlWidget::RLIControlWidget(QWidget *parent) : QWidget(parent), ui(new Ui
   ui->setupUi(this);
 
   ui->sldGain->setMinimum(0);
-  ui->sldGain->setMaximum(50);
+  ui->sldGain->setMaximum(255);
   ui->sldGain->setValue(0);
 
   ui->sldWater->setMinimum(0);
-  ui->sldWater->setMaximum(50);
+  ui->sldWater->setMaximum(255);
   ui->sldWater->setValue(0);
 
   ui->sldRain->setMinimum(0);
-  ui->sldRain->setMaximum(50);
+  ui->sldRain->setMaximum(255);
   ui->sldRain->setValue(0);
 
   ui->sldVN->setMinimum(TRIGGERED_SLIDER_MIN);

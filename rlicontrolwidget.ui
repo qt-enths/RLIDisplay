@@ -250,7 +250,7 @@
         <item row="1" column="1">
          <widget class="QSlider" name="sldWater">
           <property name="maximum">
-           <number>40</number>
+           <number>15</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -260,7 +260,7 @@
         <item row="2" column="1">
          <widget class="QSlider" name="sldRain">
           <property name="maximum">
-           <number>40</number>
+           <number>15</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -270,7 +270,7 @@
         <item row="0" column="1">
          <widget class="QSlider" name="sldGain">
           <property name="maximum">
-           <number>40</number>
+           <number>15</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>

@@ -23,6 +23,7 @@ public:
 
   virtual QByteArray name(int lang_id) { return _name[lang_id]; }
   virtual QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QByteArray(); }
+  virtual int setValue(QByteArray val) {Q_UNUSED(val); return -1; }
 
   inline bool enabled() { return _enabled; }
   inline void setEnabled(bool val) { _enabled = val; }
@@ -117,6 +118,8 @@ public:
   void up();
   void down();
 
+  virtual int setValue(QByteArray val);
+
 signals:
   void valueChanged(int);
 
@@ -171,6 +174,10 @@ public:
   inline MenuState state() { return _state; }
   inline bool visible() { return _state != DISABLED; }
   inline QByteArray toQByteArray(const char* str) { return _enc->fromUnicode(_dec->toUnicode(str)); }
+
+  RLIMenuItem * findItem(RLIMenuItemMenu * mnu, char * name, int lang_id);
+  RLIMenuItem * findItem(enum MenuState type, char * name, int lang_id);
+  int setMenuItemIntValue(int val, MenuState type, char * name, int lang_id = 0);
 
 signals:
   void languageChanged(const QByteArray& lang);

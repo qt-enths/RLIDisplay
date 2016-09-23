@@ -1,9 +1,11 @@
 #include "infocontrollers.h"
+#include "mainwindow.h"
 
 #include "rlistrings.h"
 
 #include <QTime>
 #include <QDebug>
+#include <QApplication>
 
 //#define cGROUND 20      // общий фон /*14*/{0x38,0x38,0x38}
 //#define cRULER 47       // линейка   /*2F*/{0x40,0xFC,0x00}
@@ -63,6 +65,7 @@ void InfoBlockController::setInfoTextBts(InfoText& t, QByteArray str) {
 ValueBarController::ValueBarController(char** name, const QPoint& left_top, int title_width, int def_val, QObject* parent) : InfoBlockController(parent) {
   _val_rect_id = -1;
   _val = def_val;
+  _maxval = title_width * 12 + 2;
   _title_width = title_width;
   _name = name;
   _left_top = left_top;
@@ -104,7 +107,7 @@ void ValueBarController::onValueChanged(int val) {
 
   if (_val_rect_id != -1) {
     if (_val >= 0)
-      emit setRect(_val_rect_id, QRect(12*_title_width + 8, 4, val, 15));
+      emit setRect(_val_rect_id, QRect(12*_title_width + 8, 4, val * 50 / _maxval, 15));
     else {
       emit setRect(_val_rect_id, QRect(12*_title_width + 8, 4, 0, 15));
 
@@ -112,6 +115,11 @@ void ValueBarController::onValueChanged(int val) {
         emit setText(_val_text_id, i, enc->fromUnicode(dec->toUnicode(RLIStrings::nOff[i])));
     }
   }
+}
+
+void ValueBarController::setMaxValue(int val)
+{
+    _maxval = val;
 }
 
 //------------------------------------------------------------------------------
@@ -166,8 +174,11 @@ ScaleController::ScaleController(QObject* parent) : InfoBlockController(parent) 
   _unit_text_id = -1;
 }
 
-void ScaleController::scale_changed(std::pair<int, int> scale) {
-  Q_UNUSED(scale);
+void ScaleController::scale_changed(std::pair<QByteArray, QByteArray> scale) {
+    emit setText(0, 0, scale.first);
+    emit setText(2, 0, scale.second);
+    emit setText(0, 1, scale.first);
+    emit setText(2, 1, scale.second);
 }
 
 void ScaleController::initBlock(const QSize& size) {
@@ -176,13 +187,20 @@ void ScaleController::initBlock(const QSize& size) {
   _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
+  std::pair<QByteArray, QByteArray> s;
+  MainWindow * mainWnd = dynamic_cast<MainWindow *>(parent());
+  if(mainWnd)
+      s = mainWnd->_radar_scale->getCurScaleText();
 
   t.font_tag = "16x28";
   t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
   t.rect = QRect(6, 5, 5*16, 28);
-  setInfoTextBts(t, QByteArray("0.125"));
+  if(s.first.size())
+      setInfoTextBts(t, s.first);
+  else
+      setInfoTextBts(t, QByteArray("0.125"));
   _block->addText(t);
 
   t.allign = INFOTEXT_ALLIGN_LEFT;
@@ -194,7 +212,10 @@ void ScaleController::initBlock(const QSize& size) {
   t.font_tag = "14x14";
 
   t.rect = QRect(6+6*16, 5+12, 5*14, 14);
-  setInfoTextBts(t, QByteArray("0.025"));
+  if(s.second.size())
+      setInfoTextBts(t, s.second);
+  else
+      setInfoTextBts(t, QByteArray("0.025"));
   _block->addText(t);
 
   InfoRect r;
@@ -752,6 +773,14 @@ VdController::VdController(QObject* parent) : InfoBlockController(parent) {
   _vd_text_id = -1;
 }
 
+void VdController::display_distance(float dist)
+{
+    QString s;
+    s.sprintf("%5.1f", dist);
+    emit setText(_vd_text_id, 0, s.toLocal8Bit());
+    emit setText(_vd_text_id, 1, s.toLocal8Bit());
+}
+
 void VdController::initBlock(const QSize& size) {
   _block->setGeometry(QRect(size.width() - 5 - 236 - 5 - 140, size.height() - 56, 140, 52));
   _block->setBackColor(INFO_BACKGRD_COLOR);
@@ -801,7 +830,7 @@ void ClockController::initBlock(const QSize& size) {
   t.font_tag = "12x14";
   t.color = INFO_TEXT_STATIC_COLOR;
   t.rect = QRect(4, 4, 0, 14);
-  setInfoTextStr(t, RLIStrings::nTime);
+  setInfoTextStr(t, RLIStrings::nTmInfo);
   _block->addText(t);
 
   t.color = INFO_TEXT_DYNAMIC_COLOR;

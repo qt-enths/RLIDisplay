@@ -4,10 +4,12 @@
 #include <QMainWindow>
 #include <QResizeEvent>
 #include <QTimerEvent>
+#include <QSocketNotifier>
 
 #include "chartmanager.h"
 #include "radardatasource.h"
 #include "infocontrollers.h"
+#include "radarscale.h"
 
 namespace Ui {
   class MainWindow;
@@ -21,6 +23,35 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
+#ifndef Q_OS_WIN
+  static void intSignalHandler(int unused);
+
+  RadarScale * _radar_scale;
+
+protected:
+  int findPressedKey(int key);
+  int savePressedKey(int key);
+  int countPressedKeys(void);
+  void keyReleaseEvent(QKeyEvent *event);
+  void keyPressEvent(QKeyEvent * event);
+
+  QFuture<void> evdevThread;
+  int evdevFd;
+  int stopEvdev;
+  int setupEvdev(char *evdevfn);
+  void evdevHandleThread();
+
+public slots:
+  void handleSigInt();
+#endif // !Q_OS_WIN
+  void gain_slot(int value); // Used only for simulated Control Panel Unit. Must be removed at finish build
+
+signals:
+  void scale_changed(std::pair<QByteArray, QByteArray> scale);
+  void gain_changed(int value);
+  void rain_changed(int value);
+  void wave_changed(int value);
+
 private slots:
   void resizeEvent(QResizeEvent* e);
   void timerEvent(QTimerEvent* e);
@@ -28,6 +59,9 @@ private slots:
   void onRLIWidgetInitialized();
 
   void on_btnClose_clicked();
+
+public slots:
+  void on_mnuAnalogZeroChanged(int val);
 
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
@@ -64,6 +98,13 @@ private:
   RadarDataSource* _radar_ds;
 
   Ui::MainWindow *ui;
+
+  int pressedKey[4];
+
+#ifndef Q_OS_WIN
+  static int sigintFd[2];
+  QSocketNotifier *snInt;
+#endif // !Q_OS_WIN
 };
 
 #endif // MAINWINDOW_H

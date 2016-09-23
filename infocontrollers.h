@@ -39,6 +39,8 @@ class ValueBarController : public InfoBlockController {
 public:
   explicit ValueBarController(char** name, const QPoint& left_top, int title_width, int def_val, QObject* parent = 0);
 
+  void setMaxValue(int val);
+
 public slots:
   void onValueChanged(int val);
 
@@ -50,6 +52,7 @@ private:
   void initBlock(const QSize& size);
 
   int _val;
+  int _maxval;
 
   char** _name;
   int _title_width;
@@ -93,7 +96,7 @@ public:
   explicit ScaleController(QObject* parent = 0);
 
 public slots:
-  void scale_changed(std::pair<int, int> scale);
+  void scale_changed(std::pair<QByteArray, QByteArray> scale);
 
 signals:
   void setRect(int rectId, const QRect& r);
@@ -329,6 +332,7 @@ public:
   explicit VdController(QObject* parent = 0);
 
 public slots:
+  void display_distance(float dist);
 
 signals:
   void setRect(int rectId, const QRect& r);

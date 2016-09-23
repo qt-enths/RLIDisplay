@@ -36,11 +36,13 @@ signals:
   void cursor_moved(float peleng, float distance);
   void per_second();
   void resized(const QSize& s);
+  void displayVNDistance(float dist);
 
 protected slots:
   void mousePressEvent(QMouseEvent* e);
   void mouseMoveEvent(QMouseEvent* e);
   void mouseReleaseEvent(QMouseEvent* e);
+  void wheelEvent(QWheelEvent * e);
 
   void initializeGL();
   void resizeGL(int w, int h);
@@ -53,7 +55,7 @@ protected slots:
 private:
   void fillWithTexture(GLuint texId);
 
-  void moveCoursor(const QPoint& pos);
+  void moveCoursor(const QPoint &pos, bool repaint = true);
 
   bool _initialized;
   int  _last_second;

@@ -1,9 +1,11 @@
 #include "rlidisplaywidget.h"
+#include "mainwindow.h"
 
 #include <cmath>
 #include <qmath.h>
 #include <QDebug>
 #include <QDateTime>
+#include <QApplication>
 
 #include "rlicontrolevent.h"
 
@@ -158,6 +160,8 @@ void RLIDisplayWidget::initializeGL() {
 
   if (!_controlsEngine->init(context()))
     return;
+
+  setMouseTracking(true);
 
   emit initialized();
   _initialized = true;
@@ -334,11 +338,12 @@ void RLIDisplayWidget::mousePressEvent(QMouseEvent* e) {
 
 void RLIDisplayWidget::mouseMoveEvent(QMouseEvent* e) {
   if (QLineF(e->pos() , _maskEngine->getCenter()).length() < _maskEngine->getRadius())
-    moveCoursor(e->pos());
+    moveCoursor(e->pos(), false);
 }
 
-void RLIDisplayWidget::moveCoursor(const QPoint& pos) {
-  _controlsEngine->setCursorPos(pos);
+void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
+  if(repaint)
+      _controlsEngine->setCursorPos(pos);
   QPointF cen = _controlsEngine->getCenterPos();
 
   float peleng = 90.0 * qAtan2(pos.x() - cen.x(), - pos.y() + cen.y()) / acos(0);
@@ -347,12 +352,50 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos) {
 
   float distance = sqrt(pow(pos.y() - cen.y(), 2) + pow(pos.x() - cen.x(), 2));
 
+  foreach(QWidget * w, QApplication::topLevelWidgets())
+  {
+      MainWindow * mainWnd = dynamic_cast<MainWindow *>(w);
+      if(mainWnd)
+      {
+          float ratio = 1;
+          RadarScale * curscale = mainWnd->_radar_scale;
+          if(curscale)
+          {
+              const rli_scale_t * scale = curscale->getCurScale();
+              if(scale)
+                  ratio = scale->len / maskEngine()->getRadius();
+          }
+          distance *= ratio;
+          break;
+      }
+  }
+
   emit cursor_moved(peleng, distance);
 }
 
 
 void RLIDisplayWidget::mouseReleaseEvent(QMouseEvent* e) {
   Q_UNUSED(e);
+}
+
+void RLIDisplayWidget::wheelEvent(QWheelEvent * e)
+{
+    int numDegrees = e->delta() / 8;
+    int numSteps = numDegrees / 15;
+
+    if (e->orientation() == Qt::Horizontal) {
+        RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton
+                                               , RLIControlEvent::VN
+                                               , numSteps);
+        qApp->postEvent(this, evt);
+    } else {
+        RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton
+                                               , RLIControlEvent::VD
+                                               , numSteps);
+        qApp->postEvent(this, evt);
+        //vd_pos = pos;
+    }
+    e->accept();
 }
 
 bool RLIDisplayWidget::event(QEvent* e) {
@@ -370,6 +413,8 @@ bool RLIDisplayWidget::event(QEvent* e) {
       case RLIControlEvent::CenterShift:
         cursor_pos = _controlsEngine->getCursorPos();
         if (QLineF(cursor_pos, _maskEngine->getCenter()).length() < _maskEngine->getRadius()) {
+          if(_controlsEngine->getCenterPos() != _maskEngine->getCenter())
+              cursor_pos = _maskEngine->getCenter();
           _maskEngine->setCursorPos(cursor_pos);
           _controlsEngine->setCenterPos(cursor_pos);
           moveCoursor(cursor_pos);
@@ -419,6 +464,24 @@ bool RLIDisplayWidget::event(QEvent* e) {
         break;
       case RLIControlEvent::VD:
         _controlsEngine->shiftVd(re->spinnerVal());
+        foreach(QWidget * w, QApplication::topLevelWidgets())
+        {
+            MainWindow * mainWnd = dynamic_cast<MainWindow *>(w);
+            if(mainWnd)
+            {
+                float ratio = 1;
+                RadarScale * curscale = mainWnd->_radar_scale;
+                if(curscale)
+                {
+                    const rli_scale_t * scale = curscale->getCurScale();
+                    if(scale)
+                        ratio = scale->len / maskEngine()->getRadius();
+                }
+                emit displayVNDistance(_controlsEngine->getVd() * ratio);
+                break;
+            }
+        }
+
         break;
       default:
         break;

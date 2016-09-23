@@ -119,7 +119,8 @@ void ControlsEngine::drawVN() {
   float vn_cu_rads = PI * (_vn_cu / 180);
 
   glLineWidth(2);
-  glColor3f(0.93f, .62f, .46f);
+  //glColor3f(0.93f, .62f, .46f);
+  glColor3f(0.f, 1.f, 0.f);
 
   glBegin(GL_LINES);
   glVertex2f(0, 0);
@@ -127,7 +128,8 @@ void ControlsEngine::drawVN() {
   glEnd();
 
   // glPushAttrib is done to return everything to normal after drawing
-  glColor3f(0.83f, .33f, .56f);
+  //glColor3f(0.83f, .33f, .56f);
+  glColor3f(0.f, 1.f, 1.f);
   glPushAttrib(GL_ENABLE_BIT);
 
   glLineStipple(1, 0xF0F0);
@@ -176,7 +178,8 @@ void ControlsEngine::drawVD() {
   // Set uniforms
   // ---------------------------------------------------------------------
   glUniform1f(loc_radius, _vd);
-  glUniform4f(loc_color, 1.f, 0.f, 1.f, 1.f);
+  //glUniform4f(loc_color, 1.f, 0.f, 1.f, 1.f);
+  glUniform4f(loc_color, 0.f, 1.f, 1.f, 1.f);
   // ---------------------------------------------------------------------
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[CTRL_ATTR_ANGLE]);
@@ -220,7 +223,9 @@ void ControlsEngine::drawOZ() {
   glShadeModel( GL_SMOOTH );
 
   glLineWidth(2);
-  glColor3f(0.f, 1.f, 1.f);
+  //glColor3f(0.f, 1.f, 1.f);
+  static const QColor acqAreaaColor("royalblue");
+  glColor3f(acqAreaaColor.redF(), acqAreaaColor.greenF(), acqAreaaColor.blueF());
 
   glBegin(GL_LINES);
   glVertex2f(_oz_min_radius * sin(min_angle_rads), -_oz_min_radius * cos(min_angle_rads));
@@ -234,7 +239,8 @@ void ControlsEngine::drawOZ() {
 
   // Set uniforms
   // ---------------------------------------------------------------------
-  glUniform4f(loc_color, 0.f, 1.f, 1.f, 1.f);
+  //glUniform4f(loc_color, 0.f, 1.f, 1.f, 1.f);
+  glUniform4f(loc_color, acqAreaaColor.redF(), acqAreaaColor.greenF(), acqAreaaColor.blueF(), 1.f);
   // ---------------------------------------------------------------------
 
   int min_index = round(_oz_min_angle*CIRCLE_POINTS / 360.f);

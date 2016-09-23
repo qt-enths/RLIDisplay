@@ -114,6 +114,21 @@ void RLIMenuItemInt::down() {
   }
 }
 
+int RLIMenuItemInt::setValue(QByteArray val)
+{
+    int  res;
+    bool ok = false;
+
+    res = val.toInt(&ok);
+    if(!ok)
+        return -1;
+    if((res < _min) || (res > _max))
+        return -2;
+    _value = res;
+
+    return 0;
+}
+
 void RLIMenuItemInt::adjustDelta() {
   QDateTime currentTime = QDateTime::currentDateTime();
 
@@ -228,7 +243,7 @@ void MenuEngine::initCnfgMenuTree() {
   RLIMenuItemInt* i111 = new RLIMenuItemInt(RLIStrings::nMenu111, 1, 255, 170);
   m11->add_item(static_cast<RLIMenuItem*>(i111));
 
-  RLIMenuItemInt* i112 = new RLIMenuItemInt(RLIStrings::nMenu112, -100, 100, 0);
+  RLIMenuItemInt* i112 = new RLIMenuItemInt(RLIStrings::nMenu112, -2048, 2048, 0);
   m11->add_item(static_cast<RLIMenuItem*>(i112));
 
   RLIMenuItemInt* i113 = new RLIMenuItemInt(RLIStrings::nMenu113, 1, 255, 25);
@@ -439,7 +454,7 @@ void MenuEngine::initMainMenuTree() {
   RLIMenuItemList* i026 = new RLIMenuItemList(RLIStrings::nMenu026, 1);
   i026->addVariant(RLIStrings::langArray[0]);
   i026->addVariant(RLIStrings::langArray[1]);
-  connect(i026, SIGNAL(onValueChanged(QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
+  connect(i026, SIGNAL(onValueChanged(const QByteArray)), this, SIGNAL(languageChanged(QByteArray)), Qt::QueuedConnection);
   m02->add_item(i026);
 
   RLIMenuItemFloat* i027 = new RLIMenuItemFloat(RLIStrings::nMenu027, 0.f, 359.9f, 0.f);
@@ -582,6 +597,7 @@ void MenuEngine::setState(MenuState state) {
   _state = state;
   switch (_state) {
   case DISABLED:
+      _selection_active = false;
       _menu = NULL;
       break;
   case MAIN:
@@ -894,4 +910,74 @@ bool MenuEngine::initShader() {
   _prog->release();
 
   return true;
+}
+
+RLIMenuItem * MenuEngine::findItem(RLIMenuItemMenu * mnu, char * name, int lang_id)
+{
+    int l_id_from, l_id_to;
+
+    if((lang_id >= RLI_LANG_FIRST) && (lang_id <= RLI_LANG_LAST))
+    {
+        l_id_from = lang_id;
+        l_id_to   = lang_id;
+    }
+    else
+    {
+        l_id_from = RLI_LANG_FIRST;
+        l_id_to   = RLI_LANG_LAST;
+    }
+
+    for(int i = 0; i < mnu->item_count(); i++)
+    {
+        RLIMenuItem * mi = mnu->item(i);
+        RLIMenuItemMenu * m = dynamic_cast<RLIMenuItemMenu *>(mi);
+        if(m != NULL)
+        {
+            mi = findItem(m, name, lang_id);
+            if(mi)
+                return mi;
+            continue;
+        }
+        for(int j = l_id_from; j <= l_id_to; j++)
+        {
+            if(mi->name(j) == name)
+                return mi;
+        }
+    }
+    return NULL;
+}
+
+RLIMenuItem * MenuEngine::findItem(enum MenuState type, char * name, int lang_id)
+{
+    RLIMenuItemMenu * mnu;
+
+    if(type == MAIN)
+        mnu = _main_menu;
+    else if(type == CONFIG)
+        mnu = _cnfg_menu;
+    else
+        return NULL;
+    return findItem(mnu, name, lang_id);
+}
+
+int MenuEngine::setMenuItemIntValue(int val, enum MenuState type, char * name, int lang_id)
+{
+    RLIMenuItemMenu * mnu;
+
+    if(type == MAIN)
+        mnu = _main_menu;
+    else if(type == CONFIG)
+        mnu = _cnfg_menu;
+    else
+        return -10;
+
+    RLIMenuItem * item = findItem(mnu, name, lang_id);
+    if(item == NULL)
+        return -11;
+
+    QString str;
+    str.sprintf("%d", val);
+    QByteArray v;
+    v.append(str);
+    return item->setValue(v);
 }
