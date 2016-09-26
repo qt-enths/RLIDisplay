@@ -474,6 +474,9 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
 
 void MainWindow::timerEvent(QTimerEvent* e) {
   Q_UNUSED(e);
+  const rli_scale_t* scale =  _radar_scale->getCurScale();
+
+  ui->wgtRLIDisplay->setScale(scale->len);
   ui->wgtRLIDisplay->update();
 }
 

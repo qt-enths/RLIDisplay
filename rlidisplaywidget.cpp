@@ -315,8 +315,14 @@ void RLIDisplayWidget::paintGL() {
   _menuEngine->update();
   _infoEngine->update();
 
+
+
   glEnable(GL_BLEND);
-  _chartEngine->update(QVector2D(12.5000f, -81.6000f), 50.f, 0.f, center-hole_center);
+
+  //_scale - радиус дырки в маске в пикселях
+  // scale в update - метров/пиксель
+  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+  _chartEngine->update(QVector2D(12.5000f, -81.6000f), scale, 0.f, center-hole_center);
 }
 
 
