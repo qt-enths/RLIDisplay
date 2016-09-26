@@ -1,9 +1,15 @@
 #ifndef RADARSCALE_H
 #define RADARSCALE_H
 
+#include <stdint.h>
+
 #include <utility>
 #include <sys/types.h>
 #include <qbytearray.h>
+
+#ifdef Q_OS_WIN
+typedef unsigned __int32 u_int32_t;
+#endif
 
 #define APCTRL_SCALE_NUM         12 // Number of RLI scales
 #define APCTRL_SNDPULSE_TYPES    2  // Numer of sounding pulse types (now only two: short and long)

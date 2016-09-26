@@ -150,9 +150,8 @@ private:
 #endif // !Q_OS_WIN
 
 public:
-#ifndef Q_OS_WIN
+
   int setupScale(const rli_scale_t * pscale);
-#endif // !Q_OS_WIN
   static const u_int32_t max_gain_level; // Maximum amplification level
   int setGain(u_int32_t gain);
   int amplify(u_int32_t * brg);

@@ -372,7 +372,7 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
       if(mainWnd)
       {
           float ratio = 1;
-          RadarScale * curscale = mainWnd->_radar_scale;
+          RadarScale * curscale = mainWnd->getRadarScale();
           if(curscale)
           {
               const rli_scale_t * scale = curscale->getCurScale();
@@ -509,7 +509,7 @@ bool RLIDisplayWidget::event(QEvent* e) {
             {
                 float ratio = 1;
                 const char * fmt = NULL;
-                RadarScale * curscale = mainWnd->_radar_scale;
+                RadarScale * curscale = mainWnd->getRadarScale();
                 if(curscale)
                 {
                     const rli_scale_t * scale = curscale->getCurScale();
