@@ -1,4 +1,5 @@
 #include "radardatasource.h"
+#include "mainwindow.h"
 
 #include <QThread>
 #include <fstream>
@@ -16,6 +17,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <signal.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -40,6 +42,24 @@ uint32_t gmax = 0;
 #include <windows.h>
 #endif
 
+// APCTRL registers
+#define APCTRL_PKIDPKOD_BASEADDR 0xe004
+#define APCTRL_HIP_BASEADDR      0xe024
+#define APCTRL_GEN_BASEADDR      0xe02c
+#define APCTRL_ADC_BASEADDR      0xe030
+#define APCTRL_E038_BASEADDR     0xe038
+
+#define APCTRL_SPIWR_TIMEOUT     (unsigned long long)1000 * 1000000
+
+#define APCTRL_HIP_MASK          0x0003
+#define APCTRL_HIP_NONE          0
+#define APCTRL_HIP_WEAK          0x0002
+#define APCTRL_HIP_STRONG        0x0003
+#define APCTRL_HIP_SHIFT         0
+#define APCTRL_HIP_SARP_SHIFT    0
+
+static int spi_timeout = 0;
+
 void qSleep(int ms) {
   if (ms <= 0) return;
 #ifdef Q_OS_WIN
@@ -50,6 +70,16 @@ void qSleep(int ms) {
 #endif
 }
 
+static void tmr_hndlr(int sig, siginfo_t * si, void * uc)
+{
+    Q_UNUSED(sig);
+    Q_UNUSED(si);
+    Q_UNUSED(uc);
+    spi_timeout = 1;
+}
+
+const u_int32_t RadarDataSource::max_gain_level = 255;
+
 RadarDataSource::RadarDataSource() {
   finish_flag = true;
   loadData();
@@ -57,22 +87,32 @@ RadarDataSource::RadarDataSource() {
 #ifndef Q_OS_WIN
 // Disable radar device for win OS
 // ------------------------------------------------------
-  file_curr = 0;
-  syncstate = RDSS_NOTSYNC;
-  bufpool = NULL;
-  bufpoolsize = 0; //nextbuf(0)
+  file_curr         = 0;
+  syncstate         = RDSS_NOTSYNC;
+  bufpool           = NULL;
+  bufpoolsize       = 0; //nextbuf(0)
   // rdpool = NULL;
-  rdpnext = 0;
-  rdpqueued = 0;
-  activescan = 0;
+  rdpnext           = 0;
+  rdpqueued         = 0;
+  activescan        = 0;
   processed_bearing = 0;
-  last_bearing = 0;
-  fd = -1;
+  last_bearing      = 0;
+  fd                = -1;
 
   for(int scanidx = 0; scanidx < RDS_MAX_SCANS; scanidx++)
     scans[scanidx] = NULL;
+
+  adcspi_tmid       = NULL;
 #endif //Q_OS_WIN
 // ------------------------------------------------------
+  ampoffset         = 0;
+  dump              = NULL;
+
+  gain_level        = 0; // Initial amplification level
+  hip_main          = HIP_NONE;
+  hip_sarp          = HIP_NONE;
+
+  simulation        = false;
 }
 
 RadarDataSource::~RadarDataSource() {
@@ -118,8 +158,17 @@ RadarDataSource::~RadarDataSource() {
   fprintf(stderr, "gmax = %u\n", gmax);
 #endif // GET_MAX_AMPL
 
+  if(adcspi_tmid != NULL)
+      timer_delete(adcspi_tmid);
+
 #endif //Q_OS_WIN
 // ------------------------------------------------------
+
+  if(dump)
+  {
+      delete [] dump;
+      dump = NULL;
+  }
 }
 
 void RadarDataSource::start() {
@@ -130,12 +179,78 @@ void RadarDataSource::start() {
   workerThread = QtConcurrent::run(this, &RadarDataSource::worker);
 }
 
+
+void RadarDataSource::start_dump() {
+  if (workerThread.isRunning())
+    return;
+
+#ifndef Q_OS_WIN
+  int dmpd = open("dump.bin", O_RDONLY);
+  try
+  {
+      if(dmpd == -1)
+          throw 0;
+      struct stat sbuf;
+      int res = fstat(dmpd, &sbuf);
+      if(res == -1)
+          throw 0;
+      if(dump)
+      {
+          fprintf(stderr, "Strange but memory block with dump exists. It will be deleted and new memory allocated.\n");
+          dsize = 0;
+          delete [] dump;
+      }
+      dsize = sbuf.st_size / (BEARING_PACK_WORDS * sizeof(u_int32_t));
+      dsize *= BEARING_PACK_WORDS;
+      dump = new u_int32_t[dsize];
+      if(dump == NULL)
+          throw -1;
+      res = read(dmpd, dump, dsize * sizeof(u_int32_t));
+      if(res == -1)
+          throw 0;
+  }
+  catch(int e)
+  {
+      if(e)
+          fprintf(stderr, "Error %d reading dump file\n", e);
+      else
+          fprintf(stderr, "Dump file read failed: %s\n", strerror(errno));
+      if(dump)
+      {
+          delete [] dump;
+          dump = NULL;
+      }
+  }
+
+  if(dmpd != -1)
+  {
+      close(dmpd);
+      dmpd = -1;
+  }
+
+#endif // Q_OS_WIN
+
+  if(dump)
+  {
+    finish_flag = false;
+    workerThread = QtConcurrent::run(this, &RadarDataSource::dump_worker);
+  }
+  else
+  {
+      finish_flag = true;
+      fprintf(stderr, "dump_worker did not start\n");
+  }
+}
+
+
 void RadarDataSource::start(const char * radarfn) {
   Q_UNUSED(radarfn);
 #ifndef Q_OS_WIN
 // Disable radar device for win OS
 // ------------------------------------------------------
     struct apctrl_caps caps;
+    struct sigaction   sa;
+    struct sigevent    tev;
     int ret;
 
     if(!radarfn)
@@ -193,6 +308,7 @@ void RadarDataSource::start(const char * radarfn) {
                 " - bufs_nr = %lu (expected %lu)\n",
                 caps.bufs_nr, (unsigned long)(BEARINGS_PER_CYCLE * RDS_MAX_SCANS));
     }
+
 
     if(!bufpool)
     {
@@ -258,6 +374,68 @@ void RadarDataSource::start(const char * radarfn) {
     }
 #endif // WRITE_WHENSYNC
 
+    // Create a timer for ADC SPI timeout
+    sa.sa_flags     = SA_SIGINFO;
+    sa.sa_sigaction = tmr_hndlr;
+    sigemptyset(&sa.sa_mask);
+    if(sigaction(SIGRTMIN, &sa, NULL) != -1)
+    {
+        // Create timer
+        tev.sigev_notify = SIGEV_SIGNAL;
+        tev.sigev_signo  = SIGRTMIN;
+        tev.sigev_value.sival_ptr = &adcspi_tmid;
+        if(timer_create(CLOCK_REALTIME, &tev, &adcspi_tmid) == -1)
+        {
+            fprintf(stderr, "Failed to create timer for ADC SPI timeout handler: %s\n", strerror(errno));
+            fprintf(stderr, "WARNING: Creation of the timer for ADC SPI timeout failed and the operation my hang.\n");
+            fprintf(stderr, "\t Use Ctrl+C to terminate in such case.\n");
+
+            adcspi_tmid = NULL;
+        }
+    }
+    else
+    {
+        fprintf(stderr, "Failed to setup signal handler for ADC SPI timeout handler: %s\n", strerror(errno));
+        fprintf(stderr, "WARNING: since there's no timer for ADC SPI timeout the operation my hang.\n");
+        fprintf(stderr, "\t Use Ctrl+C to terminate in such case.\n");
+    }
+
+    // Initialize AP generator
+    ret = initGen(true);
+    if(ret != 0)
+    {
+        fprintf(stderr, "Failed to initialize AP generator (%d)\n", ret);
+        return;
+    }
+
+	printf("Setting frequency.\n");
+    apctrl_adcspi_send(APCTRL_GEN_BASEADDR, 0x1f0024, 0x1f4007, true);
+	printf("Initializing ADC.\n");
+    initADC();
+	printf("Initializing DAC.\n");
+    initDAC();
+
+    // Some more settings for APCTRL
+	printf("Some settings for APCTRL.\n");
+    apctrl_regwr(APCTRL_PKIDPKOD_BASEADDR, 0x0960001E);
+	hipregv = 0x0015;
+    apctrl_regwr(APCTRL_HIP_BASEADDR, hipregv);
+    apctrl_regwr(APCTRL_E038_BASEADDR, 0x1000040);
+
+    printf("Setup current scale\n");
+    MainWindow * mainWnd = dynamic_cast<MainWindow *>(parent());
+    if(mainWnd)
+    {
+        const rli_scale_t * curscale = mainWnd->_radar_scale->getCurScale();
+        printf("Current scale %f nm\n", curscale->len);
+        if(setupScale(curscale) != 0)
+            fprintf(stderr, "%s: Failed to setup current scale\n", __func__);
+    }
+	else
+	{
+		fprintf(stderr, "%s: mainWnd is NULL!!!\n", __func__);
+	}
+
     syncstate    = RDSS_NOTSYNC;
     finish_flag  = false;
     workerThread = QtConcurrent::run(this, &RadarDataSource::radar_worker);
@@ -270,20 +448,150 @@ void RadarDataSource::finish() {
   finish_flag = true;
 }
 
-#define BLOCK_TO_SEND 64
+#define BLOCK_TO_SEND 32
 
 void RadarDataSource::worker() {
   int file = 0;
   int offset = 0;
 
+  //qSleep(10000);
+
   while(!finish_flag) {
     qSleep(19);
 
-    emit updateData(offset, BLOCK_TO_SEND/*, &file_divs[file][offset]*/, &file_amps[file][offset*PELENG_SIZE]);
+    if(simulation)
+    {
+        static u_int32_t iamps[PELENG_SIZE + 3];
+        static float famps[BLOCK_TO_SEND * PELENG_SIZE];
+        for(int i = 0; i < BLOCK_TO_SEND; i++)
+        {
+            iamps[0] = offset + i;
+            iamps[1] = 800;
+            iamps[2] = 1;
+            for(int j = 3; j < PELENG_SIZE + 3; j++)
+                iamps[j] = file_amps[file][(offset + i) * PELENG_SIZE + j - 3];
+            amplify(iamps);
+            for(int j = 3; j < PELENG_SIZE + 3; j++)
+                famps[i * PELENG_SIZE + j - 3] = (float)iamps[j];
+        }
 
-    offset = (offset + BLOCK_TO_SEND) % BEARINGS_PER_CYCLE;
-    if (offset == 0) file = 1 - file;
+        //emit updateData(offset, BLOCK_TO_SEND, /*&file_divs[file][offset], */&file_amps[file][offset*PELENG_SIZE]);
+        emit updateData(offset, BLOCK_TO_SEND, famps);
+
+        offset = (offset + BLOCK_TO_SEND) % BEARINGS_PER_CYCLE;
+        if (offset == 0) file = 1 - file;
+    }
   }
+}
+
+void RadarDataSource::dump_worker() {
+    u_int32_t good_start, good_end;
+    u_int32_t tmp_start, tmp_end;
+    u_int32_t div;
+    u_int32_t amps;
+    u_int32_t brg;
+    int curpos;
+    int offset;
+    int res;
+    static u_int32_t tmp_brg[BLOCK_TO_SEND][PELENG_SIZE];
+
+    if(dump == NULL)
+    {
+        fprintf(stderr, "Unexpected error: no dump data\n");
+        finish_flag = 1;
+        return;
+    }
+
+    printf("Simulation using dump file is starting\n");
+
+    // Search for biggest segment of good scans in the dump
+    good_start = good_end = 0;
+    for(curpos = 0; curpos < dsize; curpos += BEARING_PACK_WORDS)
+    {
+        if(finish_flag)
+            return;
+
+        curpos = findZeroBrg(curpos);
+        if(curpos < 0)
+            break;
+        tmp_start = curpos;
+
+        res = chkScans(curpos);
+        if(res < 0)
+            continue; // Search for zero bearing again
+        curpos = res;
+        tmp_end = curpos;
+        if((tmp_end - tmp_start) > (good_end - good_start))
+        {
+            good_start = tmp_start;
+            good_end   = tmp_end;
+            printf("Start: 0x%08lX, End: 0x%08lX\n", good_start * sizeof(u_int32_t), good_end * sizeof(u_int32_t));
+        }
+    }
+
+    if(good_end == good_start)
+    {
+        // No good scans in the dump
+        fprintf(stderr, "No valid scan has been found. Simulation stopped.\n");
+        finish_flag = true;
+        return;
+    }
+
+    // Preprocess data
+    //for(curpos = good_start; curpos <= (int)good_end; curpos += BEARING_PACK_WORDS)
+    //    preprocessBearing(&dump[curpos], true);
+
+
+    qSleep(10000);
+    printf("Simulation using dump file has been started\n");
+
+
+    curpos = good_start;
+    while(!finish_flag)
+    {
+        qSleep(19);
+        if(simulation)
+            continue;
+
+        offset = dump[curpos + 0];
+        for(int i = 0; i < BLOCK_TO_SEND; i++)
+        {
+            brg  = dump[curpos + 0];
+            amps = dump[curpos + 1];
+            div  = 1;//dump[curpos + 2];
+
+            if(amps > PELENG_SIZE)
+                amps = PELENG_SIZE;
+
+            if(div == 0)
+            {
+                div = 1;
+                fprintf(stderr, "ZERO divisor! BRG: %u, Dump position: %d\n", brg, curpos);
+            }
+
+            //file_divs[0][brg] = 1; //(div < 32) ? div : 1; // After debugging "div"
+
+            memcpy(&tmp_brg[i], &dump[curpos], BEARING_PACK_SIZE);
+            preprocessBearing(&tmp_brg[i][0], true);
+            amplify(tmp_brg[i]);
+
+            for(u_int32_t j = 0; j < amps; j++)
+            {
+                int32_t a = *((u_int32_t *)&tmp_brg[i][j + 3]);
+                file_amps[0][brg * PELENG_SIZE + j] = a;
+                //int32_t a = *((u_int32_t *)&dump[curpos + j + 3]);
+                //file_amps[0][brg * PELENG_SIZE + j] = a;
+                //file_amps[0][brg * PELENG_SIZE + j] = (float)(*((u_int32_t *)&dump[curpos + j + 3]));
+            }
+
+            curpos += BEARING_PACK_WORDS;
+            if((u_int32_t)curpos > good_end)
+                curpos = good_start;
+        }
+
+        if(!simulation)
+            emit updateData(offset, BLOCK_TO_SEND, /*&file_divs[0][offset], */&file_amps[0][offset*PELENG_SIZE]);
+    }
 }
 
 #ifndef Q_OS_WIN
@@ -320,20 +628,26 @@ void RadarDataSource::radar_worker() {
     try
     {
 
-#define SLEEPTIMESEC 20
-#ifdef PRINTERRORS
+#define SLEEPTIMESEC 30
+//#ifdef PRINTERRORS
 			printf("%s: Sleeping %d s while engine initializes.\n", __func__, SLEEPTIMESEC);
-#endif // PRINTERRORS
+//#endif // PRINTERRORS
         sleep(SLEEPTIMESEC);
-        res = ioctl(fd, APCTRL_IOCTL_START, 256);
+        //res = ioctl(fd, APCTRL_IOCTL_START, 256);
+        res = ioctl(fd, APCTRL_IOCTL_START, 2048);
         if (-1 == res) {
             fprintf(stderr, "Failed to start APCTRL: %s\n", strerror(errno));
             return;
         }
 
-#ifdef PRINTERRORS
+		res = apctrl_regrd(0xe000, &scanidx);
+		scanidx |= 0x20;
+		res = apctrl_regwr(0xe000, scanidx);
+		scanidx = 0;
+
+//#ifdef PRINTERRORS
 		printf("%s: IOCTL_START succeeded.\n", __func__);
-#endif // PRINTERRORS
+//#endif // PRINTERRORS
 
         while(!finish_flag)
         {
@@ -348,6 +662,9 @@ void RadarDataSource::radar_worker() {
                         __func__, strerror(errno));
                 throw -18;
             }
+
+            if(simulation)
+                continue;
 
 #ifdef PRINTERRORS
 			printf("%s: IOCTL_WAIT returned (%lu).\n", __func__, rdpnext);
@@ -432,7 +749,8 @@ void RadarDataSource::radar_worker() {
 			printf("%s: calling preocessBearings.\n", __func__);
 #endif // PRINTERRORS
 
-            processBearings();
+            if(!simulation)
+                processBearings();
 
 #ifdef PRINTERRORS
 			printf("%s: .ssBearings returned\n", __func__);
@@ -750,7 +1068,7 @@ int RadarDataSource::setRawBearingData(BearingBuffer * bearing) {
 }
 
 BearingBuffer * RadarDataSource::getNextFreeBuffer(void) {
-    //TODO: Remove this function
+    // TODO: Remove this function
     // There is no read pool anymore. Buffers are created and managed by driver now.
     // We need just to keep track of buffer indexes (last processed must be kept by us
     // and latest newly populated index is returned by ioctl)
@@ -780,8 +1098,12 @@ int RadarDataSource::processBearings(void) {
   int         num;
   int         res = 0;
 
+  static uint32_t tmp_brgbuf[800 + 3];
+
   if (syncstate != RDSS_SYNC)
     return res;
+
+  //fprintf(stderr, "%s: Entered\n", __func__);
 
   firstbrg = processed_bearing + 1;
   if (firstbrg >= BEARINGS_PER_CYCLE)
@@ -792,13 +1114,24 @@ int RadarDataSource::processBearings(void) {
     for(int i = 0; i < num; i++) {
       processed_bearing++;
       amps = scans[activescan][processed_bearing]->ptr[1];
-      div  = scans[activescan][processed_bearing]->ptr[2];
+      div  = 1; //scans[activescan][processed_bearing]->ptr[2];
 
       if(amps > PELENG_SIZE)
         amps = PELENG_SIZE;
 
+//	  fprintf(stderr, "%s: 1. Copy radar data to temporal buffer\n", __func__);
+	  for(uint32_t j = 0; j < amps + 3; j++)
+		  tmp_brgbuf[j] = scans[activescan][processed_bearing]->ptr[j];
+	  //fprintf(stderr, "%s: 1. Copy done.\n", __func__);
+      preprocessBearing(tmp_brgbuf, true);
+	  //fprintf(stderr, "%s: 1. Data preprocessed.\n", __func__);
+      amplify(tmp_brgbuf);
+
+	  if(div == 0)
+		  div = 1;
       //file_divs[0][processed_bearing] = (div < 32) ? div : 1; // After debugging "div"
-      ptr = &(scans[activescan][processed_bearing]->ptr[3]);
+      ptr = &(tmp_brgbuf[3]);
+      //ptr = &(scans[activescan][processed_bearing]->ptr[3]);
 
       for(uint32_t j = 0; j < amps; j++)
         file_amps[0][processed_bearing * PELENG_SIZE + j] = *ptr++;
@@ -807,7 +1140,7 @@ int RadarDataSource::processBearings(void) {
     }
 
     if(num) {
-      //emit updateData(firstbrg, num, &file_divs[0][firstbrg], &file_amps[0][firstbrg * PELENG_SIZE]);
+      emit updateData(firstbrg, num, /*&file_divs[0][firstbrg], */&file_amps[0][firstbrg * PELENG_SIZE]);
     }
 
     res      += num;
@@ -818,12 +1151,18 @@ int RadarDataSource::processBearings(void) {
 
   res      += num;
 
+  //fprintf(stderr, "%s: 2. About to precess bearings.\n", __func__);
+
   for(int i = 0; i < num; i++) {
     if(++processed_bearing >= BEARINGS_PER_CYCLE)
       processed_bearing = 0;
 
+	//fprintf(stderr, "%s: 2. Getting apms and div (BRG: %04u, scan: %d)\n", __func__, processed_bearing, activescan);
+
     amps = scans[activescan][processed_bearing]->ptr[1];
-    div  = scans[activescan][processed_bearing]->ptr[2];
+    div  = 1;// scans[activescan][processed_bearing]->ptr[2];
+
+	//fprintf(stderr, "%s: 2. apms %u. div %u\n", __func__,amps, div);
 
 
 #ifdef GET_MAX_AMPL
@@ -841,15 +1180,26 @@ int RadarDataSource::processBearings(void) {
     if(max > gmax)
         gmax = max;
 #endif // GET_MAX_AMPL
-    div = 4; // 10 bit data downgraded to 8 bit //1600 / 255 + 1;
+    //div = 4; // 10 bit data downgraded to 8 bit //1600 / 255 + 1;
 
 
     if (amps > PELENG_SIZE)
       amps = PELENG_SIZE;
 
-    //file_divs[0][processed_bearing] = div;
-    //(div < 32) ? div : 1; // After debugging "div"
-    ptr = &(scans[activescan][processed_bearing]->ptr[3]);
+	//fprintf(stderr, "%s: 2. Copy radar data to temporal buffer\n", __func__);
+    for(uint32_t j = 0; j < amps + 3; j++)
+		tmp_brgbuf[j] = scans[activescan][processed_bearing]->ptr[j];
+	//fprintf(stderr, "%s: 2. Copy done.\n", __func__);
+    preprocessBearing(tmp_brgbuf, true);
+	//fprintf(stderr, "%s: 2. Data preprocessed.\n", __func__);
+    amplify(tmp_brgbuf);
+
+	if(div == 0)
+		div = 1;
+    //file_divs[0][processed_bearing] = (div < 32) ? div : 1; // After debugging "div"
+    ptr = &(tmp_brgbuf[3]);
+    //ptr = &(scans[activescan][processed_bearing]->ptr[3]);
+	//fprintf(stderr, "%s: 2. Preparation for copying amplitudes is done.\n", __func__);
 
     for(uint32_t j = 0; j < amps; j++)
       file_amps[0][processed_bearing * PELENG_SIZE + j] = *ptr++;
@@ -857,12 +1207,560 @@ int RadarDataSource::processBearings(void) {
     scans[activescan][processed_bearing]->valid = false;
   }
 
+  //fprintf(stderr, "%s: 2. Bearings done.\n", __func__);
+
   if(num) {
-    //emit updateData(firstbrg, num, &file_divs[0][firstbrg], &file_amps[0][firstbrg * PELENG_SIZE]);
+	//fprintf(stderr, "%s: emit updateData.\n", __func__);
+    emit updateData(firstbrg, num, /*&file_divs[0][firstbrg], */&file_amps[0][firstbrg * PELENG_SIZE]);
+	//fprintf(stderr, "%s: emit updateData done.\n", __func__);
   }
 
+  //fprintf(stderr, "%s: Leaving.\n", __func__);
   return res;
 }
-#endif //Q_OS_WIN
+#endif // !Q_OS_WIN
 // ------------------------------------------------------
 
+int RadarDataSource::findZeroBrg(int start)
+{
+    if(dump == NULL)
+        return -1;
+    for(; start < dsize; start += BEARING_PACK_WORDS)
+    {
+        if(dump[start] == 0)
+            return start;
+    }
+
+    return -1;
+}
+
+
+int RadarDataSource::chkScans(int start)
+{
+    u_int32_t prevbrg;
+    int       scans;
+    int       good_end = -4;
+
+    if(dump == NULL)
+        return -1;
+    if(start >= dsize)
+        return -2;
+    prevbrg = dump[start];
+    if(prevbrg != 0)
+        return -3;
+
+    scans = 0;
+    for(start += BEARING_PACK_WORDS; start < dsize; start += BEARING_PACK_WORDS)
+    {
+        if(dump[start] == 0)
+        {
+            if(prevbrg != (BEARINGS_PER_CYCLE - 1))
+                break; //return good_end;
+            scans++;
+        }
+        else if(dump[start] == (BEARINGS_PER_CYCLE - 1))
+            good_end = start;
+        else if((dump[start] - prevbrg) != 1)
+            break; //return good_end;
+        prevbrg = dump[start];
+    }
+
+    if(scans > 0)
+        printf("Found %d successive good scans\n", scans);
+    return good_end;
+}
+
+int RadarDataSource::setAmpsOffset(int off)
+{
+    ampoffset = off;
+    return 0;
+}
+int RadarDataSource::getAmpsOffset(void)
+{
+    return ampoffset;
+}
+
+int RadarDataSource::preprocessBearing(u_int32_t * brgdata, bool inv)
+{
+    int32_t v;
+    int32_t div;
+
+    div = *(int32_t *)&brgdata[2];
+
+    if(inv)
+    {
+        for(int i = 3; i < PELENG_SIZE + 3; i++)
+        {
+            v = *(int32_t *)&brgdata[i] * (-1) / div - ampoffset;
+            if(v < 0)
+                v = 0;
+            v /= 16;
+            brgdata[i] = *(u_int32_t *)&v;
+        }
+    }
+    else
+    {
+        for(int i = 3; i < PELENG_SIZE + 3; i++)
+        {
+            v = *(int32_t *)&brgdata[i] / div - ampoffset;
+            if(v < 0)
+                v = 0;
+            v /= 16;
+            brgdata[i] = *(u_int32_t *)&v;
+        }
+    }
+
+    return 0;
+}
+
+#ifndef Q_OS_WIN
+
+int RadarDataSource::initGen(bool usetimeout)
+{
+    unsigned int      i;
+    int               res = 0;
+    static const struct genval
+    {
+        u32 offset;
+        u32 val;
+    } gval[] = {
+                  {  0, 0x54},
+                  {  1, 0xe1},
+                  {  2, 0x42},
+                  {  3, 0x55},
+                  {  4, 0x00},
+                  {  5, 0x3f},
+                  { 21, 0x7c},
+                  { 25, 0x80},
+                  { 33, 0x03},
+                  { 36, 0x03},
+                  { 40, 0x40},
+                  { 41, 0xca},
+                  { 42, 0x7b},
+                  { 44, 0x04},
+                  { 45, 0xbe},
+                  { 47, 0x09},
+                  { 48, 0xc3},
+                  { 55, 0x08},
+                  {131, 0x18},
+                  {138, 0x0c},
+                  {139, 0xcc}
+                };
+
+    if(fd == -1)
+    {
+       fprintf(stderr, "AP controller device file is not opened.\n");
+       return -1;
+    }
+
+    printf("Initializing generator (Cmd reg: 0x%08X)...\n", APCTRL_GEN_BASEADDR);
+    usetimeout = true;
+    for(i = 0; i < sizeof(gval) / sizeof(gval[0]); i++)
+    {
+		res = apctrl_adcspi_send(
+				APCTRL_GEN_BASEADDR,
+				0x1f0000 + (gval[i].offset & 0x000000ff),
+				0x1f4000 + (gval[i].val & 0x000000ff), usetimeout);
+		if(res != 0)
+		{
+			fprintf(stderr, "%s: apctrl_adcspi_send failed (%d)\n", __func__, res);
+			return res;
+		}
+    }
+
+    printf("Generator initialization done.\n");
+
+    return res;
+}
+
+
+int RadarDataSource::initADC(void)
+{
+    int res;
+    static const u_int32_t regv[] =
+    {
+        0x2e001409,
+        0x2e001680,
+        0x2e000f02,
+        0x2e00ff01
+    };
+
+    for(unsigned int i = 0; i < sizeof(regv) / sizeof(regv[0]); i += 2)
+    {
+        res = apctrl_adcspi_send(APCTRL_ADC_BASEADDR, regv[i], regv[i + 1], true);
+        if(res != 0)
+        {
+            fprintf(stderr, "%s: apctrl_adcspi_send failed (%d)\n", __func__, res);
+            break;
+        }
+    }
+
+    return res;
+}
+
+int RadarDataSource::initDAC(void)
+{
+    int res;
+    static const u_int32_t regv[] =
+    {
+        0x0e00A000,
+        0x0e008000,
+        0x0e048000,
+        0x0e0a8300
+    };
+
+    for(unsigned int i = 0; i < sizeof(regv) / sizeof(regv[0]); i += 2)
+    {
+        res = apctrl_adcspi_send(APCTRL_ADC_BASEADDR, regv[i], regv[i + 1], true);
+        if(res != 0)
+        {
+            fprintf(stderr, "%s: apctrl_adcspi_send failed (%d)\n", __func__, res);
+            break;
+        }
+    }
+
+    return res;
+}
+
+int RadarDataSource::apctrl_regwr(u_int32_t regaddr, u_int32_t regval)
+{
+    int res;
+    struct apctrl_reg r;
+
+    if(fd == -1)
+        return 1;
+
+    r.offset = regaddr;
+    r.val    = regval;
+    r.mask   = 0xffffffff;
+    res = ioctl(fd, APCTL_IOCTL_SETREG, &r);
+    return res;
+}
+
+
+int RadarDataSource::apctrl_regrd(u_int32_t regaddr, u_int32_t * regval)
+{
+    int res;
+    struct apctrl_reg r;
+
+    if(fd == -1)
+        return 1;
+    if(regval == NULL)
+        return 2;
+
+    r.offset = regaddr;
+    r.mask   = 0xffffffff;
+    res = ioctl(fd, APCTL_IOCTL_GETREG, &r);
+	if(res == 0)
+		*regval = r.val;
+    return res;
+}
+
+int RadarDataSource::apctrl_adcspi_send(u_int32_t baseaddr, u_int32_t addrv, u_int32_t datav, bool usetimeout)
+{
+    int               res;
+    u_int32_t         v;
+    struct itimerspec its;
+
+    if(fd == -1)
+       return 1;
+
+    if(adcspi_tmid == NULL)
+        usetimeout = false;
+
+	//printf("SPI: Address write\n");
+    // Write address to ADC SPI command register
+    if((res = apctrl_regwr(baseaddr, addrv)) != 0)
+    {
+        if(res > 0)
+            fprintf(stderr, "apctrl_regrd failed: %d\n", res);
+        else
+            fprintf(stderr, "apctrl_regrd failed: %s\n", strerror(errno));
+        fprintf(stderr, "\tADDR: 0x%08X, DATA: 0x%08X\n", baseaddr, addrv);
+        return res;
+    }
+
+    if(usetimeout)
+    {
+        // Start SPI timeout timer
+        its.it_value.tv_sec     = APCTRL_SPIWR_TIMEOUT / 1000000000;
+        its.it_value.tv_nsec    = APCTRL_SPIWR_TIMEOUT % 1000000000;
+        its.it_interval.tv_sec  = 0;
+        its.it_interval.tv_nsec = 0;
+
+        spi_timeout = 0;
+        if(timer_settime(adcspi_tmid, 0, &its, NULL) != -1)
+        {
+            v = 0;
+            do
+            {
+                if(spi_timeout)
+                {
+                    fprintf(stderr, "%s: SPI TIMOUT elapsed!\n", __func__);
+                    break;
+                }
+
+                res = apctrl_regrd(baseaddr, &v);
+                if(res != 0)
+                {
+                    if(res > 0)
+                        fprintf(stderr, "apctrl_regrd failed: %d\n", res);
+                    else
+                        fprintf(stderr, "apctrl_regrd failed: %s\n", strerror(errno));
+                    fprintf(stderr, "\tADDR: 0x%08X, DATA: 0x%08X\n", baseaddr, addrv);
+                    break;
+                }
+            }while(!(v & 0x80000000));
+
+            // Disarm timer
+            its.it_value.tv_sec     = 0;
+            its.it_value.tv_nsec    = 0;
+            its.it_interval.tv_sec  = 0;
+            its.it_interval.tv_nsec = 0;
+            if(timer_settime(adcspi_tmid, 0, &its, NULL) == -1)
+				fprintf(stderr, "Timer disarm failed: %s\n", strerror(errno));
+        }
+        else
+        {
+            fprintf(stderr, "Failed to start timer for SPI timeout handler: %s\n", strerror(errno));
+            fprintf(stderr, "WARNING: Start of the timer for SPI timeout failed and the operation my hang.\n");
+            fprintf(stderr, "\t Use Ctrl+C to terminate in such case.\n");
+        }
+    }
+
+	//printf("SPI: Command write\n");
+    // Write address to ADC SPI command register
+    if((res = apctrl_regwr(baseaddr, datav)) != 0)
+    {
+        if(res > 0)
+            fprintf(stderr, "apctrl_regrd (datav) failed: %d\n", res);
+        else
+            fprintf(stderr, "apctrl_regrd (datav) failed: %s\n", strerror(errno));
+        fprintf(stderr, "\tADDR: 0x%08X, DATA: 0x%08X\n", baseaddr, datav);
+        return res;
+    }
+
+    if(usetimeout)
+    {
+        // Start SPI timeout timer
+        its.it_value.tv_sec     = APCTRL_SPIWR_TIMEOUT / 1000000000;
+        its.it_value.tv_nsec    = APCTRL_SPIWR_TIMEOUT % 1000000000;
+        its.it_interval.tv_sec  = 0;
+        its.it_interval.tv_nsec = 0;
+
+        spi_timeout = 0;
+        if(timer_settime(adcspi_tmid, 0, &its, NULL) != -1)
+        {
+            v = 0;
+            do
+            {
+                if(spi_timeout)
+                {
+                    fprintf(stderr, "%s: SPI TIMOUT elapsed!\n", __func__);
+                    break;
+                }
+
+                res = apctrl_regrd(baseaddr, &v);
+                if(res != 0)
+                {
+                    if(res > 0)
+                        fprintf(stderr, "apctrl_regrd (datav) failed: %d\n", res);
+                    else
+                        fprintf(stderr, "apctrl_regrd (datav) failed: %s\n", strerror(errno));
+                    fprintf(stderr, "\tADDR: 0x%08X, DATA: 0x%08X\n", baseaddr, datav);
+                    break;
+                }
+            }while(!(v & 0x80000000));
+
+            // Disarm timer
+            its.it_value.tv_sec     = 0;
+            its.it_value.tv_nsec    = 0;
+            its.it_interval.tv_sec  = 0;
+            its.it_interval.tv_nsec = 0;
+            if(timer_settime(adcspi_tmid, 0, &its, NULL) == -1)
+				fprintf(stderr, "Timer disarm failed: %s\n", strerror(errno));
+        }
+        else
+        {
+            fprintf(stderr, "Failed to start timer for SPI timeout handler: %s\n", strerror(errno));
+            fprintf(stderr, "WARNING: Start of the timer for SPI timeout failed and the operation my hang.\n");
+            fprintf(stderr, "\t Use Ctrl+C to terminate in such case.\n");
+        }
+    }
+
+    return res;
+}
+
+int RadarDataSource::setupScale(const rli_scale_t * pscale)
+{
+    int res;
+
+    if(pscale == NULL)
+        return 1;
+
+    res = apctrl_regwr(APCTRL_PKIDPKOD_BASEADDR, pscale->pkidpkod);
+    if(res != 0)
+    {
+        fprintf(stderr, "%s: PKID and PKOD setup failed (%d)\n", __func__, res);
+        return res;
+    }
+
+    res = apctrl_adcspi_send(APCTRL_GEN_BASEADDR, pscale->gen_addr, pscale->gen_dat, true);
+    if(res != 0)
+    {
+        fprintf(stderr, "%s: Frequency setup failed (%d)\n", __func__, res);
+        return res;
+    }
+
+    return res;
+}
+
+#endif // !Q_OS_WIN
+
+int RadarDataSource::setGain(u_int32_t gain)
+{
+    if(gain >= max_gain_level)
+        gain_level = max_gain_level - 1;
+    else
+        gain_level = gain;
+    return 0;
+}
+
+int RadarDataSource::amplify(u_int32_t * brg)
+{
+    u_int32_t v;
+    u_int32_t tr;
+    u_int32_t ratio;
+
+    if(!gain_level)
+        return 0; // Nothing to do
+
+    tr = max_gain_level - gain_level;
+    ratio = (255 << 16) / tr;
+    for(int i = 3; i < PELENG_SIZE + 3; i++)
+    {
+        v = brg[i];
+        if(v >= tr)
+            v = (255 << 16);
+        else
+            v = v * ratio;
+        brg[i] = v >> 16;
+    }
+
+    return 0;
+}
+
+int RadarDataSource::setupHIP(hip_t hiptype, hip_channel_t hipch)
+{
+    u_int32_t v;
+    u_int32_t regv;
+    u_int32_t mask;
+    int       res = 0;
+
+    try
+    {
+        if((hiptype < HIP_FIRST) || (hiptype > HIP_LAST))
+            throw 100;
+        if((hipch < HIPC_FIRST) || (hipch > HIPC_LAST))
+            throw 101;
+
+        switch(hiptype)
+        {
+        case HIP_NONE:
+            v = APCTRL_HIP_NONE;
+            break;
+        case HIP_WEAK:
+            v = APCTRL_HIP_WEAK;
+            break;
+        case HIP_STRONG:
+            v = APCTRL_HIP_STRONG;
+            break;
+		default:
+			return 100;
+        }
+
+        mask = APCTRL_HIP_MASK;
+
+        if(hipch == HIPC_MAIN)
+        {
+            v    <<= APCTRL_HIP_SHIFT;
+            mask <<= APCTRL_HIP_SHIFT;
+        }
+        else // if(hipch == HIPC_SARP)
+        {
+            v    <<= APCTRL_HIP_SARP_SHIFT;
+            mask <<= APCTRL_HIP_SARP_SHIFT;
+        }
+#ifndef Q_OS_WIN
+        //res = ioctl(fd, APCTRL_IOCTL_STOP);
+        //if(res != 0)
+        //{
+        //    fprintf(stderr, "APCTRL_IOCTL_STOP failed.\n");
+        //    throw res;
+        //}
+        //res = apctrl_regrd(APCTRL_HIP_BASEADDR, &regv);
+        //if(res != 0)
+        //    throw res;
+		//
+        regv = (hipregv & (~mask)) | v | 0x2000;
+        res = apctrl_regwr(APCTRL_HIP_BASEADDR, regv);
+        if(res != 0)
+            throw res;
+		fprintf(stderr, "HIP: %d, 0x%08X\n", hiptype, regv);
+		hipregv = regv;
+        //res = ioctl(fd, APCTRL_IOCTL_START, 2048);
+        //if(res != 0)
+        //{
+        //    fprintf(stderr, "APCTRL_IOCTL_START failed.\n");
+        //    throw res;
+        //}
+#endif // !Q_OS_WIN
+    }
+    catch(int e)
+    {
+        if(e > 0)
+            fprintf(stderr, "Failed to setup HIP: %d\n", e);
+        else // if(e < 0)
+            fprintf(stderr, "HIP setup failed: %s\n", strerror(errno));
+        res = e;
+    }
+
+    return res;
+}
+
+int RadarDataSource::nextHIP(hip_channel_t hipch)
+{
+    hip_t htype;
+    hip_t * ptype;
+    int   res;
+
+    switch(hipch)
+    {
+    case HIPC_MAIN:
+        ptype = &hip_main;
+        break;
+    case HIPC_SARP:
+        ptype = &hip_sarp;
+        break;
+    default:
+        return 101;
+    }
+
+    htype = *ptype;
+
+    htype = (hip_t)(htype + 1);
+    if((htype < HIP_FIRST) || (htype > HIP_LAST))
+        htype = HIP_FIRST;
+
+    res = setupHIP(htype, hipch);
+    if(res)
+        return res;
+    *ptype = htype;
+    return 0;
+}
+
+int RadarDataSource::simulate(bool sim)
+{
+    simulation = sim;
+    return 0;
+}

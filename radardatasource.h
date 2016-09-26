@@ -66,6 +66,7 @@ public:
   int setAmpsOffset(int off);
   int getAmpsOffset(void);
   int preprocessBearing(u_int32_t * brgdata, bool inv);
+  int simulate(bool sim);
 
 signals:
   void updateData(uint offset, uint count, GLfloat* amps);
@@ -180,6 +181,8 @@ protected:
   hip_t hip_main;
   hip_t hip_sarp;
   int setupHIP(hip_t hiptype, hip_channel_t hipch);
+
+  bool simulation;
 };
 
 #endif // RADARDATASOURCE_H

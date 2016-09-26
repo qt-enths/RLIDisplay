@@ -30,8 +30,11 @@ static int setup_unix_signal_handlers()
   sigemptyset(&intaction.sa_mask);
   intaction.sa_flags |= SA_RESTART;
 
-  if (sigaction(SIGINT, &intaction, 0) > 0)
+  if(sigaction(SIGINT, &intaction, 0) != 0)
     return 2;
+
+  if(sigaction(SIGTERM, &intaction, 0) != 0)
+    return 3;
 
   return 0;
 }
@@ -111,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
-  connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(float,float)), _curs_ctrl, SLOT(cursor_moved(float,float)));
+  connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(float,float, const char *)), _curs_ctrl, SLOT(cursor_moved(float,float, const char *)));
 
   _clck_ctrl = new ClockController(this);
   connect(ui->wgtRLIDisplay, SIGNAL(per_second()), _clck_ctrl, SLOT(second_changed()));
@@ -195,21 +198,33 @@ MainWindow::~MainWindow() {
 }
 
 #ifndef Q_OS_WIN
-void MainWindow::intSignalHandler(int)
+void MainWindow::intSignalHandler(int sig)
 {
-  char a = 1;
-  ::write(sigintFd[0], &a, sizeof(a));
+  ::write(sigintFd[0], &sig, sizeof(sig));
 }
 
 void MainWindow::handleSigInt()
 {
   snInt->setEnabled(false);
-  char tmp;
-  ::read(sigintFd[1], &tmp, sizeof(tmp));
+  int sig;
+  ::read(sigintFd[1], &sig, sizeof(sig));
 
   // do Qt stuff
-  close();
-  printf("\nSIGINT caught. Waiting for all threads to terminate\n");
+  if(sig == SIGINT)
+  {
+      close();
+      printf("\nSIGINT caught. Waiting for all threads to terminate\n");
+  }
+  else if(sig == SIGTERM)
+  {
+      close();
+      printf("\nSIGTERM caught. Waiting for all threads to terminate\n");
+  }
+  else
+  {
+      close();
+      fprintf(stderr, "\nUnsupported signale %d caught. Waiting for all threads to terminate\n", sig);
+  }
 
   snInt->setEnabled(true);
 }
@@ -371,7 +386,8 @@ void MainWindow::onRLIWidgetInitialized() {
   connect(this, SIGNAL(scale_changed(std::pair<QByteArray, QByteArray>))
         , _scle_ctrl, SLOT(scale_changed(std::pair<QByteArray, QByteArray>)));
 
-  connect(ui->wgtRLIDisplay, SIGNAL(displayVNDistance(float)), _vd_ctrl, SLOT(display_distance(float)));
+  connect(ui->wgtRLIDisplay, SIGNAL(displayVNDistance(float, const char *)), _vd_ctrl, SLOT(display_distance(float, const char *)));
+  connect(ui->wgtRLIDisplay, SIGNAL(displaydBRG(float, float)), _vn_ctrl, SLOT(display_brg(float, float)));
 
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";
@@ -414,6 +430,12 @@ void MainWindow::onRLIWidgetInitialized() {
 
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
          , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
+         , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(onSimChanged(bool))
+         , this, SLOT(simulation_slot(bool)));
 
   ui->wgtRLIDisplay->menuEngine()->setMenuItemIntValue(_radar_ds->getAmpsOffset(), MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
   RLIMenuItem * mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
@@ -604,3 +626,7 @@ void MainWindow::on_mnuAnalogZeroChanged(int val)
     _radar_ds->setAmpsOffset(val);
 }
 
+void MainWindow::simulation_slot(bool sim)
+{
+    _radar_ds->simulate(sim);
+}

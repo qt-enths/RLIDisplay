@@ -24,7 +24,7 @@ public:
   ~MainWindow();
 
 #ifndef Q_OS_WIN
-  static void intSignalHandler(int unused);
+  static void intSignalHandler(int sig);
 
   RadarScale * _radar_scale;
 
@@ -45,6 +45,7 @@ public slots:
   void handleSigInt();
 #endif // !Q_OS_WIN
   void gain_slot(int value); // Used only for simulated Control Panel Unit. Must be removed at finish build
+  void simulation_slot(bool sim);
 
 signals:
   void scale_changed(std::pair<QByteArray, QByteArray> scale);

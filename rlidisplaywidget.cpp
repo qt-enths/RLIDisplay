@@ -349,6 +349,7 @@ void RLIDisplayWidget::mouseMoveEvent(QMouseEvent* e) {
 }
 
 void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
+  const char * dist_fmt = NULL;
   if(repaint)
       _controlsEngine->setCursorPos(pos);
   QPointF cen = _controlsEngine->getCenterPos();
@@ -370,14 +371,17 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
           {
               const rli_scale_t * scale = curscale->getCurScale();
               if(scale)
+              {
                   ratio = scale->len / maskEngine()->getRadius();
+                  dist_fmt = scale->val_fmt;
+              }
           }
           distance *= ratio;
           break;
       }
   }
 
-  emit cursor_moved(peleng, distance);
+  emit cursor_moved(peleng, distance, dist_fmt);
 }
 
 
@@ -469,9 +473,27 @@ bool RLIDisplayWidget::event(QEvent* e) {
       case RLIControlEvent::NoSpinner:
         break;
       case RLIControlEvent::VN:
-        _controlsEngine->shiftVnP(re->spinnerVal());
-        _maskEngine->setAngleShift(_controlsEngine->getVnP());
+    {
+        _controlsEngine->shiftVnCu(re->spinnerVal()); //shiftVnP(re->spinnerVal());
+        //_maskEngine->setAngleShift(_controlsEngine->getVnP());
+        float brg = _controlsEngine->getVnCu();
+        if(brg < 0)
+            brg = 360.0 + brg;
+
+        float crsangle;
+        float hdg = _controlsEngine->getVnP();
+        float counterhdg;
+        if(hdg <= 180)
+            counterhdg = hdg + 180;
+        else
+            counterhdg = 180 - hdg;
+        if((brg >= hdg) && (brg <= counterhdg))
+            crsangle = brg - hdg;
+        else
+            crsangle = (-1) * (360 - brg + hdg);
+        emit displaydBRG(brg, crsangle);
         break;
+    }
       case RLIControlEvent::VD:
         _controlsEngine->shiftVd(re->spinnerVal());
         foreach(QWidget * w, QApplication::topLevelWidgets())
@@ -480,14 +502,18 @@ bool RLIDisplayWidget::event(QEvent* e) {
             if(mainWnd)
             {
                 float ratio = 1;
+                const char * fmt = NULL;
                 RadarScale * curscale = mainWnd->_radar_scale;
                 if(curscale)
                 {
                     const rli_scale_t * scale = curscale->getCurScale();
                     if(scale)
+                    {
                         ratio = scale->len / maskEngine()->getRadius();
+                        fmt = scale->val_fmt;
+                    }
                 }
-                emit displayVNDistance(_controlsEngine->getVd() * ratio);
+                emit displayVNDistance(_controlsEngine->getVd() * ratio, fmt);
                 break;
             }
         }

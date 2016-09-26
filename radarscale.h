@@ -32,6 +32,7 @@ struct rli_scale
     float        dist_rng; // Space in miles between distance rings
     const char * display;  // Name of the scale for displaying
     const char * dist_rng_display; // How to display space size between distance rings
+    const char * val_fmt;  // printf format to display float value
 };
 
 typedef struct rli_scale rli_scale_t;

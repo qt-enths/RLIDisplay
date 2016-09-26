@@ -182,10 +182,12 @@ public:
 signals:
   void languageChanged(const QByteArray& lang);
   void radarBrightnessChanged(int br);
+  void onSimChanged(bool sim);
 
 public slots:
   void setState(MenuState state);
   void onLanguageChanged(const QByteArray& lang);
+  void onSimulation(const QByteArray sim);
 
   void update();
 

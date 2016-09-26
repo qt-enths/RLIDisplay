@@ -480,9 +480,10 @@ void MenuEngine::initMainMenuTree() {
   RLIMenuItemInt* i030 = new RLIMenuItemInt(RLIStrings::nMenu030, 1, 2, 1);
   m03->add_item(static_cast<RLIMenuItem*>(i030));
 
-  RLIMenuItemList* i031 = new RLIMenuItemList(RLIStrings::nMenu031, 1);
+  RLIMenuItemList* i031 = new RLIMenuItemList(RLIStrings::nMenu031, 0);
   i031->addVariant(RLIStrings::OffOnArray[0]);
   i031->addVariant(RLIStrings::OffOnArray[1]);
+  connect(i031, SIGNAL(valueChanged(const QByteArray)), this, SLOT(onSimulation(const QByteArray)));
   m03->add_item(static_cast<RLIMenuItem*>(i031));
 
   RLIMenuItemList* i032 = new RLIMenuItemList(RLIStrings::nMenu032, 1);
@@ -626,6 +627,11 @@ void MenuEngine::onLanguageChanged(const QByteArray& lang) {
       _lang = RLI_LANG_RUSSIAN;
       _need_update = true;
   }
+}
+
+void MenuEngine::onSimulation(const QByteArray sim)
+{
+    emit onSimChanged(((sim.size() == 3) ? true : false));
 }
 
 void MenuEngine::onUp() {

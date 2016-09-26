@@ -79,7 +79,8 @@ namespace RLIStrings {
 
   static char* nLod[2]   =   { "???", "ЛОД" };
   static char* nCu[2]   =    { "??", "КУ" };
-  static char* nGradLb[2] =  { "°??",	"°ЛБ" };
+  static char* nGradLb[2] =  { "°LB",	"°ЛБ" };
+  static char* nGradRb[2] =  { "°RB",	"°ПБ" };
 
   static char* nTmInfo[2] =  { "TIME", "ВРЕМЯ" };
 

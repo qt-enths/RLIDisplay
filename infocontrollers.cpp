@@ -355,7 +355,7 @@ void DangerController::initBlock(const QSize& size) {
   t.color = INFO_BACKGRD_COLOR;
   t.rect = QRect(1, 1, 236, 20);
   setInfoTextStr(t, RLIStrings::nDng);
-  _block->addText(t);
+  //_block->addText(t);
 }
 
 //------------------------------------------------------------------------------
@@ -698,7 +698,7 @@ void CursorController::initBlock(const QSize& size) {
   _block->addText(t);
 }
 
-void CursorController::cursor_moved(float peleng, float distance) {
+void CursorController::cursor_moved(float peleng, float distance, const char * dist_fmt) {
   QByteArray str[RLI_LANG_COUNT];
 
   if (_pel_text_id != -1)
@@ -706,15 +706,72 @@ void CursorController::cursor_moved(float peleng, float distance) {
       emit setText(_pel_text_id, i, QString::number(peleng, 'f', 2).left(5).toLocal8Bit());
 
   if (_dis_text_id != -1)
+  {
     for (int i = 0; i < RLI_LANG_COUNT; i++)
-      emit setText(_dis_text_id, i, QString::number(distance, 'f', 2).left(5).toLocal8Bit());
+    {
+      if(dist_fmt)
+      {
+          QString s;
+          s.sprintf(dist_fmt, distance);
+          emit setText(_dis_text_id, i, s.toLocal8Bit());
+      }
+      else
+          emit setText(_dis_text_id, i, QString::number(distance, 'f', 2).left(5).toLocal8Bit());
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
 
 VnController::VnController(QObject* parent) : InfoBlockController(parent) {
-  _p_text_id = -1;
-  _cu_text_id = -1;
+  _p_text_id     = -1;
+  _cu_text_id    = -1;
+  _board_ptr_id  = -1;
+}
+
+void VnController::display_brg(float brg, float crsangle)
+{
+  //QByteArray str;
+  QString s;
+  if (_p_text_id != -1)
+  {
+    for (int i = 0; i < RLI_LANG_COUNT; i++)
+    {
+        s.sprintf("%.1f", brg);
+        //str = s.toStdString().c_str();
+
+        emit setText(_p_text_id, i, s.toStdString().c_str());
+    }
+  }
+
+  if (_cu_text_id != -1)
+  {
+    bool starboard = true;
+    bool oncourse  = false;
+    if(crsangle < 0)
+    {
+        crsangle *= -1;
+        starboard = false; // portside
+    }
+    else if((crsangle == 0) || (crsangle == 180))
+        oncourse = true;
+    s.sprintf("%.1f", crsangle);
+    //str = s.toStdString().c_str();
+    for (int i = 0; i < RLI_LANG_COUNT; i++)
+    {
+        emit setText(_cu_text_id, i, s.toStdString().c_str());
+        if(_board_ptr_id == -1)
+            continue;
+        QByteArray brdptr;
+        if(oncourse)
+            brdptr = " ";
+        else if(starboard)
+            brdptr = enc->fromUnicode(dec->toUnicode(RLIStrings::nGradRb[i]));
+        else
+            brdptr = enc->fromUnicode(dec->toUnicode(RLIStrings::nGradLb[i]));
+        emit setText(_board_ptr_id, i, brdptr);
+    }
+  }
 }
 
 void VnController::initBlock(const QSize& size) {
@@ -747,11 +804,11 @@ void VnController::initBlock(const QSize& size) {
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
   t.rect = QRect(4+2*12+5*12+6, 28, 0, 14);
-  setInfoTextBts(t, QByteArray("333.9"));
+  setInfoTextBts(t, QByteArray("0.0"));
   _p_text_id = _block->addText(t);
 
   t.rect = QRect(4+2*12+5*12+6, 46, 0, 14);
-  setInfoTextBts(t, QByteArray("26.1"));
+  setInfoTextBts(t, QByteArray("0.0"));
   _cu_text_id = _block->addText(t);
 
   t.font_tag = "12x14";
@@ -764,7 +821,7 @@ void VnController::initBlock(const QSize& size) {
 
   t.rect = QRect(4+2*12+5*12+2+2, 46, 0, 14);
   setInfoTextStr(t, RLIStrings::nGradLb);
-  _block->addText(t);
+  _board_ptr_id = _block->addText(t);
 }
 
 //------------------------------------------------------------------------------
@@ -773,10 +830,13 @@ VdController::VdController(QObject* parent) : InfoBlockController(parent) {
   _vd_text_id = -1;
 }
 
-void VdController::display_distance(float dist)
+void VdController::display_distance(float dist, const char * fmt)
 {
     QString s;
-    s.sprintf("%5.1f", dist);
+    if(fmt)
+        s.sprintf(fmt, dist);
+    else
+        s.sprintf("%5.1f", dist);
     emit setText(_vd_text_id, 0, s.toLocal8Bit());
     emit setText(_vd_text_id, 1, s.toLocal8Bit());
 }

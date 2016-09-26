@@ -26,7 +26,7 @@ public:
   inline float getVd() { return _vd; }
 
   inline void shiftVnP(float d) { _vn_p += d; }
-  inline void shiftVnCu(float d) { _vn_cu += d; }
+  inline void shiftVnCu(float d) {_vn_cu += d; if(_vn_cu < 0) _vn_cu = 360 + _vn_cu; if(_vn_cu >= 360) _vn_cu = _vn_cu - 360;}
   inline void shiftVd(float d) { _vd += d; if (_vd < 0) _vd = 0; }
 
   inline void setPlVisibility(bool val) { _is_pl_visible = val; }

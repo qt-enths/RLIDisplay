@@ -113,7 +113,7 @@ void ControlsEngine::drawCursor() {
 void ControlsEngine::drawVN() {
   glShadeModel( GL_SMOOTH );
 
-  _vn_cu -= 2;
+  //_vn_cu -= 2;
 
   float vn_p_rads = PI * (_vn_p / 180);
   float vn_cu_rads = PI * (_vn_cu / 180);

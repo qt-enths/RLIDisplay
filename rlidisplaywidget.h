@@ -33,10 +33,11 @@ public:
 
 signals:
   void initialized();
-  void cursor_moved(float peleng, float distance);
+  void cursor_moved(float peleng, float distance, const char * dist_fmt);
   void per_second();
   void resized(const QSize& s);
-  void displayVNDistance(float dist);
+  void displayVNDistance(float dist, const char * fmt);
+  void displaydBRG(float brg, float crsangle);
 
 protected slots:
   void mousePressEvent(QMouseEvent* e);

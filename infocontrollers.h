@@ -272,7 +272,7 @@ public:
   explicit CursorController(QObject* parent = 0);
 
 public slots:
-  void cursor_moved(float peleng, float distance);
+  void cursor_moved(float peleng, float distance, const char * dist_fmt);
 
 signals:
   void setRect(int rectId, const QRect& r);
@@ -312,6 +312,7 @@ public:
   explicit VnController(QObject* parent = 0);
 
 public slots:
+  void display_brg(float brg, float crsangle);
 
 signals:
   void setRect(int rectId, const QRect& r);
@@ -322,6 +323,7 @@ private:
 
   int _p_text_id;
   int _cu_text_id;
+  int _board_ptr_id;
 };
 
 
@@ -332,7 +334,7 @@ public:
   explicit VdController(QObject* parent = 0);
 
 public slots:
-  void display_distance(float dist);
+  void display_distance(float dist, const char * fmt);
 
 signals:
   void setRect(int rectId, const QRect& r);
