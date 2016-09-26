@@ -112,7 +112,7 @@ RadarDataSource::RadarDataSource() {
   hip_main          = HIP_NONE;
   hip_sarp          = HIP_NONE;
 
-  simulation        = false;
+  simulation        = true;
 }
 
 RadarDataSource::~RadarDataSource() {

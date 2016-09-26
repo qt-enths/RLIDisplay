@@ -23,7 +23,7 @@ public:
   void setPatternTexture(GLuint tex_id, QVector2D dim);
   void setData(S52AreaLayer* layer, S52Assets* assets, S52References* ref);
 
-  void draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle);
+  void draw(ChartShaders* shaders, QVector2D cur_coords, float scale, float angle);
 
 private:
   GLuint*   vbo_ids;
@@ -57,7 +57,7 @@ public:
   void setPatternTexture(GLuint tex_id, QVector2D dim);
   void setData(S52LineLayer* layer, S52Assets* assets, S52References* ref);
 
-  void draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle);
+  void draw(ChartShaders* shaders, QVector2D cur_coords, float scale, float angle);
 
 private:
   bool initialized;
@@ -91,7 +91,7 @@ public:
   void setPatternTexture(GLuint tex_id, QVector2D size);
   void setData(S52MarkLayer* layer, S52Assets* assets, S52References* ref);
 
-  void draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle);
+  void draw(ChartShaders* shaders, QVector2D cur_coords, float scale, float angle);
 
 private:
   bool      initialized;
@@ -120,7 +120,7 @@ public:
   void setPatternTexture(GLuint tex_id, QVector2D size);
   void setData(S52SndgLayer* layer, S52Assets* assets, S52References* ref);
 
-  void draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle);
+  void draw(ChartShaders* shaders, QVector2D cur_coords, float scale, float angle);
 
 private:
   bool      initialized;
@@ -145,7 +145,7 @@ public:
   void setGlyphTexture(GLuint tex_id);
   void setData(S52TextLayer* layer);
 
-  void draw(ChartShaders* shaders, QSize canvas, QVector2D cur_coords, float radius, float angle);
+  void draw(ChartShaders* shaders, QVector2D cur_coords, float scale, float angle);
 
 private:
   bool initialized;

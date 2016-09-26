@@ -316,7 +316,7 @@ void RLIDisplayWidget::paintGL() {
   _infoEngine->update();
 
   glEnable(GL_BLEND);
-  _chartEngine->update(QVector2D(12.250f, -81.350f), 50000.f, 0.f);
+  _chartEngine->update(QVector2D(12.5000f, -81.6000f), 50.f, 0.f, center-hole_center);
 }
 
 
