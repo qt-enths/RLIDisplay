@@ -397,7 +397,7 @@ void RLIDisplayWidget::wheelEvent(QWheelEvent * e)
     if (e->orientation() == Qt::Horizontal) {
         RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton
                                                , RLIControlEvent::VN
-                                               , numSteps);
+                                               , (float)numSteps / 10.0);
         qApp->postEvent(this, evt);
     } else {
         RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton

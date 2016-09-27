@@ -14,7 +14,7 @@ static const rli_scale_t scales[APCTRL_SNDPULSE_TYPES][APCTRL_SCALE_NUM] =
         { 12.000f, SNDPLS_SHORT, 0x0960001E, 0x001f0024, 0x001f4007,  2.000,  "12.0"  ,  "2.0"  , "%.2f"},
         { 24.000f, SNDPLS_SHORT, 0x0960001E, 0x001f0024, 0x001f400F,  4.000,  "24.0"  ,  "4.0"  , "%.2f"},
         { 48.000f, SNDPLS_SHORT, 0x12C00036, 0x001f0024, 0x001f400F,  8.000,  "48.0"  ,  "8.0"  , "%.2f"},
-        {  0.000f, SNDPLS_NONE,  0x12C00136, 0x001f0024, 0x001f400F,  0.000,   "0.0"  ,  "0.0"  , "%.1f"}, //  96 nm valid only for SNDPLS_LONG
+        {  0.000f, SNDPLS_NONE,  0x19000144, 0x001f0024, 0x001f400F,  0.000,   "0.0"  ,  "0.0"  , "%.1f"}, //  96 nm valid only for SNDPLS_LONG
         {  0.000f, SNDPLS_NONE,  0x19000145, 0x001f0024, 0x001f400F,  0.000,   "0.0"  ,  "0.0"  , "%.1f"}  // 144 nm valid only for SNDPLS_LONG
     },
     // Scales for long sounding pulse (SNDPLS_LONG)
@@ -29,7 +29,7 @@ static const rli_scale_t scales[APCTRL_SNDPULSE_TYPES][APCTRL_SCALE_NUM] =
         { 12.000f, SNDPLS_LONG,  0x06400017, 0x001f0024, 0x001f4007,  2.000,  "12.0"  ,  "2.0"  , "%.2f"},
         { 24.000f, SNDPLS_LONG,  0x06400017, 0x001f0024, 0x001f400F,  4.000,  "24.0"  ,  "4.0"  , "%.2f"},
         { 48.000f, SNDPLS_LONG,  0x0C800027, 0x001f0024, 0x001f400F,  8.000,  "48.0"  ,  "8.0"  , "%.2f"},
-        { 96.000f, SNDPLS_LONG,  0x12C00136, 0x001f0024, 0x001f400F, 16.000,  "96.0"  , "16.0"  , "%.1f"},
+        { 96.000f, SNDPLS_LONG,  0x19000144, 0x001f0024, 0x001f400F, 16.000,  "96.0"  , "16.0"  , "%.1f"},
         {144.000f, SNDPLS_LONG,  0x19000145, 0x001f0024, 0x001f400F, 24.000, "144.0"  , "24.0"  , "%.1f"}
     }
 };

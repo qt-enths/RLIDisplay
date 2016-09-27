@@ -862,7 +862,7 @@ void VdController::initBlock(const QSize& size) {
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
   t.rect = QRect(4+2*12+5*12+6, 28, 0, 14);
-  setInfoTextBts(t, QByteArray("333.9"));
+  setInfoTextBts(t, QByteArray("0.00"));
   _vd_text_id = _block->addText(t);
 
   t.font_tag = "8x14";
