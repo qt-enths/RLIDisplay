@@ -18,5 +18,7 @@
         <file>res/shaders/chart_sndg.vert.glsl</file>
         <file>res/shaders/chart_text.frag.glsl</file>
         <file>res/shaders/chart_text.vert.glsl</file>
+        <file>res/shaders/trgt.frag.glsl</file>
+        <file>res/shaders/trgt.vert.glsl</file>
     </qresource>
 </RCC>

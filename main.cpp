@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
 
   QGLFormat f = QGLFormat::defaultFormat();
-  f.setDoubleBuffer(false);
+  f.setDoubleBuffer(true);
   f.setSampleBuffers(false);
   f.setSamples(0);
   QGLFormat::setDefaultFormat(f);

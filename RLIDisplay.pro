@@ -39,7 +39,8 @@ SOURCES += main.cpp\
     chartengine.cpp \
     chartlayers.cpp \
     chartshaders.cpp \
-    radarscale.cpp
+    radarscale.cpp \
+    targetengine.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
@@ -64,7 +65,8 @@ HEADERS  += mainwindow.h \
     chartshaders.h \
     apctrl.h \
     rlistrings.h \
-    radarscale.h
+    radarscale.h \
+    targetengine.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

@@ -18,6 +18,7 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _maskEngine->setCursorPos(_maskEngine->getCenter());
   _infoEngine = new InfoEngine();
   _menuEngine = new MenuEngine(QSize(12, 14));
+  _targetEngine = new TargetEngine();
 
   _controlsEngine = new ControlsEngine();
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
@@ -33,6 +34,7 @@ RLIDisplayWidget::~RLIDisplayWidget() {
   delete _menuEngine;
   delete _infoEngine;
 
+  delete _targetEngine;
   delete _controlsEngine;
 
   delete _fonts;
@@ -151,11 +153,17 @@ void RLIDisplayWidget::initializeGL() {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Info engine init finish";
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Info engine init start";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Menu engine init start";
   if (!_menuEngine->init(context()))
     return;
   _menuEngine->setFonts(_fonts);
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Info engine init finish";
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Menu engine init finish";
+
+
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Target engine init start";
+  if (!_targetEngine->init(context()))
+    return;
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Target engine init finish";
 
 
   if (!_controlsEngine->init(context()))
@@ -257,7 +265,14 @@ void RLIDisplayWidget::paintGL() {
   glLoadIdentity();
   glTranslatef(center.x()+.5f, center.y()+.5f, 0);
 
+  //_scale - радиус дырки в маске в пикселях
+  // scale в update - метров/пиксель
+  QVector2D world_coords(12.5000f, -81.6000f);
+  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+
   _controlsEngine->draw();
+
+  _targetEngine->draw(world_coords, scale);
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();
@@ -315,14 +330,8 @@ void RLIDisplayWidget::paintGL() {
   _menuEngine->update();
   _infoEngine->update();
 
-
-
   glEnable(GL_BLEND);
-
-  //_scale - радиус дырки в маске в пикселях
-  // scale в update - метров/пиксель
-  float scale = (_scale*1852.f) / _maskEngine->getRadius();
-  _chartEngine->update(QVector2D(12.5000f, -81.6000f), scale, 0.f, center-hole_center);
+  _chartEngine->update(world_coords, scale, 0.f, center-hole_center);
 }
 
 
