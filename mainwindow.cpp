@@ -44,9 +44,11 @@ static int setup_unix_signal_handlers()
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction start";
 
+#ifndef Q_OS_WIN
   evdevFd    = -1;
   stopEvdev  = 0;
   memset(pressedKey, 0, sizeof(pressedKey));
+#endif // !Q_OS_WIN
 
   ui->setupUi(this);
 
@@ -147,7 +149,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   // gain_slot used only for simulated Control Panel Unit. Must be removed at finish build
   connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), this, SLOT(gain_slot(int)));
 
+#ifndef Q_OS_WIN
   setupEvdev("/dev/input/event1");
+#endif // !Q_OS_WIN
+
 
   connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
   startTimer(33);
@@ -156,11 +161,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 MainWindow::~MainWindow() {
+#ifndef Q_OS_WIN
   printf("Waiting for the input event device thread to terminate.\n");
   while(evdevThread.isRunning());
   printf("Input event device thread terminated.\n");
   ::close(evdevFd);
   evdevFd = -1;
+#endif // !Q_OS_WIN
 
   delete ui;
 
@@ -230,6 +237,7 @@ void MainWindow::handleSigInt()
 }
 #endif // !Q_OS_WIN
 
+
 int MainWindow::findPressedKey(int key)
 {
     for(int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
@@ -275,6 +283,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
     if(idx != -1)
         pressedKey[idx] = 0;
 }
+
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
@@ -482,6 +491,9 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
 
 void MainWindow::timerEvent(QTimerEvent* e) {
   Q_UNUSED(e);
+  const rli_scale_t* scale =  _radar_scale->getCurScale();
+
+  ui->wgtRLIDisplay->setScale(scale->len);
   ui->wgtRLIDisplay->update();
 }
 

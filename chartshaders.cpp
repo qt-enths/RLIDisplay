@@ -166,8 +166,7 @@ bool ChartShaders::initChartAreaProgram() {
 
   area_uniform_locs[COMMON_UNIFORMS_NORTH]            = chart_area_program->uniformLocation("north");
   area_uniform_locs[COMMON_UNIFORMS_CENTER]           = chart_area_program->uniformLocation("center");
-  area_uniform_locs[COMMON_UNIFORMS_RADIUS]           = chart_area_program->uniformLocation("radius");
-  area_uniform_locs[COMMON_UNIFORMS_CANVAS]           = chart_area_program->uniformLocation("canvas");
+  area_uniform_locs[COMMON_UNIFORMS_SCALE]            = chart_area_program->uniformLocation("scale");
   area_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_ID]   = chart_area_program->uniformLocation("pattern_tex");
   area_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_DIM]  = chart_area_program->uniformLocation("assetdim");
 
@@ -204,8 +203,7 @@ bool ChartShaders::initChartLineProgram() {
 
   line_uniform_locs[COMMON_UNIFORMS_NORTH]            = chart_line_program->uniformLocation("north");
   line_uniform_locs[COMMON_UNIFORMS_CENTER]           = chart_line_program->uniformLocation("center");
-  line_uniform_locs[COMMON_UNIFORMS_RADIUS]           = chart_line_program->uniformLocation("radius");
-  line_uniform_locs[COMMON_UNIFORMS_CANVAS]           = chart_line_program->uniformLocation("canvas");
+  line_uniform_locs[COMMON_UNIFORMS_SCALE]            = chart_line_program->uniformLocation("scale");
   line_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_ID]   = chart_line_program->uniformLocation("pattern_tex");
   line_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_DIM]  = chart_line_program->uniformLocation("assetdim");
 
@@ -245,8 +243,7 @@ bool ChartShaders::initChartTextProgram() {
 
   text_uniform_locs[COMMON_UNIFORMS_NORTH]            = chart_text_program->uniformLocation("north");
   text_uniform_locs[COMMON_UNIFORMS_CENTER]           = chart_text_program->uniformLocation("center");
-  text_uniform_locs[COMMON_UNIFORMS_RADIUS]           = chart_text_program->uniformLocation("radius");
-  text_uniform_locs[COMMON_UNIFORMS_CANVAS]           = chart_text_program->uniformLocation("canvas");
+  text_uniform_locs[COMMON_UNIFORMS_SCALE]            = chart_text_program->uniformLocation("scale");
   text_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_ID]   = chart_text_program->uniformLocation("glyph_tex");
   text_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_DIM]  = chart_text_program->uniformLocation("pattern_tex_size");
 
@@ -279,8 +276,7 @@ bool ChartShaders::initChartMarkProgram() {
 
   mark_uniform_locs[COMMON_UNIFORMS_NORTH]            = chart_mark_program->uniformLocation("north");
   mark_uniform_locs[COMMON_UNIFORMS_CENTER]           = chart_mark_program->uniformLocation("center");
-  mark_uniform_locs[COMMON_UNIFORMS_RADIUS]           = chart_mark_program->uniformLocation("radius");
-  mark_uniform_locs[COMMON_UNIFORMS_CANVAS]           = chart_mark_program->uniformLocation("canvas");
+  mark_uniform_locs[COMMON_UNIFORMS_SCALE]            = chart_mark_program->uniformLocation("scale");
   mark_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_ID]   = chart_mark_program->uniformLocation("pattern_tex_id");
   mark_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_DIM]  = chart_mark_program->uniformLocation("pattern_tex_size");
 
@@ -317,8 +313,7 @@ bool ChartShaders::initChartSndgProgram() {
 
   sndg_uniform_locs[COMMON_UNIFORMS_NORTH]            = chart_sndg_program->uniformLocation("north");
   sndg_uniform_locs[COMMON_UNIFORMS_CENTER]           = chart_sndg_program->uniformLocation("center");
-  sndg_uniform_locs[COMMON_UNIFORMS_RADIUS]           = chart_sndg_program->uniformLocation("radius");
-  sndg_uniform_locs[COMMON_UNIFORMS_CANVAS]           = chart_sndg_program->uniformLocation("canvas");
+  sndg_uniform_locs[COMMON_UNIFORMS_SCALE]            = chart_sndg_program->uniformLocation("scale");
   sndg_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_ID]   = chart_sndg_program->uniformLocation("pattern_tex_id");
   sndg_uniform_locs[COMMON_UNIFORMS_PATTERN_TEX_DIM]  = chart_sndg_program->uniformLocation("pattern_tex_size");
 

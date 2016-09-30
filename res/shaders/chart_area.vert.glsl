@@ -7,8 +7,7 @@ attribute vec2	tex_dim;
 
 uniform float	north;
 uniform vec2	center;
-uniform float	radius;
-uniform vec2	canvas;
+uniform float	scale;
 uniform vec2  assetdim;
 
 uniform float	u_color_table[256];
@@ -23,29 +22,23 @@ varying vec2	v_inner_texcoords;
 varying float v_use_tex_color;
 
 void main() {
-  float aspect = canvas.x / canvas.y;
+  float lat_rads = radians(center.x);
 
-  float lat_rads = radians(coords.x);
-
-  float y_m = 6373*1000*radians(coords.x - center.x);
-  float x_m = 6373*cos(lat_rads)*1000*radians(coords.y - center.y);
+  float y_m = -6378137*radians(coords.x - center.x);
+  float x_m = 6378137*cos(lat_rads)*radians(coords.y - center.y);
 
   // screen position
-  if (aspect > 1)
-    gl_Position = vec4((x_m / radius) / aspect, y_m / radius, 0, 1);
-  else
-    gl_Position = vec4(x_m / radius, (y_m / radius) * aspect, 0, 1);
+  vec2 pix_pos = vec2(x_m, y_m) / scale;
+  gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(pix_pos, 0, 1);
 
   if (u_tex_dim.r == -1) {
     //0 - 1
-    v_inner_texcoords = ((gl_Position.xy + 1) / 2) * (canvas / tex_dim);
-
+    v_inner_texcoords = pix_pos / tex_dim;
     v_tex_dim = tex_dim / assetdim;
     v_tex_orig = tex_origin / assetdim;
   } else {
     //0 - 1
-    v_inner_texcoords = ((gl_Position.xy + 1) / 2) * (canvas / u_tex_dim);
-
+    v_inner_texcoords = pix_pos / u_tex_dim;
     v_tex_dim = u_tex_dim / assetdim;
     v_tex_orig = u_tex_origin / assetdim;
   }

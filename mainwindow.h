@@ -23,10 +23,17 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
+  inline RadarScale* getRadarScale() { return _radar_scale; }
+
 #ifndef Q_OS_WIN
   static void intSignalHandler(int sig);
 
-  RadarScale * _radar_scale;
+  QFuture<void> evdevThread;
+  int evdevFd;
+  int stopEvdev;
+  int setupEvdev(char *evdevfn);
+  void evdevHandleThread();
+#endif // !Q_OS_WIN
 
 protected:
   int findPressedKey(int key);
@@ -35,15 +42,11 @@ protected:
   void keyReleaseEvent(QKeyEvent *event);
   void keyPressEvent(QKeyEvent * event);
 
-  QFuture<void> evdevThread;
-  int evdevFd;
-  int stopEvdev;
-  int setupEvdev(char *evdevfn);
-  void evdevHandleThread();
-
 public slots:
+#ifndef Q_OS_WIN
   void handleSigInt();
 #endif // !Q_OS_WIN
+
   void gain_slot(int value); // Used only for simulated Control Panel Unit. Must be removed at finish build
   void simulation_slot(bool sim);
 
@@ -66,6 +69,8 @@ public slots:
 
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
+
+  RadarScale* _radar_scale;
 
   ValueBarController* _gain_ctrl;
   ValueBarController* _water_ctrl;

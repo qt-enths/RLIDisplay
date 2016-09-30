@@ -507,7 +507,6 @@ bool S52Chart::readOGRLine(OGRLineString* poGeom, std::vector<float> &points, st
     points.push_back(static_cast<float>(p.getX()));
 
     if (i != 0) {
-      //distances.push_back(0);
       distances.push_back(geo_distance(points[points.size() - 4], points[points.size() - 3]
                                       ,points[points.size() - 2], points[points.size() - 1]));
     }

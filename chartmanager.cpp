@@ -22,7 +22,7 @@ void ChartManager::loadCharts() {
 void ChartManager::chartLoadingWorker() {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Charts loading started";
 
-  QDir dir("res/charts1");
+  QDir dir("res/charts");
   dir.setNameFilters(QStringList("*.000"));
   dir.setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 

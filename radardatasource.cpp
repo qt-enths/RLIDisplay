@@ -70,6 +70,7 @@ void qSleep(int ms) {
 #endif
 }
 
+#ifndef Q_OS_WIN
 static void tmr_hndlr(int sig, siginfo_t * si, void * uc)
 {
     Q_UNUSED(sig);
@@ -77,6 +78,7 @@ static void tmr_hndlr(int sig, siginfo_t * si, void * uc)
     Q_UNUSED(uc);
     spi_timeout = 1;
 }
+#endif
 
 const u_int32_t RadarDataSource::max_gain_level = 255;
 
@@ -112,7 +114,7 @@ RadarDataSource::RadarDataSource() {
   hip_main          = HIP_NONE;
   hip_sarp          = HIP_NONE;
 
-  simulation        = false;
+  simulation        = true;
 }
 
 RadarDataSource::~RadarDataSource() {
@@ -426,7 +428,7 @@ void RadarDataSource::start(const char * radarfn) {
     MainWindow * mainWnd = dynamic_cast<MainWindow *>(parent());
     if(mainWnd)
     {
-        const rli_scale_t * curscale = mainWnd->_radar_scale->getCurScale();
+        const rli_scale_t * curscale = mainWnd->getRadarScale()->getCurScale();
         printf("Current scale %f nm\n", curscale->len);
         if(setupScale(curscale) != 0)
             fprintf(stderr, "%s: Failed to setup current scale\n", __func__);
@@ -1590,32 +1592,31 @@ int RadarDataSource::apctrl_adcspi_send(u_int32_t baseaddr, u_int32_t addrv, u_i
 
     return res;
 }
-
-int RadarDataSource::setupScale(const rli_scale_t * pscale)
-{
-    int res;
-
-    if(pscale == NULL)
-        return 1;
-
-    res = apctrl_regwr(APCTRL_PKIDPKOD_BASEADDR, pscale->pkidpkod);
-    if(res != 0)
-    {
-        fprintf(stderr, "%s: PKID and PKOD setup failed (%d)\n", __func__, res);
-        return res;
-    }
-
-    res = apctrl_adcspi_send(APCTRL_GEN_BASEADDR, pscale->gen_addr, pscale->gen_dat, true);
-    if(res != 0)
-    {
-        fprintf(stderr, "%s: Frequency setup failed (%d)\n", __func__, res);
-        return res;
-    }
-
-    return res;
-}
-
 #endif // !Q_OS_WIN
+
+
+int RadarDataSource::setupScale(const rli_scale_t * pscale) {
+  int res = 1;
+
+  #ifndef Q_OS_WIN
+  if(pscale == NULL)
+    return res;
+
+  res = apctrl_regwr(APCTRL_PKIDPKOD_BASEADDR, pscale->pkidpkod);
+  if(res != 0) {
+    fprintf(stderr, "%s: PKID and PKOD setup failed (%d)\n", __func__, res);
+    return res;
+  }
+
+  res = apctrl_adcspi_send(APCTRL_GEN_BASEADDR, pscale->gen_addr, pscale->gen_dat, true);
+  if(res != 0) {
+    fprintf(stderr, "%s: Frequency setup failed (%d)\n", __func__, res);
+    return res;
+  }
+  #endif // !Q_OS_WIN
+
+  return res;
+}
 
 int RadarDataSource::setGain(u_int32_t gain)
 {

@@ -190,7 +190,7 @@ void ScaleController::initBlock(const QSize& size) {
   std::pair<QByteArray, QByteArray> s;
   MainWindow * mainWnd = dynamic_cast<MainWindow *>(parent());
   if(mainWnd)
-      s = mainWnd->_radar_scale->getCurScaleText();
+      s = mainWnd->getRadarScale()->getCurScaleText();
 
   t.font_tag = "16x28";
   t.allign = INFOTEXT_ALLIGN_RIGHT;

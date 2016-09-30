@@ -315,8 +315,14 @@ void RLIDisplayWidget::paintGL() {
   _menuEngine->update();
   _infoEngine->update();
 
+
+
   glEnable(GL_BLEND);
-  _chartEngine->update(QVector2D(12.250f, -81.350f), 50000.f, 0.f);
+
+  //_scale - радиус дырки в маске в пикселях
+  // scale в update - метров/пиксель
+  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+  _chartEngine->update(QVector2D(12.5000f, -81.6000f), scale, 0.f, center-hole_center);
 }
 
 
@@ -366,7 +372,7 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
       if(mainWnd)
       {
           float ratio = 1;
-          RadarScale * curscale = mainWnd->_radar_scale;
+          RadarScale * curscale = mainWnd->getRadarScale();
           if(curscale)
           {
               const rli_scale_t * scale = curscale->getCurScale();
@@ -503,7 +509,7 @@ bool RLIDisplayWidget::event(QEvent* e) {
             {
                 float ratio = 1;
                 const char * fmt = NULL;
-                RadarScale * curscale = mainWnd->_radar_scale;
+                RadarScale * curscale = mainWnd->getRadarScale();
                 if(curscale)
                 {
                     const rli_scale_t * scale = curscale->getCurScale();

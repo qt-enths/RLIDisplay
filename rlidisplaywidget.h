@@ -31,6 +31,8 @@ public:
 
   inline void setChartManager(ChartManager* mngr) { _chrt_mngr = mngr; }
 
+  void setScale(float scale) { _scale = scale; }
+
 signals:
   void initialized();
   void cursor_moved(float peleng, float distance, const char * dist_fmt);
@@ -60,6 +62,7 @@ private:
 
   bool _initialized;
   int  _last_second;
+  float _scale;
 
   AsmFonts* _fonts;
   ChartManager* _chrt_mngr;

@@ -93,7 +93,7 @@ public:
   void resize(uint radius);
 
   void setChart(S52Chart* chrt, S52References* ref);
-  void update(QVector2D center, float radius, float angle);
+  void update(QVector2D center, float scale, float angle, QPoint center_shift);
 
   inline GLuint getTextureId() { return _fbo->texture(); }
 
@@ -101,15 +101,15 @@ private:
   bool initialized;
   void clear();
 
-  QDateTime _lastUpdate;
   bool setting_up;
 
   ChartShaders* shaders;
   ChartSettingsModel* settings;
 
   QSize canvas;
+  QPoint _center_shift;
   QVector2D _center;
-  float _radius;
+  float _scale;
   float _angle;
 
   QGLFramebufferObject* _fbo;

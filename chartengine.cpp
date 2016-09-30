@@ -293,12 +293,11 @@ ChartEngine::ChartEngine() {
   setting_up = false;
 
   initialized = false;
+  _center_shift = QPoint(0, 0);
   _center = QVector2D(0, 0);
-  _radius = 10;
+  _scale = 10;
   _angle = 0;
-  back_color = QColor(0, 0, 0);
-  //back_color = QColor(127, 127, 127);
-  _lastUpdate = QDateTime::currentDateTime();
+  back_color = QColor(127, 127, 127);
 
   settings = new ChartSettingsModel("res//chart_display_settings.xml");
 }
@@ -379,14 +378,19 @@ void ChartEngine::setChart(S52Chart* chrt, S52References* ref) {
   draw();
 }
 
-void ChartEngine::update(QVector2D center, float radius, float angle) {
-  _center = center;
-  _radius = radius;
-  _angle = angle;
+void ChartEngine::update(QVector2D center, float scale, float angle, QPoint center_shift) {
+  bool need_update = (abs(_center.x() - center.x()) > 0.00000005
+                    || abs(_center.y() - center.y()) > 0.00000005
+                    || abs(_scale - scale) > 0.005
+                    || abs(_angle - angle) > 0.005
+                    || abs(_center_shift.x() - center_shift.x()) > 0.005
+                    || abs(_center_shift.y() - center_shift.y()) > 0.005);
 
-  QDateTime curTime = QDateTime::currentDateTime();
-  if (initialized && _lastUpdate.msecsTo(curTime) > 1000) {
-    _lastUpdate = curTime;
+  if (initialized && !setting_up && need_update) {
+    _center = center;
+    _scale = scale;
+    _angle = angle;
+    _center_shift = center_shift;
     draw();
   }
 }
@@ -397,14 +401,31 @@ void ChartEngine::draw() {
 
   //qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Update chart";
 
-  glViewport(0, 0, canvas.width(), canvas.height());
-
   _fbo->bind();
+
+  glViewport(0, 0, canvas.width(), canvas.height());
 
   glClearColor(back_color.redF(), back_color.greenF(), back_color.blueF(), 1.f);
   glClear(GL_COLOR_BUFFER_BIT);
 
+  // Push back the current matrices and go orthographic for background rendering.
+  glMatrixMode( GL_PROJECTION );
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho(0, canvas.width(), canvas.height(), 0, -1, 1 );
+
+  glMatrixMode( GL_MODELVIEW );
+  glPushMatrix();
+  glLoadIdentity();
+  glTranslatef(_center_shift.x() + canvas.width()/2.f, _center_shift.y() + canvas.height()/2.f, 0);
+
   drawLayers();
+
+  glMatrixMode( GL_MODELVIEW );
+  glPopMatrix();
+
+  glMatrixMode( GL_PROJECTION );
+  glPopMatrix();
 
   glFlush();
 
@@ -438,11 +459,12 @@ void ChartEngine::drawLayers() {
     if (!settings->isLayerVisible(displayOrder[i]))
       displayOrder.removeAt(i);
 
+
   shaders->getChartAreaProgram()->bind();
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
     if (area_engines.contains(s) && area_engines[s] != NULL)
-      area_engines[s]->draw(shaders, canvas, _center, _radius, _angle);
+      area_engines[s]->draw(shaders, _center, _scale, _angle);
   }
   shaders->getChartAreaProgram()->release();
 
@@ -451,7 +473,7 @@ void ChartEngine::drawLayers() {
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
     if (line_engines.contains(s) && line_engines[s] != NULL)
-      line_engines[s]->draw(shaders, canvas, _center, _radius, _angle);
+      line_engines[s]->draw(shaders, _center, _scale, _angle);
   }
   shaders->getChartLineProgram()->release();
 
@@ -460,21 +482,23 @@ void ChartEngine::drawLayers() {
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
     if (mark_engines.contains(s) && mark_engines[s] != NULL)
-      mark_engines[s]->draw(shaders, canvas, _center, _radius, _angle);
+      mark_engines[s]->draw(shaders, _center, _scale, _angle);
   }
   shaders->getChartMarkProgram()->release();
+
 
   shaders->getChartTextProgram()->bind();
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
     if (text_engines.contains(s) && text_engines[s] != NULL)
-      text_engines[s]->draw(shaders, canvas, _center, _radius, _angle);
+      text_engines[s]->draw(shaders, _center, _scale, _angle);
   }
   shaders->getChartTextProgram()->release();
 
+
   if (sndg_engine != NULL && settings->areSoundingsVisible()) {
     shaders->getChartSndgProgram()->bind();
-    sndg_engine->draw(shaders, canvas, _center, _radius, _angle);
+    sndg_engine->draw(shaders, _center, _scale, _angle);
     shaders->getChartSndgProgram()->release();
   }
 }
