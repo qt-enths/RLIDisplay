@@ -388,6 +388,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 }
 
 void MainWindow::onRLIWidgetInitialized() {
+  setCursor(Qt::CrossCursor);
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
   connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
@@ -455,6 +456,13 @@ void MainWindow::onRLIWidgetInitialized() {
       fprintf(stderr, "Failed to find menu: \'%s\'\n", RLIStrings::nMenu112[RLI_LANG_ENGLISH]);
 
   this->setFocus();
+
+  // Set zero distance for VRM
+  RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton
+                                         , RLIControlEvent::VD
+                                         , -1e6);
+  qApp->postEvent(ui->wgtRLIDisplay, evt);
+
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {

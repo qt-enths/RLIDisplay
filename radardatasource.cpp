@@ -464,7 +464,7 @@ void RadarDataSource::worker() {
     if(simulation)
     {
         static u_int32_t iamps[PELENG_SIZE + 3];
-        static float famps[BLOCK_TO_SEND * PELENG_SIZE];
+        static float famps[BEARINGS_PER_CYCLE * PELENG_SIZE];
         for(int i = 0; i < BLOCK_TO_SEND; i++)
         {
             iamps[0] = offset + i;
@@ -474,11 +474,11 @@ void RadarDataSource::worker() {
                 iamps[j] = file_amps[file][(offset + i) * PELENG_SIZE + j - 3];
             amplify(iamps);
             for(int j = 3; j < PELENG_SIZE + 3; j++)
-                famps[i * PELENG_SIZE + j - 3] = (float)iamps[j];
+                famps[(offset + i) * PELENG_SIZE + j - 3] = (float)iamps[j];
         }
 
         //emit updateData(offset, BLOCK_TO_SEND, /*&file_divs[file][offset], */&file_amps[file][offset*PELENG_SIZE]);
-        emit updateData(offset, BLOCK_TO_SEND, famps);
+        emit updateData(offset, BLOCK_TO_SEND, &famps[offset*PELENG_SIZE]);
 
         offset = (offset + BLOCK_TO_SEND) % BEARINGS_PER_CYCLE;
         if (offset == 0) file = 1 - file;
