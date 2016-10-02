@@ -67,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qDebug() << "Couldn't create INT socketpair. Ctrl+C will terminate the program without cleaning.";
 #endif // !Q_OS_WIN
 
+  _target_ds = new TargetDataSource();
   _radar_ds = new RadarDataSource();
   _chart_mngr = new ChartManager();
 
@@ -171,6 +172,7 @@ MainWindow::~MainWindow() {
 
   delete ui;
 
+  delete _target_ds;
   delete _radar_ds;
   delete _chart_mngr;
 
@@ -387,11 +389,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     savePressedKey(event->key());
 }
 
+
 void MainWindow::onRLIWidgetInitialized() {
   setCursor(Qt::CrossCursor);
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
   connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
+
+  qRegisterMetaType<RadarTarget>("RadarTarget");
+  connect(_target_ds, SIGNAL(updateTarget(QString, RadarTarget))
+         , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+    _target_ds->start();
 
   connect(this, SIGNAL(scale_changed(std::pair<QByteArray, QByteArray>))
         , _scle_ctrl, SLOT(scale_changed(std::pair<QByteArray, QByteArray>)));

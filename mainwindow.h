@@ -7,6 +7,7 @@
 #include <QSocketNotifier>
 
 #include "chartmanager.h"
+#include "targetdatasource.h"
 #include "radardatasource.h"
 #include "infocontrollers.h"
 #include "radarscale.h"
@@ -101,6 +102,7 @@ private:
   VdController* _vd_ctrl;
 
   ChartManager* _chart_mngr;
+  TargetDataSource* _target_ds;
   RadarDataSource* _radar_ds;
 
   Ui::MainWindow *ui;

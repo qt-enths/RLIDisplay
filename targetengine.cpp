@@ -16,6 +16,14 @@ TargetEngine::~TargetEngine() {
 }
 
 
+void TargetEngine::updateTarget(QString tag, RadarTarget target) {
+  if (_targets.contains(tag))
+    _targets.insert(tag, target);
+  else
+    _targets[tag] = target;
+}
+
+
 bool TargetEngine::init(const QGLContext* context) {
   if (_initialized) return false;
 
@@ -36,6 +44,8 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
 
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_SCALE], scale);
   glUniform2f(_unif_locs[AIS_TRGT_UNIF_CENTER], world_coords.x(), world_coords.y());
+
+  initBuffers();
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COORDS]);
   glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_COORDS], 2, GL_FLOAT, GL_FALSE, 0, (void*) (0));
@@ -77,7 +87,7 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
   glEnable(GL_LINE_STIPPLE);
 
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 2);
-  glDrawArrays(GL_LINES, 0, 3*4);
+  glDrawArrays(GL_LINES, 0, _targets.size()*4);
 
   glPopAttrib();
 
@@ -91,28 +101,17 @@ void TargetEngine::initBuffers() {
   std::vector<GLfloat> rots;
   std::vector<GLfloat> sogs;
 
-  for (int i = 0; i < 4; i++) {
-    orders.push_back(i);
-    points.push_back(12.4200f); points.push_back(-81.4900f);
-    cogs.push_back(37.f);
-    rots.push_back(10.f);
-    sogs.push_back(80.f);
-  }
+  QList<QString> keys = _targets.keys();
 
-  for (int i = 0; i < 4; i++) {
-    orders.push_back(i);
-    points.push_back(12.4000f); points.push_back(-81.7500f);
-    cogs.push_back(123.f);
-    rots.push_back(-30.f);
-    sogs.push_back(50.f);
-  }
-
-  for (int i = 0; i < 4; i++) {
-    orders.push_back(i);
-    points.push_back(12.6000f); points.push_back(-81.7300f);
-    cogs.push_back(286.f);
-    rots.push_back(20.f);
-    sogs.push_back(100.f);
+  for (int trgt = 0; trgt < keys.size(); trgt++) {
+    for (int i = 0; i < 4; i++) {
+      orders.push_back(i);
+      points.push_back(_targets[keys[trgt]].LAT);
+      points.push_back(_targets[keys[trgt]].LON);
+      cogs.push_back(_targets[keys[trgt]].COG);
+      rots.push_back(_targets[keys[trgt]].ROT);
+      sogs.push_back(_targets[keys[trgt]].SOG);
+    }
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COORDS]);

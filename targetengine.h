@@ -6,11 +6,19 @@
 #include <QGLFunctions>
 #include <QGLShaderProgram>
 
-struct AISTarget {
+class RadarTarget {
+public:
+  RadarTarget() : LAT(0), LON(0), COG(0), ROT(0), SOG(0) { }
+  RadarTarget(const RadarTarget& o) : LAT(o.LAT), LON(o.LON), COG(o.COG), ROT(o.ROT), SOG(o.SOG) { }
+  ~RadarTarget() { }
   float LAT, LON, COG, ROT, SOG;
 };
 
-class TargetEngine : protected QGLFunctions {
+Q_DECLARE_METATYPE(RadarTarget)
+
+
+class TargetEngine : public QObject, protected QGLFunctions {
+  Q_OBJECT
 public:
   explicit TargetEngine();
   virtual ~TargetEngine();
@@ -18,11 +26,15 @@ public:
   bool init(const QGLContext* context);
   void draw(QVector2D world_coords, float scale);
 
+public slots:
+  void updateTarget(QString tag, RadarTarget target);
+
 private:
   void initBuffers();
   void initShader();
   void initTexture();
 
+  QMap<QString, RadarTarget> _targets;
   bool _initialized;
 
   // Mask shader programs

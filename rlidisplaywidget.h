@@ -29,7 +29,7 @@ public:
   inline MaskEngine* maskEngine() { return _maskEngine; }
   inline InfoEngine* infoEngine() { return _infoEngine; }
   inline MenuEngine* menuEngine() { return _menuEngine; }
-  //inline TargetEngine* targetEngine { return _targetEngine; }
+  inline TargetEngine* targetEngine() { return _targetEngine; }
 
   inline void setChartManager(ChartManager* mngr) { _chrt_mngr = mngr; }
 
