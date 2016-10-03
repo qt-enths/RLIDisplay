@@ -2,6 +2,7 @@
 #define TARGETENGINE_H
 
 #include <QPoint>
+#include <QMutex>
 #include <QVector2D>
 #include <QGLFunctions>
 #include <QGLShaderProgram>
@@ -34,6 +35,7 @@ private:
   void initShader();
   void initTexture();
 
+  QMutex _trgtsMutex;
   QMap<QString, RadarTarget> _targets;
   bool _initialized;
 

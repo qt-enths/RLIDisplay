@@ -17,10 +17,14 @@ TargetEngine::~TargetEngine() {
 
 
 void TargetEngine::updateTarget(QString tag, RadarTarget target) {
+  _trgtsMutex.lock();
+
   if (_targets.contains(tag))
     _targets.insert(tag, target);
   else
     _targets[tag] = target;
+
+  _trgtsMutex.unlock();
 }
 
 
@@ -40,6 +44,8 @@ bool TargetEngine::init(const QGLContext* context) {
 }
 
 void TargetEngine::draw(QVector2D world_coords, float scale) {
+  _trgtsMutex.lock();
+
   _prog->bind();
 
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_SCALE], scale);
@@ -92,6 +98,8 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
   glPopAttrib();
 
   _prog->release();
+
+  _trgtsMutex.unlock();
 }
 
 void TargetEngine::initBuffers() {
