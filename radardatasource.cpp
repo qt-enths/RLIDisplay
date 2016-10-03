@@ -43,11 +43,19 @@ uint32_t gmax = 0;
 #endif
 
 // APCTRL registers
+#define APCTRL_CTRL_BASEADDR     0xe000
 #define APCTRL_PKIDPKOD_BASEADDR 0xe004
 #define APCTRL_HIP_BASEADDR      0xe024
 #define APCTRL_GEN_BASEADDR      0xe02c
 #define APCTRL_ADC_BASEADDR      0xe030
 #define APCTRL_E038_BASEADDR     0xe038
+
+#define APCTRL_CTRL_INTIZIEN     0x0001
+#define APCTRL_CTRL_NOISEON      0x0002
+#define APCTRL_CTRL_MRPEN        0x0004
+#define APCTRL_CTRL_SIMULEN      0x0008
+#define APCTRL_CTRL_STATEN       0x0010
+#define APCTRL_CTRL_UARTEN       0x0020
 
 #define APCTRL_SPIWR_TIMEOUT     (unsigned long long)1000 * 1000000
 
@@ -114,7 +122,7 @@ RadarDataSource::RadarDataSource() {
   hip_main          = HIP_NONE;
   hip_sarp          = HIP_NONE;
 
-  simulation        = true;
+  simulation        = false;
 }
 
 RadarDataSource::~RadarDataSource() {
@@ -792,10 +800,10 @@ bool RadarDataSource::loadData() {
   char file2[25] = "res/pelengs/r1nm6h0_4096";
   //char file3[23] = "res/pelengs/simout.bin";
 
-  if (!loadObserves1(file1/*, file_divs[0]*/, file_amps[0]))
-    return false;
-  if (!loadObserves1(file2/*, file_divs[1]*/, file_amps[1]))
-    return false;
+  //if (!loadObserves1(file1/*, file_divs[0]*/, file_amps[0]))
+  //  return false;
+  //if (!loadObserves1(file2/*, file_divs[1]*/, file_amps[1]))
+  //  return false;
 
   /*
   if (!loadObserves2(file3, file_amps[0]))
@@ -804,15 +812,15 @@ bool RadarDataSource::loadData() {
     return false;
   */
 
-  /*for(int i = 0; i < 2; i++) {
+  for(int i = 0; i < 2; i++) {
       float amp = (i + 1) * 64;
       for(int j = 0; j < BEARINGS_PER_CYCLE; j++) {
-          file_divs[i][j] = 1.0;
+          //file_divs[i][j] = 1.0;
           for(int k = 0; k < PELENG_SIZE; k++) {
               file_amps[i][(j * PELENG_SIZE) + k] = amp;
           }
       }
-  }*/
+  }
 
   return true;
 }
@@ -1762,6 +1770,71 @@ int RadarDataSource::nextHIP(hip_channel_t hipch)
 
 int RadarDataSource::simulate(bool sim)
 {
-    simulation = sim;
-    return 0;
+    int res = 0;
+
+    if(fd == -1)
+    {
+        simulation = sim;
+        return 0;
+    }
+#ifndef Q_OS_WIN
+    u_int32_t regv;
+
+    if(simulation == sim)
+        return 0; // Nothing to do
+    try
+    {
+        if(sim == true)
+        {
+            res = apctrl_regrd(APCTRL_CTRL_BASEADDR, &regv);
+            if(res < 0)
+                throw res;
+            regv &= ~0x0f;
+            regv |= APCTRL_CTRL_INTIZIEN | APCTRL_CTRL_MRPEN | APCTRL_CTRL_SIMULEN;
+            res = apctrl_regwr(APCTRL_CTRL_BASEADDR, regv);
+            if(res < 0)
+                throw res;
+            res = apctrl_regrd(APCTRL_CTRL_BASEADDR, &regv);
+            if(res < 0)
+                throw res;
+
+            res = apctrl_regrd(APCTRL_HIP_BASEADDR, &regv);
+            regv |= 1 << 13;
+            res = apctrl_regwr(APCTRL_HIP_BASEADDR, regv);
+            if(res < 0)
+                throw res;
+        }
+        else
+        {
+            res = apctrl_regrd(APCTRL_CTRL_BASEADDR, &regv);
+            if(res < 0)
+                throw res;
+            regv &= ~0x0f;
+            regv |= APCTRL_CTRL_MRPEN;
+            res = apctrl_regwr(APCTRL_CTRL_BASEADDR, regv);
+            if(res < 0)
+                throw res;
+            res = apctrl_regrd(APCTRL_CTRL_BASEADDR, &regv);
+            if(res < 0)
+                throw res;
+
+            res = apctrl_regrd(APCTRL_HIP_BASEADDR, &regv);
+            regv &= ~(1 << 13);
+            res = apctrl_regwr(APCTRL_HIP_BASEADDR, regv);
+            if(res < 0)
+                throw res;
+        }
+        simulation = sim;
+    }
+    catch(int e)
+    {
+        if(e > 0)
+            fprintf(stderr, "Failed to %s simulation: %d\n", ((sim == true) ? "start" : "stop"), e);
+        else // if(e < 0)
+            fprintf(stderr, "Failed to %s simulation: %s\n", ((sim == true) ? "start" : "stop"), strerror(errno));
+        res = e;
+    }
+
+#endif // Q_OS_WIN
+    return res;
 }

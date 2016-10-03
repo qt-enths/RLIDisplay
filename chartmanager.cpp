@@ -16,6 +16,7 @@ ChartManager::~ChartManager() {
 }
 
 void ChartManager::loadCharts() {
+  qDebug() << "Max number of threads: " << QThreadPool::globalInstance()->maxThreadCount();
   QtConcurrent::run(this, &ChartManager::chartLoadingWorker);
 }
 

@@ -20,6 +20,8 @@
 
 #define ABS_AXIS_MUL 1
 
+#define RLI_THREADS_NUM 3 // Required number of threads in global QThreadPool
+
 int MainWindow::sigintFd[2];
 
 static int setup_unix_signal_handlers()
@@ -43,6 +45,9 @@ static int setup_unix_signal_handlers()
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction start";
+
+  if(QThreadPool::globalInstance()->maxThreadCount() < RLI_THREADS_NUM)
+      QThreadPool::globalInstance()->setMaxThreadCount(RLI_THREADS_NUM);
 
 #ifndef Q_OS_WIN
   evdevFd    = -1;
@@ -164,6 +169,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow() {
 #ifndef Q_OS_WIN
   printf("Waiting for the input event device thread to terminate.\n");
+  stopEvdev = 1;
   while(evdevThread.isRunning());
   printf("Input event device thread terminated.\n");
   ::close(evdevFd);
