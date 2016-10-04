@@ -722,7 +722,7 @@ void MenuEngine::resize(const QSize& font_size) {
 }
 
 void MenuEngine::update() {
-  if (visible() && _last_action_time.secsTo(QDateTime::currentDateTime()) > 15)
+  if (visible() && _last_action_time.secsTo(QDateTime::currentDateTime()) > 90)
       setState(DISABLED);
 
   if (!_initialized || !_need_update)
