@@ -78,14 +78,14 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, _asset_texture_id);
 
-  glDrawArrays(GL_QUADS, 0, 3*4);
+  glDrawArrays(GL_QUADS, 0,  _targets.size()*4);
 
   glLineWidth(2);
 
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 1);
-  glDrawArrays(GL_LINES, 0, 3*4);
+  glDrawArrays(GL_LINES, 0,  _targets.size()*4);
 
   glPushAttrib(GL_ENABLE_BIT);
 
@@ -123,19 +123,19 @@ void TargetEngine::initBuffers() {
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COORDS]);
-  glBufferData(GL_ARRAY_BUFFER, 3*4*2*sizeof(GLfloat), points.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*2*sizeof(GLfloat), points.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, 3*4*sizeof(GLfloat), orders.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), orders.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COG]);
-  glBufferData(GL_ARRAY_BUFFER, 3*4*sizeof(GLfloat), cogs.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), cogs.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ROT]);
-  glBufferData(GL_ARRAY_BUFFER, 3*4*sizeof(GLfloat), rots.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), rots.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_SOG]);
-  glBufferData(GL_ARRAY_BUFFER, 3*4*sizeof(GLfloat), sogs.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), sogs.data(), GL_DYNAMIC_DRAW);
 }
 
 void TargetEngine::initTexture() {
