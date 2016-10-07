@@ -41,7 +41,9 @@ SOURCES += main.cpp\
     chartshaders.cpp \
     radarscale.cpp \
     targetengine.cpp \
-    targetdatasource.cpp
+    targetdatasource.cpp \
+    nmeadata.cpp \
+    nmeaprocessor.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
@@ -68,7 +70,9 @@ HEADERS  += mainwindow.h \
     rlistrings.h \
     radarscale.h \
     targetengine.h \
-    targetdatasource.h
+    targetdatasource.h \
+    nmeadata.h \
+    nmeaprocessor.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

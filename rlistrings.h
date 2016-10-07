@@ -18,6 +18,7 @@ namespace RLIStrings {
   static char* nWave[2] =    { " SEA ", "ВОЛНЫ" };
   static char* nAfc[2] =     { "AFC", "АПЧ" };
   static char* nTune[2] =    { "TUNE", "РПЧ" };
+  static char* nPP12p[2] =    { "_П___", "_П___" };
   static char* nMode[2] =    { "MODE", "РЕЖИМЫ" };
   static char* nHead[2] =    { "HEAD", "КУРС" };
   static char* nNord[2] =    { "NORTH", "СЕВЕР" };

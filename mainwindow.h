@@ -11,6 +11,7 @@
 #include "radardatasource.h"
 #include "infocontrollers.h"
 #include "radarscale.h"
+#include "nmeaprocessor.h"
 
 namespace Ui {
   class MainWindow;
@@ -90,6 +91,8 @@ private:
   LableController* _lbl2_ctrl;
   LableController* _lbl3_ctrl;
   LableController* _lbl4_ctrl;
+  LableController* _lbl5_ctrl;
+  LableController* _lbl6_ctrl;
 
   PositionController* _pstn_ctrl;
   BlankController* _blnk_ctrl;
@@ -113,6 +116,8 @@ private:
   static int sigintFd[2];
   QSocketNotifier *snInt;
 #endif // !Q_OS_WIN
+
+  NMEAProcessor * _nmeaprc;
 };
 
 #endif // MAINWINDOW_H
