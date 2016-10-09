@@ -8,27 +8,40 @@ TargetDataSource::TargetDataSource(QObject *parent) : QObject(parent) {
 
   RadarTarget trgt;
 
-  trgt.LAT = 12.4200f;
-  trgt.LON = -81.4900f;
-  trgt.COG = 37.f;
-  trgt.ROT = 10.f;
-  trgt.SOG = 80.f;
+  trgt.Lost = false;
+  trgt.Latitude = 12.4200f;
+  trgt.Longtitude = -81.4900f;
+  trgt.Heading = 37.f;
+  trgt.Rotation = 20.f;
+  trgt.CourseOverGround = 37.f;
+  trgt.SpeedOverGround = 180.f;
 
   _targets.push_back(trgt);
 
-  trgt.LAT = 12.4000f;
-  trgt.LON = -81.7500f;
-  trgt.COG = 123.f;
-  trgt.ROT = 20.f;
-  trgt.SOG = 50.f;
+  trgt.Latitude = 12.4000f;
+  trgt.Longtitude = -81.7500f;
+  trgt.Heading = 123.f;
+  trgt.Rotation = -20.f;
+  trgt.CourseOverGround = 123.f;
+  trgt.SpeedOverGround = 80.f;
 
   _targets.push_back(trgt);
 
-  trgt.LAT = 12.6000f;
-  trgt.LON = -81.7300f;
-  trgt.COG = 286.f;
-  trgt.ROT = 10.f;
-  trgt.SOG = 100.f;
+  trgt.Latitude = 12.6000f;
+  trgt.Longtitude = -81.7300f;
+  trgt.Heading = 286.f;
+  trgt.Rotation = 0.f;
+  trgt.CourseOverGround = 286.f;
+  trgt.SpeedOverGround = 140.f;
+
+  _targets.push_back(trgt);
+
+  trgt.Latitude = 12.3000f;
+  trgt.Longtitude = -81.7300f;
+  trgt.Heading = -1.f;
+  trgt.Rotation = 0.f;
+  trgt.CourseOverGround = 286.f;
+  trgt.SpeedOverGround = 140.f;
 
   _targets.push_back(trgt);
 }
@@ -60,10 +73,12 @@ void TargetDataSource::timerEvent(QTimerEvent* e) {
 
   QDateTime now = QDateTime::currentDateTime();
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < _targets.size(); i++) {
     emit updateTarget(QString::number(i+1), _targets[i]);
-    _targets[i].LON += 0.0005f * (i+1) * sin(_startTime.msecsTo(now)/(1000.f*(i+1)) + i);
-    _targets[i].LAT += 0.0005f * (i+1) * cos(_startTime.msecsTo(now)/(1000.f*(i+1)) + i);
-    _targets[i].COG = int(180 * (_startTime.msecsTo(now)/(1000.f*(i+1)) + i) / PI) % 360;
+    _targets[i].Longtitude += 0.0005f * (i+1) * sin(_startTime.msecsTo(now)/(1000.f*(i+1)) + i);
+    _targets[i].Latitude += 0.0005f * (i+1) * cos(_startTime.msecsTo(now)/(1000.f*(i+1)) + i);
+    _targets[i].CourseOverGround = int(360 + 180 * (_startTime.msecsTo(now)/(1000.f*(i+1)) + i) / PI) % 360;
+    if (_targets[i].Heading != -1)
+      _targets[i].Heading = int(360 + _targets[i].CourseOverGround - _targets[i].Rotation) % 360;
   }
 }

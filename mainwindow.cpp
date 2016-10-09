@@ -7,6 +7,8 @@
 #include "rlistrings.h"
 #include "rlicontrolevent.h"
 
+#define RLI_THREADS_NUM 3 // Required number of threads in global QThreadPool
+
 #ifndef Q_OS_WIN
 
 #include <signal.h>
@@ -19,8 +21,6 @@
 #include <linux/input.h>
 
 #define ABS_AXIS_MUL 1
-
-#define RLI_THREADS_NUM 3 // Required number of threads in global QThreadPool
 
 int MainWindow::sigintFd[2];
 

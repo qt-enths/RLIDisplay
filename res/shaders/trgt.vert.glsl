@@ -2,9 +2,10 @@
 
 attribute vec2  world_coords;
 attribute float vertex_order;
-attribute float COG; // реальный курс судна (true heading – это куда смотрит его нос);
-attribute float ROT; // скорость поворота (для рисования вектора поворота);
-attribute float SOG; // скорость.
+attribute float heading;
+attribute float rotation;
+attribute float course;
+attribute float speed;
 
 uniform vec2 center;
 uniform float scale;
@@ -23,31 +24,36 @@ void main() {
   // screen position
   vec2 pix_pos = vec2(x_m, y_m) / scale;
 
-  float cog_rad = radians(COG);
-  float cog_rot_rad = radians(COG+ROT);
-  mat2 rot_mat = mat2( vec2(cos(cog_rad), sin(cog_rad)), vec2(-sin(cog_rad), cos(cog_rad)));
-  mat2 rot_mat2 = mat2( vec2(cos(cog_rot_rad), sin(cog_rot_rad)), vec2(-sin(cog_rot_rad), cos(cog_rot_rad)));
+  float head_rad = radians(heading);
+  float cog_rad = radians(course);
+  mat2 rot_mat_head = mat2( vec2(cos(head_rad), sin(head_rad)), vec2(-sin(head_rad), cos(head_rad)));
+  mat2 rot_mat_cog = mat2( vec2(cos(cog_rad), sin(cog_rad)), vec2(-sin(cog_rad), cos(cog_rad)));
+
+  if (heading < 0)
+    rot_mat_head = rot_mat_cog;
 
   if (type == 0) {
     if (vertex_order == 0) {
-      pix_pos = pix_pos + rot_mat*vec2(-16, -16);
+      pix_pos = pix_pos + rot_mat_head*vec2(-16, -16);
       v_inner_texcoords = vec2(0, 1);
     } else if (vertex_order == 1) {
-      pix_pos = pix_pos + rot_mat*vec2(-16, 16);
+      pix_pos = pix_pos + rot_mat_head*vec2(-16, 16);
       v_inner_texcoords = vec2(0, 0);
     } else if (vertex_order == 2) {
-      pix_pos = pix_pos + rot_mat*vec2(16, 16);
+      pix_pos = pix_pos + rot_mat_head*vec2(16, 16);
       v_inner_texcoords = vec2(1, 0);
     } else if (vertex_order == 3) {
-      pix_pos = pix_pos + rot_mat*vec2(16, -16);
+      pix_pos = pix_pos + rot_mat_head*vec2(16, -16);
       v_inner_texcoords = vec2(1, 1);
     }
-  } else if (type == 1) {
-    if (mod(vertex_order, 2) == 0)
-      pix_pos = pix_pos + rot_mat*vec2(0, -SOG);
+  } else if (type == 1 && heading >= 0) {
+    if (vertex_order == 1 || vertex_order == 2)
+      pix_pos = pix_pos + rot_mat_head*vec2(0, -48);
+    if (vertex_order == 3)
+      pix_pos = pix_pos + rot_mat_head*vec2(sign(rotation)*8, -48);
   } else if (type == 2) {
-    if (mod(vertex_order, 2) == 0)
-      pix_pos = pix_pos + rot_mat2*vec2(0, -SOG);
+    if (vertex_order == 1)
+      pix_pos = pix_pos + rot_mat_cog*vec2(0, -speed);
   }
 
   v_type = type;
