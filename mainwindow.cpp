@@ -104,6 +104,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
           _radar_ds->start();
   }
 
+  rx.setPattern("--nmea-port");
+  argpos = args.indexOf(rx);
+
+  if((argpos >= 0) && (argpos < args.count() - 1))
+      _nmeaPort = args.at(argpos + 1);
+
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
   _gain_ctrl = new ValueBarController(RLIStrings::nGain, QPoint(5, 5), 8, 0, this);
@@ -119,6 +125,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(ui->wgtRLIControl, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
   _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(5, 5+3*(23+4)), 8, 0, this);
+  _lbl5_ctrl = new LableController(RLIStrings::nPP12p, QRect(5, 5+4*(23+4), 104, 23), "12x14", this);
+  _lbl6_ctrl = new LableController(RLIStrings::nBandS, QRect(5, 5+5*(23+4), 104, 23), "12x14", this);
   _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
@@ -156,7 +164,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), this, SLOT(gain_slot(int)));
 
 #ifndef Q_OS_WIN
-  setupEvdev("/dev/input/event1");
+  fprintf(stderr, "Trying /dev/input/event1\n");
+  if(setupEvdev("/dev/input/event1") != 0)
+  {
+     fprintf(stderr, "Trying /dev/input/event2\n");
+         if( setupEvdev("/dev/input/event2") != 0)
+         {
+                fprintf(stderr, "Trying /dev/input/event0\n");
+
+                if( setupEvdev("/dev/input/event0") != 0)
+                {
+                        fprintf(stderr, "ERROR: no input event device 'Board Pult'. Givinig up!\n");
+                }
+                else
+                        fprintf(stderr, "Input device: /dev/input/event0\n");
+         }
+         else
+                fprintf(stderr, "Input device: /dev/input/event2\n");
+  }
+  else
+         fprintf(stderr, "Input device: /dev/input/event1\n");
 #endif // !Q_OS_WIN
 
 
@@ -194,6 +221,8 @@ MainWindow::~MainWindow() {
   delete _lbl2_ctrl;
   delete _lbl3_ctrl;
   delete _lbl4_ctrl;
+  delete _lbl5_ctrl;
+  delete _lbl6_ctrl;
 
   delete _crse_ctrl;
 
@@ -431,6 +460,8 @@ void MainWindow::onRLIWidgetInitialized() {
   setupInfoBlock(_lbl2_ctrl);
   setupInfoBlock(_lbl3_ctrl);
   setupInfoBlock(_lbl4_ctrl);
+  setupInfoBlock(_lbl5_ctrl);
+  setupInfoBlock(_lbl6_ctrl);
   setupInfoBlock(_dngr_ctrl);
   setupInfoBlock(_tals_ctrl);
   setupInfoBlock(_dgdt_ctrl);
@@ -477,6 +508,16 @@ void MainWindow::onRLIWidgetInitialized() {
                                          , -1e6);
   qApp->postEvent(ui->wgtRLIDisplay, evt);
 
+  // Create and start NMEA processor
+  _nmeaprc = new NMEAProcessor(this);
+  connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+  if(_nmeaPort.size())
+  {
+      QStringList ports;
+      ports.push_back(_nmeaPort);
+      _nmeaprc->open_fds(ports);
+      _nmeaprc->start();
+  }
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {

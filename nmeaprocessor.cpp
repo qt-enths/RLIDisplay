@@ -254,11 +254,13 @@ void NMEAProcessor::targetChanged(unsigned int mmsi)
         return;
 	fprintf(stderr, "%s: Target found\n", __func__);
 
-    trg.COG = ptrg->COG / 10;
-    trg.SOG = ptrg->SOG / 10;
-    trg.LAT = ptrg->Latitude / (10000 * 60);
-    trg.LON = ptrg->Longitude / (10000 * 60);
-    trg.ROT = ptrg->ROT;
+    trg.CourseOverGround = ptrg->COG / 10;
+    trg.SpeedOverGround  = ptrg->SOG / 10;
+    trg.Latitude         = ptrg->Latitude / (10000 * 60);
+    trg.Longtitude       = ptrg->Longitude / (10000 * 60);
+    trg.Rotation         = ptrg->ROT;
+    trg.Lost             = false;
+    trg.Heading          = ptrg->True_heading;
 
     QString tag;
     tag.sprintf("AIS_%d", mmsi);
@@ -585,7 +587,7 @@ void RingBuf::getStr(){
 
 void RingBuf::Act(){
 	ssize_t rd;
-	int ba, res;
+    int ba, res;
 
 //	fprintf(stderr, "%s entered\n", __func__);
     if (r < w){
@@ -615,12 +617,13 @@ void RingBuf::Act(){
 			res = ioctl(fd, FIONREAD, &ba);
 //			fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
 			if (ba == 0) return;
-            w = read(fd, &b[w], 1);
-			if(w == -1)
+            res = read(fd, &b[w], 1);
+            if(res == -1)
 			{
 //				fprintf(stderr, "%s:5 1 byte read() error: %s\n", __func__, strerror(errno));
 				return;
-			}
+            }
+            w = res;
 //			fprintf(stderr, "%s:6 1 byte read\n", __func__);
             w = 0;
             if (r != 1)
@@ -629,12 +632,13 @@ void RingBuf::Act(){
 				res = ioctl(fd, FIONREAD, &ba);
 //				fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
 				if (ba == 0) return;
-                w = read(fd, &b[w], r-1);
-				if(w == -1)
+                res = read(fd, &b[w], r-1);
+                if(res == -1)
 				{
 //					fprintf(stderr, "%s:8 1 byte read() error: %s\n", __func__, strerror(errno));
 					return;
 				}
+                w = res;
 //				fprintf(stderr, "%s:9 %d - 1 bytes read\n", __func__, r);
 			}
         }
