@@ -115,10 +115,10 @@ private:
 #ifndef Q_OS_WIN
   static int sigintFd[2];
   QSocketNotifier *snInt;
-#endif // !Q_OS_WIN
 
   NMEAProcessor * _nmeaprc;
   QString _nmeaPort;
+#endif // !Q_OS_WIN
 };
 
 #endif // MAINWINDOW_H

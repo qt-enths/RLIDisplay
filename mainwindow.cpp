@@ -203,6 +203,9 @@ MainWindow::~MainWindow() {
   printf("Input event device thread terminated.\n");
   ::close(evdevFd);
   evdevFd = -1;
+
+  delete _nmeaprc;
+
 #endif // !Q_OS_WIN
 
   delete ui;
