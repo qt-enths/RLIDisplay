@@ -1,4 +1,4 @@
-#version 120
+#version 130
 
 attribute vec2  world_coords;
 attribute float vertex_order;
@@ -11,6 +11,7 @@ uniform vec2 center;
 uniform float scale;
 uniform float type;
 
+out vec2 screen_pos;
 
 varying vec2 v_inner_texcoords;
 varying float v_type;
@@ -23,6 +24,7 @@ void main() {
 
   // screen position
   vec2 pix_pos = vec2(x_m, y_m) / scale;
+  screen_pos = pix_pos;
 
   float head_rad = radians(heading);
   float cog_rad = radians(course);

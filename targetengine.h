@@ -3,9 +3,12 @@
 
 #include <QPoint>
 #include <QMutex>
+#include <QList>
+#include <QTimer>
 #include <QVector2D>
-#include <QGLFunctions>
 #include <QGLShaderProgram>
+#include <QGLFunctions>
+
 
 struct RadarTarget {
 public:
@@ -43,25 +46,32 @@ Q_DECLARE_METATYPE(RadarTarget)
 class TargetEngine : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
-  explicit TargetEngine();
+  explicit TargetEngine(QObject* parent = 0);
   virtual ~TargetEngine();
 
   bool init(const QGLContext* context);
   void draw(QVector2D world_coords, float scale);
 
 public slots:
+  void onTailsTimer();
   void trySelect(QPoint cursorPos);
   void deleteTarget(QString tag);
   void updateTarget(QString tag, RadarTarget target);
 
 private:
-  void initBuffers();
+  void bindBuffers();
+  void initBuffersTrgts();
+  int initBuffersTails();
   void initShader();
   void initTexture();
 
   QMutex _trgtsMutex;
   QString _selected;
   QMap<QString, RadarTarget> _targets;
+
+  QTimer _tailsTimer;
+  QMap<QString, QList<QVector2D> > _tails;
+
   bool _initialized;
 
   // Mask shader programs
@@ -81,6 +91,7 @@ private:
        , AIS_TRGT_UNIF_TYPE = 2
        , AIS_TRGT_UNIF_COUNT = 3 } ;
 
+  GLuint _tbo_id;
   GLuint _vbo_ids[AIS_TRGT_ATTR_COUNT];
   GLuint _attr_locs[AIS_TRGT_ATTR_COUNT];
   GLuint _unif_locs[AIS_TRGT_UNIF_COUNT];
