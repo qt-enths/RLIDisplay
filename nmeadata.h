@@ -1,6 +1,7 @@
 #ifndef NMEADATA_H
 #define NMEADATA_H
 
+#include <QObject>
 #include <qmutex.h>
 #include <time.h>
 typedef struct {
@@ -159,20 +160,22 @@ public:
 };
 
 
-class sTargetList{
+class sTargetList : public QObject{
+  Q_OBJECT
 public:
     int Cnt;
     sTarget *starg[101];
     QMutex stargList_mtx;
-    sTargetList();
+    explicit sTargetList();
 //private:
     sTarget *sFindMMSI(unsigned int mmsi);
 };
 
 
-//sTargetList stargs;
+extern sTargetList * pstargs;
 
-class TargetList{
+class TargetList : public QObject{
+  Q_OBJECT
 public:
     int Cnt;
     Target *targ[101];
@@ -184,6 +187,6 @@ public:
 };
 
 
-//TargetList targs;
+extern TargetList * ptargs;
 
 #endif // NMEADATA_H

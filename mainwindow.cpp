@@ -106,6 +106,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
           _radar_ds->start();
   }
 
+  rx.setPattern("--nmea-port");
+  argpos = args.indexOf(rx);
+
+  if((argpos >= 0) && (argpos < args.count() - 1))
+      _nmeaPort = args.at(argpos + 1);
+
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
   _gain_ctrl = new ValueBarController(RLIStrings::nGain, QPoint(5, 5), 8, 0, this);
@@ -485,10 +491,13 @@ void MainWindow::onRLIWidgetInitialized() {
   // Create and start NMEA processor
   _nmeaprc = new NMEAProcessor(this);
   connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
-  QStringList ports;
-  ports.push_back("/dev/ttyUSB0");
-  _nmeaprc->open_fds(ports);
-  _nmeaprc->start();
+  if(_nmeaPort.size())
+  {
+      QStringList ports;
+      ports.push_back(_nmeaPort);
+      _nmeaprc->open_fds(ports);
+      _nmeaprc->start();
+  }
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
@@ -619,6 +628,7 @@ void MainWindow::evdevHandleThread()
         fprintf(stderr, "WARNING: Input event device file is not opened.\n\tGain, Rain and Waves controls are unavailable\n");
         return;
     }
+    fprintf(stderr, "DEBUG: Input event thread has started\n");
     while(!stopEvdev)
     {
         int res = read(evdevFd, &ie, sizeof(ie));
@@ -658,6 +668,7 @@ void MainWindow::evdevHandleThread()
             printf("EV_ABS: code: %u, value %d\n", (unsigned int) ie.code, ie.value);
         }
     }
+    fprintf(stderr, "DEBUG: Input event thread has finished\n");
 }
 #endif // !Q_OS_WIN
 

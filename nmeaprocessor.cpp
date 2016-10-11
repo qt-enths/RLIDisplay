@@ -10,9 +10,10 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <sys/ioctl.h>
 #include <string.h>
 #include <errno.h>
-#include <time.h>
+#include <sys/time.h>
 #include <termios.h>
 #include <arpa/inet.h>
 
@@ -29,8 +30,8 @@ const char *typeTableStrs[LAST_PARSER_TYPE+1] = {
     "ZA", "ZC", "ZQ", "ZV"
 };
 
-sTargetList stargs;
-TargetList targs;
+sTargetList * pstargs = NULL;
+TargetList  * ptargs  = NULL;
 
 RMC rmc;
 RMB rmb;
@@ -52,7 +53,7 @@ QMutex port_pars_mtx;
 //QMutex pars_main_mtx;
 
 QWaitCondition string_ready;
-QWaitCondition string_needed;
+//QWaitCondition string_needed;
 
 /*
 pthread_mutex_t errno_mtx;
@@ -74,11 +75,13 @@ static int openport(const char * portname){
 
     int fd;
 
-    fd = ::open(portname, O_NONBLOCK|O_RDONLY|O_NOCTTY);
+    //fd = ::open(portname, O_NONBLOCK|O_RDONLY|O_NOCTTY);
+    fd = ::open(portname, O_NONBLOCK | O_RDWR | O_NOCTTY);
     if(fd == -1)
     {
-        perror("Failed to open remserial1");
-        return errno;
+        int nerr = errno;
+        fprintf(stderr, "Failed to open serial port %s for NMEA-0183: %s\n", portname, strerror(nerr));
+        return 1;
     }
 
     fcntl(fd, F_SETFL, 0);
@@ -137,12 +140,16 @@ static int openport(const char * portname){
 
     tcsetattr(fd, TCSANOW, &options);
 
+	write(fd, "Hello\r\n", 7); // Just to apply new settings (driver's bug fix)
+
     return fd;
 }
 
 NMEAProcessor::NMEAProcessor(QObject *parent) :
     QObject(parent)
 {
+	pstargs = new sTargetList;
+	ptargs  = new TargetList;
     FD_ZERO(&readbufs);
     maxfd = -1;
     for(int i = 0; i < portNum; i++)
@@ -157,6 +164,7 @@ NMEAProcessor::~NMEAProcessor()
 //    printf("\nDestroying !!!!!!!!!!!!!!!\n");
   finish_flag = true;
   while(readPortsThread.isRunning());
+  string_ready.wakeAll();
   while(parsersThread.isRunning());
   for(int i = 0; i < portNum; i++)
   {
@@ -177,12 +185,18 @@ NMEAProcessor::~NMEAProcessor()
 
 void NMEAProcessor::readPorts(void)
 {
+    struct timeval tv;
+    fd_set readset;
+
+    fprintf(stderr, "\nreadPorts thread has started\n");
 
     while(!finish_flag)
     {
 //        printf("\nreadPorts !!!!!!!!!!!\n");
-
-        int r = ::select(maxfd + 1, &readbufs, NULL, NULL, NULL/*&timeout*/);
+        tv.tv_sec   = 0;
+        tv.tv_usec  = 500000;
+        readset = readbufs;
+        int r = ::select(maxfd + 1, &readset, NULL, NULL, &tv);
         if (r == 0) continue;
         if (r == -1)
             printf("Error selecting input port -- %s", strerror(errno));
@@ -194,6 +208,7 @@ void NMEAProcessor::readPorts(void)
             }
         }
     }
+    fprintf(stderr, "\nreadPorts thread has finished\n");
 }
 
 void NMEAProcessor::readPortBufs(void)
@@ -203,26 +218,14 @@ void NMEAProcessor::readPortBufs(void)
 
 
 
-//    printf("\nreadPortBufs !!!!!!!!!!!\n");
+    fprintf(stderr, "\nreadPortBufs thread has started\n");
 
     while (!finish_flag){
         if (emp){
 
-//            pars_port_mtx.lock();
-//            string_needed.wakeOne();
-//            pars_port_mtx.unlock();
-
             port_pars_mtx.lock();
             string_ready.wait(&port_pars_mtx);
             port_pars_mtx.unlock();
-/*
-            pthread_mutex_lock(&pars_port_mtx);
-            pthread_cond_signal(&string_needed);
-            pthread_mutex_unlock(&pars_port_mtx);
-            pthread_mutex_lock(&port_pars_mtx);
-            pthread_cond_wait(&string_ready, &port_pars_mtx);
-            pthread_mutex_unlock(&port_pars_mtx);
-*/
         }
         emp = true;
         for (int i = 0; i < portNum; i++){
@@ -236,6 +239,7 @@ void NMEAProcessor::readPortBufs(void)
         }
 
     }
+    fprintf(stderr, "\nreadPortBufs thread has finished\n");
 }
 
 void NMEAProcessor::targetChanged(unsigned int mmsi)
@@ -243,20 +247,27 @@ void NMEAProcessor::targetChanged(unsigned int mmsi)
     RadarTarget trg;
     Target * ptrg;
 
-    ptrg = targs.FindMMSI(mmsi);
+	fprintf(stderr, "%s entered\n", __func__);
+
+    ptrg = ptargs->FindMMSI(mmsi);
     if(!ptrg)
         return;
+	fprintf(stderr, "%s: Target found\n", __func__);
 
-    trg.COG = ptrg->COG;
-    trg.SOG = ptrg->SOG;
-    trg.LAT = ptrg->Latitude;
-    trg.LON = ptrg->Longitude;
+    trg.COG = ptrg->COG / 10;
+    trg.SOG = ptrg->SOG / 10;
+    trg.LAT = ptrg->Latitude / (10000 * 60);
+    trg.LON = ptrg->Longitude / (10000 * 60);
     trg.ROT = ptrg->ROT;
 
     QString tag;
     tag.sprintf("AIS_%d", mmsi);
 
+	fprintf(stderr, "%s: about to emit updateTarget\n", __func__);
+
     emit updateTarget(tag, trg);
+
+	fprintf(stderr, "%s: updateTarget emitted\n", __func__);
 }
 
 void transmit(void){
@@ -301,7 +312,73 @@ AI_Parser::AI_Parser(){
 
 
 
-unsigned char AI_Parser::str6tochar(int bitSize){
+char AI_Parser::str6tochar(int bitSize){
+    unsigned short r;
+    unsigned char rr[2];
+    int B = startByte, b = startBit;
+
+    startByte = B+(b+bitSize)/8;
+    startBit = (b+bitSize)%8;
+
+    rr[0] = bitStr[B+1];
+    rr[1] = bitStr[B];
+
+    r = *(unsigned short*)rr;
+
+    r <<= b;
+    r >>= 16-bitSize;
+
+    r = uint_to_int(r, bitSize);
+
+    return r;
+}
+
+short AI_Parser::str6toshort(int bitSize){
+    unsigned int r;
+    unsigned char rr[4];
+    int B = startByte, b = startBit;
+
+    startByte = B+(b+bitSize)/8;
+    startBit = (b+bitSize)%8;
+
+    rr[2] = bitStr[B+1];
+    rr[3] = bitStr[B];
+
+    r = *(unsigned int*)rr;
+
+    r <<= b;
+    r >>= 32-bitSize;
+
+    r = uint_to_int(r, bitSize);
+
+    return r;
+}
+
+int AI_Parser::str6toint(int bitSize){
+    unsigned long long r;
+    unsigned char rr[8];
+    int B = startByte, b = startBit;
+
+    startByte = B+(b+bitSize)/8;
+    startBit = (b+bitSize)%8;
+
+
+    rr[4] = bitStr[B+3];
+    rr[5] = bitStr[B+2];
+    rr[6] = bitStr[B+1];
+    rr[7] = bitStr[B];
+
+    r = *(long long *)rr;
+
+    r <<= b;
+    r >>= 64-bitSize;
+
+    r = uint_to_int(r, bitSize);
+
+    return r;
+}
+
+unsigned char AI_Parser::str6to_uchar(int bitSize){
     unsigned short r;
     unsigned char rr[2];
     int B = startByte, b = startBit;
@@ -319,7 +396,7 @@ unsigned char AI_Parser::str6tochar(int bitSize){
     return r;
 }
 
-unsigned short AI_Parser::str6toshort(int bitSize){
+unsigned short AI_Parser::str6to_ushort(int bitSize){
     unsigned int r;
     unsigned char rr[4];
     int B = startByte, b = startBit;
@@ -337,7 +414,7 @@ unsigned short AI_Parser::str6toshort(int bitSize){
     return r;
 }
 
-unsigned int AI_Parser::str6toint(int bitSize){
+unsigned int AI_Parser::str6to_uint(int bitSize){
     unsigned long long r;
     unsigned char rr[8];
     int B = startByte, b = startBit;
@@ -357,6 +434,18 @@ unsigned int AI_Parser::str6toint(int bitSize){
     r >>= 64-bitSize;
     return r;
 }
+
+int AI_Parser::uint_to_int(unsigned int x, int bitSize){
+    unsigned int M;
+    M = 1 << (bitSize-1);
+    if (x & M)
+        for (int i = bitSize; i < 32; i++){
+            M <<= 1;
+            x |= M;
+        }
+    return x;
+}
+
 
 void AI_Parser::Str6toStr8(int bitSize, char *str8){
     unsigned short r;
@@ -414,17 +503,14 @@ int iiii = 0;
 void RingBuf::getStr(){
 
 //    printf("^^^^^^^^^getStr");
-//    while (true){
     while (true){
         switch (stat) {
         case SRCH_D:
-//            Dpos = Find('$', GetNext(r));
             Dpos = Find_D(GetNext(r));
             if (Dpos == -1){
                 r = GetPred(w);
                 return;
             }
-//            r = Dpos;
             stat = SRCH_CR;
             continue;
         case SRCH_CR:
@@ -460,7 +546,7 @@ void RingBuf::getStr(){
                     r = LFpos;
                     printf("Unknown parser type %c%c\n", s0, s1);
 //                    exit(1);
-                    return;
+                    //return;
                 }
                 else {
                     WriteStr(parsers[t-1]);
@@ -498,35 +584,83 @@ void RingBuf::getStr(){
 
 
 void RingBuf::Act(){
-//    fprintf(stderr, "\nAct !!!!!!!!!!!!!!\n");
-//    if (!isFull()){
-        if (r < w){
-            w += read(fd, &b[w], bufLen-w-1);
+	ssize_t rd;
+	int ba, res;
 
-            if (w == bufLen-1 && !isFull()){
-                w = read(fd, &b[w], 1);
-                w = 0;
-                if (r != 1)
-                    w = read(fd, &b[w], r-1);
-            }
-        }
-        else{
-            w += read(fd, &b[w], r-w-1);
-        }
-
-//        printf("!!!!!!!!!!!  ");
-  //      printb(b);
-
-
-        string_ready.wakeOne();
-//        port_pars_mtx.unlock();
+//	fprintf(stderr, "%s entered\n", __func__);
+    if (r < w){
+//		fprintf(stderr, "%s:1 reading %d bytes from serial (bufLen %d, w %d)\n", __func__, bufLen-w-1, bufLen, w);
 /*
-        pthread_cond_signal(&string_ready);
-        pthread_mutex_unlock(&port_pars_mtx);
+	for (int i = 0; i == buflen-w-1; i++){
+            rd = read(fd, &b[w++], 1);
+	    if (rd == -1) break;
+	}	    
+	if (i == 1)    
 */
-//    }
+		res = ioctl(fd, FIONREAD, &ba);
+//		fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
+		if (ba == 0) return;
+        rd = read(fd, &b[w], bufLen-w-1);
+		if(rd == -1)
+		{
+//			fprintf(stderr, "%s:2 read() error: %s\n", __func__, strerror(errno));
+			return;
+		}
+		w += rd;
+//		W += i;
+//		fprintf(stderr, "%s:3 bytes read. (w %d)\n", __func__, w);
+
+        if (w == bufLen-1 && !isFull()){
+//			fprintf(stderr, "%s:4 reading 1 byte\n", __func__);
+			res = ioctl(fd, FIONREAD, &ba);
+//			fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
+			if (ba == 0) return;
+            w = read(fd, &b[w], 1);
+			if(w == -1)
+			{
+//				fprintf(stderr, "%s:5 1 byte read() error: %s\n", __func__, strerror(errno));
+				return;
+			}
+//			fprintf(stderr, "%s:6 1 byte read\n", __func__);
+            w = 0;
+            if (r != 1)
+			{
+//				fprintf(stderr, "%s:7 reading %d bytes (r %d)\n", __func__, r - 1, r);
+				res = ioctl(fd, FIONREAD, &ba);
+//				fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
+				if (ba == 0) return;
+                w = read(fd, &b[w], r-1);
+				if(w == -1)
+				{
+//					fprintf(stderr, "%s:8 1 byte read() error: %s\n", __func__, strerror(errno));
+					return;
+				}
+//				fprintf(stderr, "%s:9 %d - 1 bytes read\n", __func__, r);
+			}
+        }
+    }
+    else{
+//		fprintf(stderr, "%s:10 reading %d bytes (r %d, w %d)\n", __func__, r-w-1, r, w);
+		res = ioctl(fd, FIONREAD, &ba);
+//		fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
+		if (ba == 0) return;
+        rd = read(fd, &b[w], r-w-1);
+		if(rd == -1)
+		{
+//			fprintf(stderr, "%s:11 read() error: %s\n", __func__, strerror(errno));
+			return;
+		}
+		w += rd;
+//		fprintf(stderr, "%s:12 %d bytes read\n", __func__, r-w-1);
+    }
+
+//    printf("!!!!!!!!!!!  ");
+//    printb(b);
 
 
+    string_ready.wakeOne();
+
+//	fprintf(stderr, "%s finished\n", __func__);
 }
 
 bool RingBuf::isEmpty(){
@@ -545,21 +679,17 @@ void RingBuf::WriteStr(Parser *prs){
 
     if (nr < CRpos){
         memcpy(prs->str, &(b[nr]), CRpos-nr);
-//        memset(&b[nr], 0, CRpos-nr);
         prs->eos += CRpos-nr;
     }
     else{
         memcpy(&(prs->str[prs->eos]), &b[nr], bufLen-nr);
-//        memset(&b[nr], 0, bufLen-nr);
         prs->eos += bufLen-nr;
         memcpy(&(prs->str[prs->eos]), &b[0], CRpos);
-//        memset(&b[0], 0, CRpos);
         prs->eos += CRpos;
     }
-    prs->str[prs->eos] = 0;// prs->eos--;
+    prs->str[prs->eos] = 0;
     strN++;
     printf("%d %s\n", strN, prs->str);
-//    r = LFpos;
 }
 
 
@@ -856,14 +986,12 @@ int Parser::GetI(unsigned int *field_F, void *field){
     *field_F = 1;
 
     errno_mtx.lock();
-//    pthread_mutex_lock(&errno_mtx);
 
     errno = 0;
     int iv = strtol(&str[predComaPos+1], end, 10);
     en = errno;
 
     errno_mtx.unlock();
-//    pthread_mutex_unlock(&errno_mtx);
 
     if (en){
         SintError("invalid int", &str[predComaPos+1]);
@@ -901,12 +1029,10 @@ int Parser::GetF(unsigned int *field_F, void *field){
     char *end;
     *field_F = 1;
     errno_mtx.lock();
-//    pthread_mutex_lock(&errno_mtx);
     errno = 0;
     float f = strtof(&str[predComaPos+1], &end);
     en = errno;
     errno_mtx.unlock();
-//    pthread_mutex_unlock(&errno_mtx);
 
     if (en){
         SintError("invalid int", &str[predComaPos+1]);
@@ -978,7 +1104,11 @@ void GP_Parser::Pars(){
 
     Parser::Pars();
 
+//	fprintf(stderr, "%s entered\n", __func__);
+
     if (strncmp(&str[2], "RMB", 3) == 0){
+
+//		fprintf(stderr, "%s RMB\n", __func__);
 
         if (GetC(&Flag, &rmb.Status) == -1) return;
         else rmb.Status_F = Flag;
@@ -1014,8 +1144,11 @@ void GP_Parser::Pars(){
     else if (strncmp(&str[2], "RMC", 3) == 0){
         char TimeStr[9], ss_str[3], DateStr[7];
 
-        stargs.stargList_mtx.lock();
-        sTarget *currTarg = stargs.sFindMMSI(0);
+
+//        pstargs->stargList_mtx.lock();
+//		fprintf(stderr, "%s locked\n", __func__);
+        sTarget *currTarg = pstargs->sFindMMSI(0);
+//		fprintf(stderr, "%s found %p\n", __func__, currTarg);
 
 
         if (GetS(&Flag, TimeStr) == -1) return;
@@ -1049,15 +1182,18 @@ void GP_Parser::Pars(){
 
         printRMC(currTarg);
 
-        stargs.stargList_mtx.unlock();
+//        pstargs->stargList_mtx.unlock();
+//        stargs.stargList_mtx.unlock();
     }
     else
         printf("RMB or RMC expected, but %s found\n", &str[2]);
 //    i = FindComa(currComaPos+1);
+//        pstargs->stargList_mtx.unlock();
 
 //    structReady = true;
 //    pars_main_mtx.unlock();
 //    pthread_mutex_unlock(&pars_main_mtx);
+//	fprintf(stderr, "%s finished\n", __func__);
 
 }
 
@@ -1250,18 +1386,19 @@ void AI_Parser::S_123(Target *targ){
 
     targ->AISTarg_type = Ship_A;
 
-    targ->Navigational_status = str6tochar(4);
+    targ->Navigational_status = str6to_uchar(4);
     targ->ROT = str6tochar(8);
-    targ->SOG = str6toshort(10);
-    targ->Position_accuracy = str6tochar(1);
+    targ->SOG = str6to_ushort(10);
+    targ->Position_accuracy = str6to_uchar(1);
+//    unsigned int L = str6toint(28);
     targ->Longitude = str6toint(28);
-    targ->Latitude =  str6toint(27);
-    targ->COG = str6toshort(12);
-    targ->True_heading = str6toshort(9);
-    targ->Time_stamp = str6tochar(6);
-    targ->Reserv_for_regional_apps = str6tochar(4);
-    targ->Spare1 = str6tochar(1);
-    targ->RAIM_flag = str6tochar(1);
+    targ->Latitude = str6toint(27);
+    targ->COG = str6to_ushort(12);
+    targ->True_heading = str6to_ushort(9);
+    targ->Time_stamp = str6to_uchar(6);
+    targ->Reserv_for_regional_apps = str6to_uchar(4);
+    targ->Spare1 = str6to_uchar(1);
+    targ->RAIM_flag = str6to_uchar(1);
 
     targ->Flags &= ~0xff;
 
@@ -1321,19 +1458,19 @@ void AI_Parser::S_411(Target *targ){
 
     targ->AISTarg_type = Base_station;
 
-    /*.UTC_year = */str6toshort(14);
-    /*.UTC_month = */str6tochar(4);
-    /*.UTC_day = */str6tochar(5);
-    /*.UTC_hour = */str6tochar(5);
-    /*.UTC_minute = */str6tochar(6);
-    /*.UTC_second = */str6tochar(6);
-    targ->Position_accuracy = str6tochar(1);
+    /*.UTC_year = */str6to_ushort(14);
+    /*.UTC_month = */str6to_uchar(4);
+    /*.UTC_day = */str6to_uchar(5);
+    /*.UTC_hour = */str6to_uchar(5);
+    /*.UTC_minute = */str6to_uchar(6);
+    /*.UTC_second = */str6to_uchar(6);
+    targ->Position_accuracy = str6to_uchar(1);
     targ->Longitude = str6toint(28);
     targ->Latitude = str6toint(27);
-    targ->Type_of_electronic_position_fixing_dev = str6tochar(4);
-    str6toshort(10);
-    targ->RAIM_flag = str6toshort(1);
-    /*.Communication_State = */str6toint(19);
+    targ->Type_of_electronic_position_fixing_dev = str6to_uchar(4);
+    str6to_ushort(10);
+    targ->RAIM_flag = str6to_ushort(1);
+    /*.Communication_State = */str6to_uint(19);
 
     targ->Flags &= ~0x4003;
 
@@ -1350,17 +1487,17 @@ void AI_Parser::S_411(Target *targ){
 void AI_Parser::sS_5(sTarget *strgt){
 
 
-    strgt->AIS_version_indicator = str6tochar(2);
-    strgt->IMO_number = str6toint(30);
+    strgt->AIS_version_indicator = str6to_uchar(2);
+    strgt->IMO_number = str6to_uint(30);
     Str6toStr8(42, vdm.eS5.Call_sign);
     Str6toStr8(120, vdm.eS5.Name);
-    strgt->Ship_cargo_type =  str6tochar(8);
+    strgt->Ship_cargo_type =  str6to_uchar(8);
     strgt->Dim_ref_for_position = str6toint(30);
-    strgt->Electronic_position_fixing_dev_type = str6tochar(4);
-    strgt->ETA = str6toint(20);
-    strgt->Max_present_static_draught =  str6tochar(8);
+    strgt->Electronic_position_fixing_dev_type = str6to_uchar(4);
+    strgt->ETA = str6to_uint(20);
+    strgt->Max_present_static_draught =  str6to_uchar(8);
     Str6toStr8(120, vdm.eS5.Destination);
-    strgt->DTE = str6tochar(1);
+    strgt->DTE = str6to_uchar(1);
     str6tochar(1);
 
     sprintVDM_5(strgt);
@@ -1396,26 +1533,26 @@ void AI_Parser::S_5(Target *targ){
 
     targ->AISTarg_type = Ship_A;
 
-    targ->AIS_version_indicator = str6tochar(2);
-    targ->IMO_number = str6toint(30);
+    targ->AIS_version_indicator = str6to_uchar(2);
+    targ->IMO_number = str6to_uint(30);
     Str6toStr8(42, targ->Call_sign);
     Str6toStr8(120, targ->Name);
-    targ->Ship_cargo_type =  str6tochar(8);
-    unsigned int Dim_ref_for_position = str6toint(30);
+    targ->Ship_cargo_type =  str6to_uchar(8);
+    unsigned int Dim_ref_for_position = str6to_uint(30);
     targ->Dim_ref_for_position_A = ((Dim_ref_for_position & 0x3fe00000) >> 21);
     targ->Dim_ref_for_position_B = ((Dim_ref_for_position & 0x1ff000) >> 12),
     targ->Dim_ref_for_position_C = ((Dim_ref_for_position & 0xfc0) >> 6),
     targ->Dim_ref_for_position_D = (Dim_ref_for_position & 0x3f);
 
-    targ->Type_of_electronic_position_fixing_dev = str6tochar(4);
-    unsigned int ETA = str6toint(20);
+    targ->Type_of_electronic_position_fixing_dev = str6to_uchar(4);
+    unsigned int ETA = str6to_uint(20);
     targ->ETA_month = (ETA & 0xf0000) >> 16;
     targ->ETA_day = (ETA & 0xf800) >> 11;
     targ->ETA_hour = (ETA & 0x7c0) >> 6;
     targ->ETA_minute = (ETA & 0x3f) >> 16;
-    targ->Max_present_static_draught =  str6tochar(8);
+    targ->Max_present_static_draught =  str6to_uchar(8);
     Str6toStr8(120, targ->Destination);
-    targ->DTE = str6tochar(1);
+    targ->DTE = str6to_uchar(1);
     str6tochar(1);
 
     targ->Flags &= ~0xfff00;
@@ -1944,47 +2081,32 @@ void AI_Parser::Pars(){
 
     }
 
-/* //--struct vdm ver:
-    vdm.eS_common.Message_ID = str6tochar(6);
-    vdm.eS_common.Repeat_Indicator = str6tochar(2);
-    vdm .eS_common.User_ID = str6toint(30);
-
-    stargs.stargList_mtx.lock();
-    sTarget *currTarg = stargs.sFindMMSI(vdm.eS_common.User_ID);
-*/
     unsigned char Message_ID = str6tochar(6);
     str6tochar(2);
 
-/* //--struct vdm ver:
-    vdm .eS_common.User_ID = str6toint(30);
-*/
     unsigned int User_ID = str6toint(30);
 
-    Target *currTarg = targs.FindMMSI(User_ID);
+
+//    if (ptargs->targ[0]) fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+    ptargs->targList_mtx.lock();
+
+    Target *currTarg = ptargs->FindMMSI(User_ID);
+
+//    ptargs->targList_mtx.unlock();
 
     currTarg->AISTarg = true;
 
-/* //--struct vdm ver:
-    switch (vdm.eS_common.Message_ID){
-*/
     switch (Message_ID){
     case 1: case 2: case 3:
         S_123(currTarg);
         if(_prc)
             _prc->targetChanged(currTarg->mmsi);
         break;
-/*
-    case 4: case 11:
-        sS_411();
-        break;
-*/
     case 4: case 11:
         S_411(currTarg);
         break;
     case 5:
-/* //--struct vdm ver:
-        sS_5(currTarg);
-*/
         S_5(currTarg);
         break;
     case 6:
@@ -1993,11 +2115,6 @@ void AI_Parser::Pars(){
     case 17:
         S_17();
         break;
-/*
-    case 18:
-        sS_18();
-        break;
-*/
     case 18:
         S_18(currTarg);
         break;
@@ -2010,10 +2127,11 @@ void AI_Parser::Pars(){
 
      default:
         printf("Unknown message type %d\n", vdm.eS_common.Message_ID);
-        exit(1); //!!!!!!!!!!
+//        exit(1); //!!!!!!!!!!
     }
 
-    stargs.stargList_mtx.unlock();
+    ptargs->targList_mtx.unlock();
+//    stargs.stargList_mtx.unlock();
 
 
 }
@@ -2085,59 +2203,3 @@ void VW_Parser::printVHW(){
     printf("K: "); if (vhw.K_F) printf("%c\n", vhw.K); else printf("\n");
 
 }
-/*
-int main()
-{
-    pthread_t readThread, parsThread;
-
-    pthread_mutex_init(&errno_mtx, NULL);
-    pthread_mutex_init(&port_pars_mtx, NULL);
-    pthread_mutex_init(&pars_main_mtx, NULL);
-    pthread_create(&readThread, NULL, readPorts, NULL);
-    pthread_create(&parsThread, NULL, readPortBufs, NULL);
-
-    while (true){
-        if (parsers[GP-1]->structReady) {
-            pthread_mutex_lock(&pars_main_mtx);
-            Process_GP();
-            parsers[GP-1]->structReady = false;
-            pthread_mutex_unlock(&pars_main_mtx);
-        }
-        if (parsers[HE-1]->structReady) {
-            pthread_mutex_lock(&pars_main_mtx);
-            Process_HE();
-            parsers[HE-1]->structReady = false;
-            pthread_mutex_unlock(&pars_main_mtx);
-        }
-        if (parsers[HC-1]->structReady) {
-            pthread_mutex_lock(&pars_main_mtx);
-            Process_HC();
-            parsers[HC-1]->structReady = false;
-            pthread_mutex_unlock(&pars_main_mtx);
-        }
-        if (parsers[VW-1]->structReady) {
-            pthread_mutex_lock(&pars_main_mtx);
-            Process_VW();
-            parsers[VW-1]->structReady = false;
-            pthread_mutex_unlock(&pars_main_mtx);
-        }
-         if (parsers[SD-1]->structReady) {
-            pthread_mutex_lock(&pars_main_mtx);
-            Process_SD();
-            parsers[SD-1]->structReady = false;
-            pthread_mutex_unlock(&pars_main_mtx);
-        }
-        if (parsers[AI-1]->structReady) {
-            pthread_mutex_lock(&pars_main_mtx);
-            Process_AI();
-            parsers[AI-1]->structReady = false;
-            pthread_mutex_unlock(&pars_main_mtx);
-        }
-
-    }
-
-    close(fd_rs[1]);
-
-    return 0;
-}
-*/

@@ -438,9 +438,14 @@ public:
     unsigned char byte_to_6bit(unsigned char byte);
     AI_Parser();
 
-    unsigned char str6tochar(int bitSize);
-    unsigned short str6toshort(int bitSize);
-    unsigned int str6toint(int bitSize);
+    int uint_to_int(unsigned int x, int bitSize);
+    char str6tochar(int bitSize);
+    short str6toshort(int bitSize);
+    int str6toint(int bitSize);
+
+    unsigned char str6to_uchar(int bitSize);
+    unsigned short str6to_ushort(int bitSize);
+    unsigned int str6to_uint(int bitSize);
 
     void Str8toStr6(char *str);
     void Str6toStr8(int bitSize, char *str8);

@@ -118,6 +118,7 @@ private:
 #endif // !Q_OS_WIN
 
   NMEAProcessor * _nmeaprc;
+  QString _nmeaPort;
 };
 
 #endif // MAINWINDOW_H

@@ -2,19 +2,21 @@
 #include "string.h"
 #include <stdio.h>
 
-extern sTargetList stargs;
-extern TargetList targs;
+//extern sTargetList stargs;
+//extern TargetList targs;
 
 
 sTargetList::sTargetList(){
-    memset(&stargs, 0, sizeof(stargs));
+//fprintf(stderr, "%s entred\n", __func__);
+    memset(starg, 0, sizeof(starg));
     Cnt = 0;
+//fprintf(stderr, "%s finished\n", __func__);
 }
 
 sTarget *sTargetList::sFindMMSI(unsigned int mmsi){
 
     for (int i = 0; i < Cnt; i++) if (starg[i]&&(starg[i]->mmsi == mmsi)){
-        stargList_mtx.unlock();
+//        stargList_mtx.unlock();
         return starg[i];
     }
 
@@ -26,14 +28,14 @@ sTarget *sTargetList::sFindMMSI(unsigned int mmsi){
 }
 
 TargetList::TargetList(){
-    memset(&targs, 0, sizeof(targs));
+    memset(targ, 0, sizeof(targ));
     Cnt = 0;
 }
 
 Target *TargetList::FindID(unsigned int ID){
 
     for (int i = 0; i < Cnt; i++) if (targ[i]&&(targ[i]->ID == ID)){
-        targList_mtx.unlock();
+//        targList_mtx.unlock();
         return targ[i];
     }
 
@@ -46,10 +48,12 @@ Target *TargetList::FindID(unsigned int ID){
 
 Target *TargetList::FindMMSI(unsigned int mmsi){
 
+//fprintf(stderr, "FindMMSI:::  1, Cnt: %d\n", Cnt);
     for (int i = 0; i < Cnt; i++) if (targ[i]&&(targ[i]->mmsi == mmsi)){
-        targList_mtx.unlock();
+//        targList_mtx.unlock();
         return targ[i];
     }
+//fprintf(stderr, "FindMMSI:::  2\n");
 
     targ[Cnt] = new Target;
     targ[Cnt]->mmsi = mmsi;
@@ -57,6 +61,7 @@ Target *TargetList::FindMMSI(unsigned int mmsi){
     Cnt++;
 
     return targ[Cnt-1];
+//fprintf(stderr, "FindMMSI:::  3\n");
 }
 
 Target::Target(){
