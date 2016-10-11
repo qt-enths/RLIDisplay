@@ -1,6 +1,8 @@
 #ifndef NMEAPROCESSOR_H
 #define NMEAPROCESSOR_H
 
+#ifndef Q_OS_WIN
+
 #include <QObject>
 #include <sys/select.h>
 #include <QWaitCondition>
@@ -544,5 +546,6 @@ private:
     int maxfd;
 
 };
+#endif // !Q_OS_WIN
 
-#endif // NMEAPROCESSOR_H
+#endif // !NMEAPROCESSOR_H

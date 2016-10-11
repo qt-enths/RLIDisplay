@@ -104,11 +104,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
           _radar_ds->start();
   }
 
+#ifndef Q_OS_WIN
   rx.setPattern("--nmea-port");
   argpos = args.indexOf(rx);
 
   if((argpos >= 0) && (argpos < args.count() - 1))
       _nmeaPort = args.at(argpos + 1);
+#endif // !Q_OS_WIN
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
@@ -508,6 +510,7 @@ void MainWindow::onRLIWidgetInitialized() {
                                          , -1e6);
   qApp->postEvent(ui->wgtRLIDisplay, evt);
 
+#ifndef Q_OS_WIN
   // Create and start NMEA processor
   _nmeaprc = new NMEAProcessor(this);
   connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
@@ -518,6 +521,7 @@ void MainWindow::onRLIWidgetInitialized() {
       _nmeaprc->open_fds(ports);
       _nmeaprc->start();
   }
+#endif // !Q_OS_WIN
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {

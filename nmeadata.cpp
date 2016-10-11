@@ -1,3 +1,5 @@
+#ifndef Q_OS_WIN
+
 #include "nmeadata.h"
 #include "string.h"
 #include <stdio.h>
@@ -190,3 +192,5 @@ void Target::PrintOut(){
             else printf("not available\n");
 
 }
+
+#endif // !Q_OS_WIN

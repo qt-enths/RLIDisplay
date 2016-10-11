@@ -1,6 +1,8 @@
 #ifndef NMEADATA_H
 #define NMEADATA_H
 
+#ifndef Q_OS_WIN
+
 #include <QObject>
 #include <qmutex.h>
 #include <time.h>
@@ -189,4 +191,6 @@ public:
 
 extern TargetList * ptargs;
 
-#endif // NMEADATA_H
+#endif // !Q_OS_WIN
+
+#endif // !NMEADATA_H

@@ -1,3 +1,5 @@
+#ifndef Q_OS_WIN
+
 #include "nmeaprocessor.h"
 #include "nmeadata.h"
 #include <QThread>
@@ -2207,3 +2209,5 @@ void VW_Parser::printVHW(){
     printf("K: "); if (vhw.K_F) printf("%c\n", vhw.K); else printf("\n");
 
 }
+
+#endif // !Q_OS_WIN
