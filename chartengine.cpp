@@ -486,7 +486,7 @@ void ChartEngine::drawLayers() {
   }
   shaders->getChartMarkProgram()->release();
 
-
+/*
   shaders->getChartTextProgram()->bind();
   for (int i = 0; i < displayOrder.size(); i++) {
     QString s = displayOrder[i];
@@ -494,7 +494,7 @@ void ChartEngine::drawLayers() {
       text_engines[s]->draw(shaders, _center, _scale, _angle);
   }
   shaders->getChartTextProgram()->release();
-
+*/
 
   if (sndg_engine != NULL && settings->areSoundingsVisible()) {
     shaders->getChartSndgProgram()->bind();

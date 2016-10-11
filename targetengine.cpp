@@ -16,6 +16,11 @@ TargetEngine::~TargetEngine() {
 }
 
 
+void TargetEngine::trySelect(QPoint cursorPos) {
+  Q_UNUSED(cursorPos);
+}
+
+
 void TargetEngine::updateTarget(QString tag, RadarTarget target) {
   _trgtsMutex.lock();
 
@@ -23,6 +28,16 @@ void TargetEngine::updateTarget(QString tag, RadarTarget target) {
     _targets.insert(tag, target);
   else
     _targets[tag] = target;
+
+  _trgtsMutex.unlock();
+}
+
+
+void TargetEngine::deleteTarget(QString tag) {
+  _trgtsMutex.lock();
+
+  if (_targets.contains(tag))
+    _targets.remove(tag);
 
   _trgtsMutex.unlock();
 }
@@ -61,17 +76,21 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
   glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_ORDER], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_ORDER]);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COG]);
-  glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_COG], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
-  glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_COG]);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_HEADING]);
+  glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_HEADING], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_HEADING]);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ROT]);
-  glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_ROT], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
-  glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_ROT]);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ROTATION]);
+  glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_ROTATION], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_ROTATION]);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_SOG]);
-  glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_SOG], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
-  glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_SOG]);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COURSE]);
+  glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_COURSE], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_COURSE]);
+
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_SPEED]);
+  glVertexAttribPointer(_attr_locs[AIS_TRGT_ATTR_SPEED], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glEnableVertexAttribArray(_attr_locs[AIS_TRGT_ATTR_SPEED]);
 
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 0);
 
@@ -103,39 +122,44 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
 }
 
 void TargetEngine::initBuffers() {
-  std::vector<GLfloat> points;
-  std::vector<GLfloat> orders;
-  std::vector<GLfloat> cogs;
-  std::vector<GLfloat> rots;
-  std::vector<GLfloat> sogs;
+  std::vector<GLfloat> point;
+  std::vector<GLfloat> order;
+  std::vector<GLfloat> heading;
+  std::vector<GLfloat> rotation;
+  std::vector<GLfloat> course;
+  std::vector<GLfloat> speed;
 
   QList<QString> keys = _targets.keys();
 
   for (int trgt = 0; trgt < keys.size(); trgt++) {
     for (int i = 0; i < 4; i++) {
-      orders.push_back(i);
-      points.push_back(_targets[keys[trgt]].LAT);
-      points.push_back(_targets[keys[trgt]].LON);
-      cogs.push_back(_targets[keys[trgt]].COG);
-      rots.push_back(_targets[keys[trgt]].ROT);
-      sogs.push_back(_targets[keys[trgt]].SOG);
+      order.push_back(i);
+      point.push_back(_targets[keys[trgt]].Latitude);
+      point.push_back(_targets[keys[trgt]].Longtitude);
+      heading.push_back(_targets[keys[trgt]].Heading);
+      rotation.push_back(_targets[keys[trgt]].Rotation);
+      course.push_back(_targets[keys[trgt]].CourseOverGround);
+      speed.push_back(_targets[keys[trgt]].SpeedOverGround);
     }
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COORDS]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*2*sizeof(GLfloat), points.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*2*sizeof(GLfloat), point.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), orders.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), order.data(), GL_DYNAMIC_DRAW);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COG]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), cogs.data(), GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_HEADING]);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), heading.data(), GL_DYNAMIC_DRAW);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ROT]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), rots.data(), GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ROTATION]);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), rotation.data(), GL_DYNAMIC_DRAW);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_SOG]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), sogs.data(), GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COURSE]);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), course.data(), GL_DYNAMIC_DRAW);
+
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_SPEED]);
+  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), speed.data(), GL_DYNAMIC_DRAW);
 }
 
 void TargetEngine::initTexture() {
@@ -170,9 +194,10 @@ void TargetEngine::initShader() {
 
   _attr_locs[AIS_TRGT_ATTR_COORDS] = _prog->attributeLocation("world_coords");
   _attr_locs[AIS_TRGT_ATTR_ORDER] = _prog->attributeLocation("vertex_order");
-  _attr_locs[AIS_TRGT_ATTR_COG] = _prog->attributeLocation("COG");
-  _attr_locs[AIS_TRGT_ATTR_ROT] = _prog->attributeLocation("ROT");
-  _attr_locs[AIS_TRGT_ATTR_SOG] = _prog->attributeLocation("SOG");
+  _attr_locs[AIS_TRGT_ATTR_HEADING] = _prog->attributeLocation("heading");
+  _attr_locs[AIS_TRGT_ATTR_ROTATION] = _prog->attributeLocation("rotation");
+  _attr_locs[AIS_TRGT_ATTR_COURSE] = _prog->attributeLocation("course");
+  _attr_locs[AIS_TRGT_ATTR_SPEED] = _prog->attributeLocation("speed");
 
   _unif_locs[AIS_TRGT_UNIF_CENTER] = _prog->uniformLocation("center");
   _unif_locs[AIS_TRGT_UNIF_SCALE] = _prog->uniformLocation("scale");

@@ -1773,13 +1773,13 @@ int RadarDataSource::nextHIP(hip_channel_t hipch)
 int RadarDataSource::simulate(bool sim)
 {
     int res = 0;
-
+#ifndef Q_OS_WIN
     if(fd == -1)
     {
         simulation = sim;
         return 0;
     }
-#ifndef Q_OS_WIN
+
     u_int32_t regv;
 
     if(simulation == sim)
