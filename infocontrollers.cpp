@@ -300,8 +300,16 @@ PositionController::PositionController(QObject* parent) : InfoBlockController(pa
   _lon_text_id = -1;
 }
 
-void PositionController::pos_changed(std::pair<float, float> pos) {
-  Q_UNUSED(pos);
+void PositionController::pos_changed(QVector2D coords) {
+  //qDebug() << coords;
+
+  QByteArray lat = QString::number(coords.x()).left(7).toLatin1();
+  QByteArray lon = QString::number(coords.y()).left(7).toLatin1();
+
+  emit setText(_lat_text_id, RLI_LANG_ENGLISH, lat);
+  emit setText(_lon_text_id, RLI_LANG_ENGLISH, lon);
+  emit setText(_lat_text_id, RLI_LANG_RUSSIAN, lat);
+  emit setText(_lon_text_id, RLI_LANG_RUSSIAN, lon);
 }
 
 void PositionController::initBlock(const QSize& size) {
@@ -317,13 +325,24 @@ void PositionController::initBlock(const QSize& size) {
   t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
 
-  t.rect = QRect(4, 4, 224-8, 14);
+  t.rect = QRect(4, 4, 230, 14);
   setInfoTextStr(t, RLIStrings::nLat);
   _block->addText(t);
 
-  t.rect = QRect(4, 21, 224-8, 14);
+  t.rect = QRect(4, 21, 230, 14);
   setInfoTextStr(t, RLIStrings::nLon);
   _block->addText(t);
+
+  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
+
+  t.rect = QRect(4, 4, 230, 14);
+  setInfoTextStr(t, RLIStrings::nBlank);
+  _lat_text_id = _block->addText(t);
+
+  t.rect = QRect(4, 21, 230, 14);
+  setInfoTextStr(t, RLIStrings::nBlank);
+  _lon_text_id =_block->addText(t);
 }
 
 //------------------------------------------------------------------------------

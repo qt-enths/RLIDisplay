@@ -497,6 +497,9 @@ void MainWindow::onRLIWidgetInitialized() {
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(onSimChanged(bool))
          , this, SLOT(simulation_slot(bool)));
 
+  connect( ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D))
+         , _pstn_ctrl, SLOT(pos_changed(QVector2D)));
+
   ui->wgtRLIDisplay->menuEngine()->setMenuItemIntValue(_radar_ds->getAmpsOffset(), MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
   RLIMenuItem * mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
   RLIMenuItemInt * mii = dynamic_cast<RLIMenuItemInt *>(mnuitem);

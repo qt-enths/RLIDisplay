@@ -43,7 +43,8 @@ SOURCES += main.cpp\
     targetengine.cpp \
     targetdatasource.cpp \
     nmeadata.cpp \
-    nmeaprocessor.cpp
+    nmeaprocessor.cpp \
+    rlimath.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
@@ -72,7 +73,8 @@ HEADERS  += mainwindow.h \
     targetengine.h \
     targetdatasource.h \
     nmeadata.h \
-    nmeaprocessor.h
+    nmeaprocessor.h \
+    rlimath.h
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

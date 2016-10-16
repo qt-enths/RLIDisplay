@@ -1,8 +1,9 @@
+#include <QThread>
+
 #ifndef Q_OS_WIN
 
 #include "nmeaprocessor.h"
 #include "nmeadata.h"
-#include <QThread>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>

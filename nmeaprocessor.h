@@ -1,9 +1,10 @@
 #ifndef NMEAPROCESSOR_H
 #define NMEAPROCESSOR_H
 
+#include <QObject>
+
 #ifndef Q_OS_WIN
 
-#include <QObject>
 #include <sys/select.h>
 #include <QWaitCondition>
 #include "nmeadata.h"

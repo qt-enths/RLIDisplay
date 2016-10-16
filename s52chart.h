@@ -104,8 +104,6 @@ private:
   S52References* _ref;
   void clear();
 
-  float geo_distance(double lat1, double lon1, double lat2, double lon2);
-
   // Chart dimension
   float min_lat, max_lat;
   float min_lon, max_lon;

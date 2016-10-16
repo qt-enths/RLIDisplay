@@ -116,10 +116,6 @@ void TargetEngine::initShader() {
 }
 
 
-/*float radians(float deg) {
-  return (deg / 180) * (2 * asin(1));
-}*/
-
 void TargetEngine::draw(QVector2D world_coords, float scale) {
   _trgtsMutex.lock();
 
