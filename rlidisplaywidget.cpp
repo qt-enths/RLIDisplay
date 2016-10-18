@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QApplication>
 
+#include "rlimath.h"
 #include "rlicontrolevent.h"
 
 RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
@@ -364,10 +365,15 @@ void RLIDisplayWidget::mouseMoveEvent(QMouseEvent* e) {
 }
 
 void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
+  QPointF cen = _controlsEngine->getCenterPos();
+  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+  QVector2D cursor_coords = RLIMath::pos_to_coords(QVector2D(12.5000f, -81.6000f), cen, pos, scale);
+  emit cursor_moved(cursor_coords);
+
+
   const char * dist_fmt = NULL;
   if(repaint)
-      _controlsEngine->setCursorPos(pos);
-  QPointF cen = _controlsEngine->getCenterPos();
+    _controlsEngine->setCursorPos(pos);
 
   float peleng = 90.0 * qAtan2(pos.x() - cen.x(), - pos.y() + cen.y()) / acos(0);
   if (peleng < 0)
@@ -375,25 +381,21 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
 
   float distance = sqrt(pow(pos.y() - cen.y(), 2) + pow(pos.x() - cen.x(), 2));
 
-  foreach(QWidget * w, QApplication::topLevelWidgets())
-  {
-      MainWindow * mainWnd = dynamic_cast<MainWindow *>(w);
-      if(mainWnd)
-      {
-          float ratio = 1;
-          RadarScale * curscale = mainWnd->getRadarScale();
-          if(curscale)
-          {
-              const rli_scale_t * scale = curscale->getCurScale();
-              if(scale)
-              {
-                  ratio = scale->len / maskEngine()->getRadius();
-                  dist_fmt = scale->val_fmt;
-              }
-          }
-          distance *= ratio;
-          break;
+  foreach(QWidget * w, QApplication::topLevelWidgets()) {
+    MainWindow * mainWnd = dynamic_cast<MainWindow *>(w);
+    if(mainWnd) {
+      float ratio = 1;
+      RadarScale * curscale = mainWnd->getRadarScale();
+      if(curscale) {
+        const rli_scale_t * scale = curscale->getCurScale();
+        if(scale) {
+          ratio = scale->len / maskEngine()->getRadius();
+          dist_fmt = scale->val_fmt;
+        }
       }
+      distance *= ratio;
+      break;
+    }
   }
 
   emit cursor_moved(peleng, distance, dist_fmt);
@@ -473,8 +475,15 @@ bool RLIDisplayWidget::event(QEvent* e) {
           _menuEngine->onDown();
         break;
       case RLIControlEvent::Enter:
-        if (_menuEngine->visible())
+        if (_menuEngine->visible()) {
           _menuEngine->onEnter();
+        } else {
+          QPointF pos = _controlsEngine->getCursorPos();
+          QPointF cen = _controlsEngine->getCenterPos();
+          float scale = (_scale*1852.f) / _maskEngine->getRadius();
+          QVector2D cursor_coords = RLIMath::pos_to_coords(QVector2D(12.5000f, -81.6000f), cen, pos, scale);
+          _targetEngine->trySelect(cursor_coords, scale);
+        }
         break;
       case RLIControlEvent::Back:
         if (_menuEngine->visible())

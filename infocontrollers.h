@@ -140,7 +140,7 @@ public:
   explicit PositionController(QObject* parent = 0);
 
 public slots:
-  void pos_changed(std::pair<float, float> pos);
+  void pos_changed(QVector2D pos);
 
 signals:
   void setRect(int rectId, const QRect& r);

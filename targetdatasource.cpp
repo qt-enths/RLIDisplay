@@ -74,11 +74,17 @@ void TargetDataSource::timerEvent(QTimerEvent* e) {
   QDateTime now = QDateTime::currentDateTime();
 
   for (int i = 0; i < _targets.size(); i++) {
-    emit updateTarget(QString::number(i+1), _targets[i]);
-    _targets[i].Longtitude += 0.0005f * (i+1) * sin(_startTime.msecsTo(now)/(1000.f*(i+1)) + i);
-    _targets[i].Latitude += 0.0005f * (i+1) * cos(_startTime.msecsTo(now)/(1000.f*(i+1)) + i);
-    _targets[i].CourseOverGround = int(360 + 180 * (_startTime.msecsTo(now)/(1000.f*(i+1)) + i) / PI) % 360;
+    RadarTarget target;
+
+    target.Longtitude = _targets[i].Longtitude + 0.02f * (i+1) * sin(_startTime.msecsTo(now)/(2000.f*(i+1)) + i);
+    target.Latitude = _targets[i].Latitude + 0.02f * (i+1) * cos(_startTime.msecsTo(now)/(2000.f*(i+1)) + i);
+    target.CourseOverGround = int(450 + 180 * (_startTime.msecsTo(now)/(2000.f*(i+1)) + i) / PI) % 360;
     if (_targets[i].Heading != -1)
-      _targets[i].Heading = int(360 + _targets[i].CourseOverGround - _targets[i].Rotation) % 360;
+      target.Heading = int(360 + target.CourseOverGround - target.Rotation) % 360;
+    else
+      target.Heading = -1;
+    target.SpeedOverGround = _targets[i].SpeedOverGround;
+
+    emit updateTarget(QString::number(i+1), target);
   }
 }

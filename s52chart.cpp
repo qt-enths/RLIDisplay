@@ -4,6 +4,9 @@
 #include <ogrsf_frmts.h>
 
 #include "triangulate.h"
+#include "rlimath.h"
+
+using namespace RLIMath;
 
 #define EQUAL_EPS 0.00000001
 
@@ -517,20 +520,6 @@ bool S52Chart::readOGRLine(OGRLineString* poGeom, std::vector<float> &points, st
 
   return true;
 }
-
-double radians(double deg) {
-  return (deg * 3.14159265) / 180.0;
-}
-
-//S = 111,2×arccos(sin φ1 × sin φ2 + cos φ1 × cos φ2 × cos (L2-L1)),
-float S52Chart::geo_distance(double lat1, double lon1, double lat2, double lon2) {
-  double lat2_rads = radians(lat2);
-  float y = 6372795.f*radians(lat1 - lat2);
-  float x = 6372795.f*cos(lat2_rads)*radians(lon1 - lon2);
-  float dist = 0.242 * sqrt(x*x+y*y);
-  return dist;
-}
-
 
 QString S52Chart::getAreaColorRef(QString& layer_name, OGRFeature* poFeature) {
   if (layer_name == "LNDARE"

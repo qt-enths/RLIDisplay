@@ -41,6 +41,7 @@ public:
 signals:
   void initialized();
   void cursor_moved(float peleng, float distance, const char * dist_fmt);
+  void cursor_moved(QVector2D);
   void per_second();
   void resized(const QSize& s);
   void displayVNDistance(float dist, const char * fmt);

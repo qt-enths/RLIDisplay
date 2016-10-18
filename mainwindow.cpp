@@ -416,6 +416,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         break;
     }
     case Qt::Key_Enter:
+    {
+        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
+        qApp->postEvent(ui->wgtRLIDisplay, e);
+        break;
+    }
     case Qt::Key_Return:
     {
         RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
@@ -512,6 +517,9 @@ void MainWindow::onRLIWidgetInitialized() {
 
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(onSimChanged(bool))
          , this, SLOT(simulation_slot(bool)));
+
+  connect( ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D))
+         , _pstn_ctrl, SLOT(pos_changed(QVector2D)));
 
   ui->wgtRLIDisplay->menuEngine()->setMenuItemIntValue(_radar_ds->getAmpsOffset(), MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
   RLIMenuItem * mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
