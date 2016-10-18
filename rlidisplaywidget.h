@@ -35,6 +35,9 @@ public:
 
   void setScale(float scale) { _scale = scale; }
 
+  void setWorldCoords(QVector2D coords);
+  QVector2D getWorldCoords(void) const;
+
 signals:
   void initialized();
   void cursor_moved(float peleng, float distance, const char * dist_fmt);
@@ -77,6 +80,8 @@ private:
 
   TargetEngine* _targetEngine;
   ControlsEngine* _controlsEngine;
+
+  QVector2D _world_coords;
 };
 
 #endif // RLIDISPLAYWIDGET_H

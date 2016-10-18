@@ -2,9 +2,11 @@
 
 TargetEngine::TargetEngine(QObject* parent) : QObject(parent), QGLFunctions() {
   _initialized = false;
+  _tailsTime   = 0;
 
   connect(&_tailsTimer, SIGNAL(timeout()), SLOT(onTailsTimer()));
-  _tailsTimer.start(1000);
+  if(_tailsTime > 0)
+      _tailsTimer.start((_tailsTime * 60 * 1000) / TRG_TAIL_NUM);
 }
 
 TargetEngine::~TargetEngine() {
@@ -32,12 +34,37 @@ void TargetEngine::onTailsTimer() {
     QString tag = tags[i];
     _tails[tag].push_back(QVector2D(_targets[tag].Latitude,_targets[tag].Longtitude));
 
-    if (_tails[tag].size() > 6)
+    if (_tails[tag].size() > TRG_TAIL_NUM)
       _tails[tag].removeFirst();
   }
 
   _trgtsMutex.unlock();
   //qDebug() << _tails[tags[0]].size();
+}
+
+void TargetEngine::onTailsTimeChanged(int minutes)
+{
+    if(_tailsTimer.isActive())
+        _tailsTimer.stop();
+    _tailsTime = minutes;
+    if(_tailsTime <= 0)
+    {
+        _trgtsMutex.lock();
+        //qDebug() << QDateTime::currentDateTime() << ": " << "onTailsTimer";
+
+        QList<QString> tags = _targets.keys();
+        for (int i = 0; i < tags.count(); i++) {
+          QString tag = tags[i];
+          _tails[tag].push_back(QVector2D(_targets[tag].Latitude,_targets[tag].Longtitude));
+
+          if (_tails[tag].size() > TRG_TAIL_NUM)
+            _tails[tag].removeFirst();
+        }
+
+        _trgtsMutex.unlock();
+    }
+    else
+        _tailsTimer.start((_tailsTime * 60 * 1000) / TRG_TAIL_NUM);
 }
 
 void TargetEngine::updateTarget(QString tag, RadarTarget target) {
@@ -198,10 +225,13 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
   glPointSize(5);
 
   // Draw tails++
-  int pCount = initBuffersTails();
-  bindBuffers();
-  glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 3);
-  glDrawArrays(GL_POINTS, 0, pCount);
+  if(_tailsTime)
+  {
+      int pCount = initBuffersTails();
+      bindBuffers();
+      glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 3);
+      glDrawArrays(GL_POINTS, 0, pCount);
+  }
 
   _prog->release();
 
@@ -328,3 +358,7 @@ void TargetEngine::initTexture() {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+int TargetEngine::getTailsTime(void)
+{
+    return _tailsTime;
+}

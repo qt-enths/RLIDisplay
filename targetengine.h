@@ -52,8 +52,11 @@ public:
   bool init(const QGLContext* context);
   void draw(QVector2D world_coords, float scale);
 
+  int getTailsTime(void);
+
 public slots:
   void onTailsTimer();
+  void onTailsTimeChanged(int minutes);
   void trySelect(QPoint cursorPos);
   void deleteTarget(QString tag);
   void updateTarget(QString tag, RadarTarget target);
@@ -71,6 +74,9 @@ private:
 
   QTimer _tailsTimer;
   QMap<QString, QList<QVector2D> > _tails;
+  int _tailsTime; // Maximum tails time in minutes
+
+  enum {TRG_TAIL_NUM = 4};
 
   bool _initialized;
 

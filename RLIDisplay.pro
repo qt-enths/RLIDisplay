@@ -80,6 +80,7 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     icons.qrc \
     fonts.qrc \
-    shaders.qrc
+    shaders.qrc \
+    cursors.qrc
 
 OTHER_FILES +=

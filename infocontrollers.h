@@ -194,8 +194,18 @@ class TailsController : public InfoBlockController {
 public:
   explicit TailsController(QObject* parent = 0);
 
+  enum
+  {
+      TAILMODE_FIRST  = 0,
+      TAILMODE_OFF    = 0,
+      TAILMODE_RADAR  = 1,
+      TAILMODE_DOTS   = 2,
+      TAILMODE_LAST   = 2
+  };
+
 public slots:
-  void tails_count_changed(int count);
+    void tails_count_changed(int count);
+    void tails_changed(int mode, const QByteArray count);
 
 signals:
   void setRect(int rectId, const QRect& r);
@@ -204,7 +214,9 @@ signals:
 private:
   void initBlock(const QSize& size);
 
+  int _mode_text_id;
   int _min_text_id;
+  int _minutes;
 };
 
 

@@ -393,7 +393,7 @@ void MenuEngine::initMainMenuTree() {
   RLIMenuItemInt* i012 = new RLIMenuItemInt(RLIStrings::nMenu012, 5, 60, 30);
   m01->add_item(static_cast<RLIMenuItem*>(i012));
 
-  RLIMenuItemList* i013 = new RLIMenuItemList(RLIStrings::nMenu013, 3);
+  RLIMenuItemList* i013 = new RLIMenuItemList(RLIStrings::nMenu013, 0);
   i013->addVariant(RLIStrings::trackArray[0]);
   i013->addVariant(RLIStrings::trackArray[1]);
   i013->addVariant(RLIStrings::trackArray[2]);

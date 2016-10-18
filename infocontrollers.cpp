@@ -134,7 +134,8 @@ LableController::LableController(char** text, const QRect& geom, QString font_ta
 }
 
 void LableController::onTextChanged(char** text) {
-  Q_UNUSED(text);
+    for (int i = 0; i < RLI_LANG_COUNT; i++)
+      emit setText(_text_id, i, enc->fromUnicode(dec->toUnicode(text[i])));
 }
 
 void LableController::initBlock(const QSize& size) {
@@ -361,14 +362,53 @@ void DangerController::initBlock(const QSize& size) {
 //------------------------------------------------------------------------------
 
 TailsController::TailsController(QObject* parent) : InfoBlockController(parent) {
+  _mode_text_id = -1;
   _min_text_id = -1;
+  _minutes     = 0;
 }
 
 void TailsController::tails_count_changed(int count) {
-  Q_UNUSED(count);
+
+  _minutes = count;
+
+  QString mins;
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+  {
+      if(_minutes <= 0)
+          mins.sprintf("%s", RLIStrings::nOff[i]);
+      else
+          mins.sprintf("%d", _minutes);
+      _block->setText(_min_text_id, i, enc->fromUnicode(dec->toUnicode(mins.toLocal8Bit())));
+  }
+}
+
+void TailsController::tails_changed(int mode, const QByteArray count) {
+
+  _minutes = atoi(count.data());
+
+  if(mode == TAILMODE_OFF)
+      _minutes = 0;
+
+  QByteArray smode;
+  QString mins;
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+  {
+      if(mode == TAILMODE_DOTS)
+          smode = RLIStrings::nDot[i];
+      else
+          smode = RLIStrings::nTrl[i];
+      if(_minutes <= 0)
+          mins.sprintf("%s", RLIStrings::nOff[i]);
+      else
+          mins.sprintf("%d", _minutes);
+      _block->setText(_mode_text_id, i, enc->fromUnicode(dec->toUnicode(smode)));
+      _block->setText(_min_text_id, i, enc->fromUnicode(dec->toUnicode(mins.toLocal8Bit())));
+  }
 }
 
 void TailsController::initBlock(const QSize& size) {
+  char * minsarray[2];
+
   _block->setGeometry(QRect( size.width() - 236 - 5, size.height() - 323 - 5, 236, 21));
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
@@ -381,13 +421,23 @@ void TailsController::initBlock(const QSize& size) {
 
   t.rect = QRect(4, 4, 0, 14);
   setInfoTextStr(t, RLIStrings::nTrl);
-  _block->addText(t);
+  _mode_text_id = _block->addText(t);
 
   t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
+  QString mins;
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+  {
+      if(_minutes <= 0)
+          mins.sprintf("%s", RLIStrings::nOff[i]);
+      else
+          mins.sprintf("%d", _minutes);
+      minsarray[i] = mins.toLocal8Bit().data();
+  }
   t.rect = QRect(180, 4, 0, 14);
-  setInfoTextStr(t, RLIStrings::nOff);
+  setInfoTextStr(t, minsarray);
+  //setInfoTextStr(t, RLIStrings::nOff);
   _min_text_id =_block->addText(t);
 
   t.font_tag = "8x14";

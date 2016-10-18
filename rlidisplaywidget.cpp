@@ -10,6 +10,7 @@
 #include "rlicontrolevent.h"
 
 RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
+  _world_coords = QVector2D(12.5000f, -81.6000f);
   _fonts = new AsmFonts();
 
   _chartEngine = new ChartEngine();
@@ -267,12 +268,11 @@ void RLIDisplayWidget::paintGL() {
 
   //_scale - радиус дырки в маске в пикселях
   // scale в update - метров/пиксель
-  QVector2D world_coords(12.5000f, -81.6000f);
   float scale = (_scale*1852.f) / _maskEngine->getRadius();
 
   _controlsEngine->draw();
 
-  _targetEngine->draw(world_coords, scale);
+  _targetEngine->draw(_world_coords, scale);
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();
@@ -331,7 +331,7 @@ void RLIDisplayWidget::paintGL() {
   _infoEngine->update();
 
   glEnable(GL_BLEND);
-  _chartEngine->update(world_coords, scale, 0.f, center-hole_center);
+  _chartEngine->update(_world_coords, scale, 0.f, center-hole_center);
 }
 
 
@@ -540,4 +540,14 @@ bool RLIDisplayWidget::event(QEvent* e) {
   }
 
   return QGLWidget::event(e);
+}
+
+void RLIDisplayWidget::setWorldCoords(QVector2D coords)
+{
+    _world_coords = coords;
+}
+
+QVector2D RLIDisplayWidget::RLIDisplayWidget::getWorldCoords(void) const
+{
+    return _world_coords;
 }

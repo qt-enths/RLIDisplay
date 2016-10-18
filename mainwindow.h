@@ -57,6 +57,9 @@ signals:
   void gain_changed(int value);
   void rain_changed(int value);
   void wave_changed(int value);
+  void tails_changed(int count);
+  void tails_mode_changed(int mode, const QByteArray count);
+  void band_changed(char** band);
 
 private slots:
   void resizeEvent(QResizeEvent* e);
@@ -65,6 +68,8 @@ private slots:
   void onRLIWidgetInitialized();
 
   void on_btnClose_clicked();
+  void on_tails_menu(const QByteArray count);
+  void on_band_menu(const QByteArray band);
 
 public slots:
   void on_mnuAnalogZeroChanged(int val);
@@ -111,6 +116,9 @@ private:
   Ui::MainWindow *ui;
 
   int pressedKey[4];
+
+  int tail_mode;
+  int tail_minutes;
 
 #ifndef Q_OS_WIN
   static int sigintFd[2];

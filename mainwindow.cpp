@@ -78,6 +78,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   ui->wgtRLIDisplay->setChartManager(_chart_mngr);
 
+  tail_mode    = TailsController::TAILMODE_OFF;
+  tail_minutes = 1;
+
   QStringList args = qApp->arguments();
   QRegExp     rx("--ampoff=[+|-]?[0-9]+$");
   int argpos = args.indexOf(rx);
@@ -392,6 +395,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         qApp->postEvent(ui->wgtRLIDisplay, e);
         break;
     }
+    case Qt::Key_T:
+    {
+        if(++tail_mode > TailsController::TAILMODE_LAST)
+            tail_mode = TailsController::TAILMODE_FIRST;
+        emit tails_changed((tail_mode == TailsController::TAILMODE_DOTS) ? tail_minutes : 0);
+        emit tails_mode_changed(tail_mode, QByteArray::number(tail_minutes));
+        break;
+    }
     case Qt::Key_Up:
     {
         RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Up);
@@ -431,7 +442,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 
 void MainWindow::onRLIWidgetInitialized() {
-  setCursor(Qt::CrossCursor);
+  //QString curfn("://res/cursors/cross_12px_72dpi.png");
+  QString curfn("://res/cursors/cross_72dpi_12px_r0_g128_b255.png");
+  QPixmap qpm(curfn);
+  QCursor pCur(qpm);
+  setCursor(pCur);
+  //setCursor(Qt::CrossCursor);
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
   connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
@@ -504,6 +520,27 @@ void MainWindow::onRLIWidgetInitialized() {
       connect(mii, SIGNAL(valueChanged(int)), this, SLOT(on_mnuAnalogZeroChanged(int)));
   else
       fprintf(stderr, "Failed to find menu: \'%s\'\n", RLIStrings::nMenu112[RLI_LANG_ENGLISH]);
+
+  mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::MAIN, RLIStrings::nMenu013[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
+  RLIMenuItemList * milist = dynamic_cast<RLIMenuItemList *>(mnuitem);
+  if(milist)
+  {
+      connect(milist, SIGNAL(valueChanged(const QByteArray)), this, SLOT(on_tails_menu(const QByteArray)));
+      connect(this, SIGNAL(tails_mode_changed(int, const QByteArray)), _tals_ctrl, SLOT(tails_changed(int, const QByteArray)));
+      connect(this, SIGNAL(tails_changed(int)), ui->wgtRLIDisplay->targetEngine(), SLOT(onTailsTimeChanged(int)));
+  }
+  else
+      fprintf(stderr, "Failed to find menu: \'%s\'\n", RLIStrings::nMenu013[RLI_LANG_ENGLISH]);
+
+  mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::CONFIG, RLIStrings::nMenu105[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
+  milist = dynamic_cast<RLIMenuItemList *>(mnuitem);
+  if(milist)
+  {
+      connect(milist, SIGNAL(valueChanged(const QByteArray)), this, SLOT(on_band_menu(const QByteArray)));
+      connect(this, SIGNAL(band_changed(char **)), _lbl6_ctrl, SLOT(onTextChanged(char**)));
+  }
+  else
+      fprintf(stderr, "Failed to find menu: \'%s\'\n", RLIStrings::nMenu013[RLI_LANG_ENGLISH]);
 
   this->setFocus();
 
@@ -711,4 +748,39 @@ void MainWindow::on_mnuAnalogZeroChanged(int val)
 void MainWindow::simulation_slot(bool sim)
 {
     _radar_ds->simulate(sim);
+}
+
+void MainWindow::on_tails_menu(const QByteArray count)
+{
+    tail_minutes = atoi(count.data());
+    emit tails_changed((tail_mode == TailsController::TAILMODE_DOTS) ? tail_minutes : 0);
+    emit tails_mode_changed(tail_mode, count);
+}
+
+void MainWindow::on_band_menu(const QByteArray band)
+{
+    const char * pband = band.data();
+    int bandnum = sizeof(RLIStrings::bandArray) / sizeof(RLIStrings::bandArray[0][0]) / 2;
+
+    for(int i = 0; i < bandnum; i++)
+    {
+        for(int j = 0; j < RLI_LANG_COUNT; j++)
+        {
+            if(strcmp(pband, RLIStrings::bandArray[i][j]) == 0)
+            {
+                switch(i)
+                {
+                case 0:
+                    emit band_changed(RLIStrings::nBandX);
+                    break;
+                case 1:
+                    emit band_changed(RLIStrings::nBandS);
+                    break;
+                case 2:
+                    emit band_changed(RLIStrings::nBandK);
+                    break;
+                }
+            }
+        }
+    }
 }
