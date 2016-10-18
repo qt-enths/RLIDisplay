@@ -7,8 +7,10 @@
 
 
 namespace RLIMath {
-  const double PI = 2 * asin(1);
-  const double EARTH_RADIUS = 6378137.0;
+  static const double PI = 2 * asin(1);
+  static const double EARTH_RADIUS = 6378137.0;
+  static const double METERS_PER_MILE = 1852.f;
+
 
   inline double radians(double deg) { return (deg / 180.f) * PI; }
   inline double degrees(double rad) { return (rad / PI) * 180.f; }

@@ -1,7 +1,10 @@
 #include "targetengine.h"
 
+#include "rlimath.h"
+
 TargetEngine::TargetEngine(QObject* parent) : QObject(parent), QGLFunctions() {
   _initialized = false;
+  _selected = "1";
 
   connect(&_tailsTimer, SIGNAL(timeout()), SLOT(onTailsTimer()));
   _tailsTimer.start(1000);
@@ -17,8 +20,19 @@ TargetEngine::~TargetEngine() {
 }
 
 
-void TargetEngine::trySelect(QPoint cursorPos) {
-  Q_UNUSED(cursorPos);
+void TargetEngine::trySelect(QVector2D cursorCoords, float scale) {
+  QList<QString> tags = _targets.keys();
+  for (int i = 0; i < tags.size(); i++) {
+    if (tags[i] == _selected)
+      continue;
+
+    QVector2D target_coords(_targets[tags[i]].Latitude, _targets[tags[i]].Longtitude);
+    QPointF dist_to_target = RLIMath::coords_to_pos(cursorCoords, target_coords, QPoint(0, 0), scale);
+    if (QVector2D(dist_to_target).length() < 16) {
+      _selected = tags[i];
+      return;
+    }
+  }
 }
 
 #include <QDateTime>
@@ -32,7 +46,7 @@ void TargetEngine::onTailsTimer() {
     QString tag = tags[i];
     _tails[tag].push_back(QVector2D(_targets[tag].Latitude,_targets[tag].Longtitude));
 
-    if (_tails[tag].size() > 6)
+    if (_tails[tag].size() > 4)
       _tails[tag].removeFirst();
   }
 
@@ -78,7 +92,9 @@ bool TargetEngine::init(const QGLContext* context) {
   glGenBuffers(AIS_TRGT_ATTR_COUNT, _vbo_ids);
 
   initShader();
-  initTexture();
+
+  initTexture("res//textures//targets//target.png", &_asset_texture_id);
+  initTexture("res//textures//targets//selection.png", &_selection_texture_id);
 
   _initialized = true;
   return _initialized;
@@ -124,7 +140,7 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_SCALE], scale);
   glUniform2f(_unif_locs[AIS_TRGT_UNIF_CENTER], world_coords.x(), world_coords.y());
 
-  initBuffersTrgts();
+  initBuffersTrgts("");
   bindBuffers();
 
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 0);
@@ -199,6 +215,19 @@ void TargetEngine::draw(QVector2D world_coords, float scale) {
   glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 3);
   glDrawArrays(GL_POINTS, 0, pCount);
 
+
+  if (_selected != "" && _targets.contains(_selected)) {
+    initBuffersTrgts(_selected);
+    bindBuffers();
+
+    glUniform1f(_unif_locs[AIS_TRGT_UNIF_TYPE], 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _selection_texture_id);
+    glDrawArrays(GL_QUADS, 0,  4);
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
+
   _prog->release();
 
   _trgtsMutex.unlock();
@@ -268,53 +297,65 @@ int TargetEngine::initBuffersTails() {
 }
 
 
-void TargetEngine::initBuffersTrgts() {
+void TargetEngine::initBuffersTrgts(QString tag) {
   std::vector<GLfloat> point, order, heading, rotation, course, speed;
 
   QList<QString> keys = _targets.keys();
 
-  for (int trgt = 0; trgt < keys.size(); trgt++) {
+  if (tag == "") {
+    for (int trgt = 0; trgt < keys.size(); trgt++) {
+      for (int i = 0; i < 4; i++) {
+        order.push_back(i);
+        point.push_back(_targets[keys[trgt]].Latitude);
+        point.push_back(_targets[keys[trgt]].Longtitude);
+        heading.push_back(_targets[keys[trgt]].Heading);
+        rotation.push_back(_targets[keys[trgt]].Rotation);
+        course.push_back(_targets[keys[trgt]].CourseOverGround);
+        speed.push_back(_targets[keys[trgt]].SpeedOverGround);
+      }
+    }
+  } else {
     for (int i = 0; i < 4; i++) {
-      order.push_back(i);
-      point.push_back(_targets[keys[trgt]].Latitude);
-      point.push_back(_targets[keys[trgt]].Longtitude);
-      heading.push_back(_targets[keys[trgt]].Heading);
-      rotation.push_back(_targets[keys[trgt]].Rotation);
-      course.push_back(_targets[keys[trgt]].CourseOverGround);
-      speed.push_back(_targets[keys[trgt]].SpeedOverGround);
+     order.push_back(i);
+      point.push_back(_targets[tag].Latitude);
+      point.push_back(_targets[tag].Longtitude);
+      heading.push_back(0);
+      rotation.push_back(0);
+      course.push_back(0);
+      speed.push_back(0);
     }
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COORDS]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*2*sizeof(GLfloat), point.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, point.size()*sizeof(GLfloat), point.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), order.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, order.size()*sizeof(GLfloat), order.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_HEADING]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), heading.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, heading.size()*sizeof(GLfloat), heading.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_ROTATION]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), rotation.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, rotation.size()*sizeof(GLfloat), rotation.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_COURSE]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), course.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, course.size()*sizeof(GLfloat), course.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[AIS_TRGT_ATTR_SPEED]);
-  glBufferData(GL_ARRAY_BUFFER, keys.size()*4*sizeof(GLfloat), speed.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, speed.size()*sizeof(GLfloat), speed.data(), GL_DYNAMIC_DRAW);
 }
 
-void TargetEngine::initTexture() {
-  glGenTextures(1, &_asset_texture_id);
+void TargetEngine::initTexture(QString path, GLuint* tex_id) {
+  glGenTextures(1, tex_id);
 
-  glBindTexture(GL_TEXTURE_2D, _asset_texture_id);
+  glBindTexture(GL_TEXTURE_2D, *tex_id);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  QImage img("res//textures//targets//target.png");
+  QImage img(path);
   img = QGLWidget::convertToGLFormat(img);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height()
@@ -323,4 +364,3 @@ void TargetEngine::initTexture() {
   glGenerateMipmap(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, 0);
 }
-

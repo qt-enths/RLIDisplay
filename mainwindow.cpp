@@ -405,6 +405,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         break;
     }
     case Qt::Key_Enter:
+    {
+        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
+        qApp->postEvent(ui->wgtRLIDisplay, e);
+        break;
+    }
     case Qt::Key_Return:
     {
         RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);

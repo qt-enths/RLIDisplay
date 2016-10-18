@@ -54,16 +54,17 @@ public:
 
 public slots:
   void onTailsTimer();
-  void trySelect(QPoint cursorPos);
+  void trySelect(QVector2D cursorCoords, float scale);
   void deleteTarget(QString tag);
   void updateTarget(QString tag, RadarTarget target);
 
 private:
   void bindBuffers();
-  void initBuffersTrgts();
+  void initBuffersTrgts(QString tag);
   int initBuffersTails();
+
   void initShader();
-  void initTexture();
+  void initTexture(QString path, GLuint* tex_id);
 
   QMutex _trgtsMutex;
   QString _selected;
@@ -76,6 +77,7 @@ private:
 
   // Mask shader programs
   GLuint _asset_texture_id;
+  GLuint _selection_texture_id;
   QGLShaderProgram* _prog;
 
   // -----------------------------------------------
