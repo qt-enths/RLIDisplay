@@ -457,11 +457,6 @@ void MainWindow::onRLIWidgetInitialized() {
   connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
 
-  qRegisterMetaType<RadarTarget>("RadarTarget");
-  connect(_target_ds, SIGNAL(updateTarget(QString, RadarTarget))
-         , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
-    _target_ds->start();
-
   connect(this, SIGNAL(scale_changed(std::pair<QByteArray, QByteArray>))
         , _scle_ctrl, SLOT(scale_changed(std::pair<QByteArray, QByteArray>)));
 
@@ -496,6 +491,19 @@ void MainWindow::onRLIWidgetInitialized() {
   setupInfoBlock(_vn_ctrl);
   setupInfoBlock(_vd_ctrl);
 
+  qRegisterMetaType<RadarTarget>("RadarTarget");
+
+  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(targetCountChanged(int))
+         , _trgs_ctrl, SLOT(onTargetCountChanged(int)));
+
+  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(selectedTargetUpdated(QString, RadarTarget))
+         , _trgs_ctrl, SLOT(updateTarget(QString, RadarTarget)));
+
+  connect(_target_ds, SIGNAL(updateTarget(QString, RadarTarget))
+         , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+
+  _target_ds->start();
+
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);
 
@@ -520,12 +528,6 @@ void MainWindow::onRLIWidgetInitialized() {
 
   connect( ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D))
          , _pstn_ctrl, SLOT(pos_changed(QVector2D)));
-
-  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(targetCountChanged(int))
-         , _trgs_ctrl, SLOT(onTargetCountChanged(int)));
-
-  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(selectedTargetUpdated(QString, RadarTarget))
-         , _trgs_ctrl, SLOT(updateTarget(QString, RadarTarget)));
 
 
   ui->wgtRLIDisplay->menuEngine()->setMenuItemIntValue(_radar_ds->getAmpsOffset(), MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);

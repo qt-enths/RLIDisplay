@@ -275,6 +275,9 @@ signals:
 private:
   void initBlock(const QSize& size);
 
+  int _count;
+  RadarTarget _target;
+
   int _trg_text_id;
   int _cnt_text_id;
   int _cog_text_id;

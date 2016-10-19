@@ -566,12 +566,15 @@ TargetsController::TargetsController(QObject* parent) : InfoBlockController(pare
 
   _cog_text_id = -1;
   _sog_text_id = -1;
+
+  _count = 0;
 }
 
 void TargetsController::onTargetCountChanged(int count) {
   if (_cnt_text_id == -1)
     return;
 
+  _count = count;
   QByteArray cnt = QString::number(count).toLatin1();
 
   emit setText(_cnt_text_id, RLI_LANG_ENGLISH, cnt);
@@ -582,6 +585,7 @@ void TargetsController::updateTarget(const QString& tag, const RadarTarget& trgt
   if (_trg_text_id == -1)
     return;
 
+  _target = trgt;
   QByteArray taga = tag.toLatin1();
   QByteArray coga = QString::number(trgt.CourseOverGround).left(6).toLatin1();
   QByteArray soga = QString::number(trgt.SpeedOverGround).left(6).toLatin1();
@@ -625,10 +629,8 @@ void TargetsController::initBlock(const QSize& size) {
   _trg_text_id = _block->addText(t);
 
   t.rect = QRect(230, 3, 0, 14);
-  setInfoTextBts(t, QByteArray("1"));
+  setInfoTextBts(t, QString::number(_count).toLatin1());
   _cnt_text_id = _block->addText(t);
-
-
 
   // Table
   t.allign = INFOTEXT_ALLIGN_LEFT;
@@ -681,11 +683,11 @@ void TargetsController::initBlock(const QSize& size) {
   _block->addText(t);
 
   t.rect = QRect(180, 18+5+2*18, 0, 14);
-  setInfoTextBts(t, QByteArray("0"));
+  setInfoTextBts(t, QString::number(_target.CourseOverGround).left(6).toLatin1());
   _cog_text_id = _block->addText(t);
 
   t.rect = QRect(180, 18+5+3*18, 0, 14);
-  setInfoTextBts(t, QByteArray("0"));
+  setInfoTextBts(t, QString::number(_target.SpeedOverGround).left(6).toLatin1());
   _sog_text_id =_block->addText(t);
 
   t.rect = QRect(180, 18+5+4*18, 0, 14);

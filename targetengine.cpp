@@ -87,7 +87,7 @@ void TargetEngine::updateTarget(QString tag, RadarTarget target) {
 
   if (!_targets.contains(tag)) {
     _targets.insert(tag, target);
-    _tails.insert(tag, QList<QVector2D>());
+    _tails.insert(tag, QList<QVector2D>());    
     emit targetCountChanged(_targets.size());
   } else {
     _targets[tag] = target;
