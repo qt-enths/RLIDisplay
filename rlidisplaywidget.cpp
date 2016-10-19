@@ -556,7 +556,7 @@ void RLIDisplayWidget::setWorldCoords(QVector2D coords)
     _world_coords = coords;
 }
 
-QVector2D RLIDisplayWidget::RLIDisplayWidget::getWorldCoords(void) const
+QVector2D RLIDisplayWidget::getWorldCoords(void) const
 {
     return _world_coords;
 }

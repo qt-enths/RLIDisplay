@@ -561,6 +561,37 @@ void VectorController::initBlock(const QSize& size) {
 //------------------------------------------------------------------------------
 
 TargetsController::TargetsController(QObject* parent) : InfoBlockController(parent) {
+  _trg_text_id = -1;
+  _cnt_text_id = -1;
+
+  _cog_text_id = -1;
+  _sog_text_id = -1;
+}
+
+void TargetsController::onTargetCountChanged(int count) {
+  if (_cnt_text_id == -1)
+    return;
+
+  QByteArray cnt = QString::number(count).toLatin1();
+
+  emit setText(_cnt_text_id, RLI_LANG_ENGLISH, cnt);
+  emit setText(_cnt_text_id, RLI_LANG_RUSSIAN, cnt);
+}
+
+void TargetsController::updateTarget(const QString& tag, const RadarTarget& trgt) {
+  if (_trg_text_id == -1)
+    return;
+
+  QByteArray taga = tag.toLatin1();
+  QByteArray coga = QString::number(trgt.CourseOverGround).left(6).toLatin1();
+  QByteArray soga = QString::number(trgt.SpeedOverGround).left(6).toLatin1();
+
+  emit setText(_trg_text_id, RLI_LANG_ENGLISH, taga);
+  emit setText(_trg_text_id, RLI_LANG_RUSSIAN, taga);
+  emit setText(_cog_text_id, RLI_LANG_ENGLISH, coga);
+  emit setText(_cog_text_id, RLI_LANG_RUSSIAN, coga);
+  emit setText(_sog_text_id, RLI_LANG_ENGLISH, soga);
+  emit setText(_sog_text_id, RLI_LANG_RUSSIAN, soga);
 }
 
 void TargetsController::initBlock(const QSize& size) {
@@ -651,11 +682,11 @@ void TargetsController::initBlock(const QSize& size) {
 
   t.rect = QRect(180, 18+5+2*18, 0, 14);
   setInfoTextBts(t, QByteArray("0"));
-  _block->addText(t);
+  _cog_text_id = _block->addText(t);
 
   t.rect = QRect(180, 18+5+3*18, 0, 14);
   setInfoTextBts(t, QByteArray("0"));
-  _block->addText(t);
+  _sog_text_id =_block->addText(t);
 
   t.rect = QRect(180, 18+5+4*18, 0, 14);
   setInfoTextBts(t, QByteArray("0"));

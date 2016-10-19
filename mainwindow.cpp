@@ -521,6 +521,13 @@ void MainWindow::onRLIWidgetInitialized() {
   connect( ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D))
          , _pstn_ctrl, SLOT(pos_changed(QVector2D)));
 
+  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(targetCountChanged(int))
+         , _trgs_ctrl, SLOT(onTargetCountChanged(int)));
+
+  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(selectedTargetUpdated(QString, RadarTarget))
+         , _trgs_ctrl, SLOT(updateTarget(QString, RadarTarget)));
+
+
   ui->wgtRLIDisplay->menuEngine()->setMenuItemIntValue(_radar_ds->getAmpsOffset(), MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
   RLIMenuItem * mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
   RLIMenuItemInt * mii = dynamic_cast<RLIMenuItemInt *>(mnuitem);

@@ -32,6 +32,7 @@ void TargetEngine::trySelect(QVector2D cursorCoords, float scale) {
     QPointF dist_to_target = RLIMath::coords_to_pos(cursorCoords, target_coords, QPoint(0, 0), scale);
     if (QVector2D(dist_to_target).length() < 16) {
       _selected = tags[i];
+      emit selectedTargetUpdated(_selected, _targets[_selected]);
       return;
     }
   }
@@ -87,8 +88,12 @@ void TargetEngine::updateTarget(QString tag, RadarTarget target) {
   if (!_targets.contains(tag)) {
     _targets.insert(tag, target);
     _tails.insert(tag, QList<QVector2D>());
-  } else
+    emit targetCountChanged(_targets.size());
+  } else {
     _targets[tag] = target;
+    if (tag == _selected)
+      emit selectedTargetUpdated(tag, target);
+  }
 
   _trgtsMutex.unlock();
 }
@@ -100,6 +105,12 @@ void TargetEngine::deleteTarget(QString tag) {
   if (_targets.contains(tag)) {
     _targets.remove(tag);
     _tails.remove(tag);
+    emit targetCountChanged(_targets.size());
+
+    if (tag == _selected) {
+      emit selectedTargetUpdated(tag, RadarTarget());
+      _selected = "";
+    }
   }
 
   _trgtsMutex.unlock();

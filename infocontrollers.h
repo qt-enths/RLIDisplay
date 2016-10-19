@@ -7,6 +7,7 @@
 #include <QTextDecoder>
 
 #include "infoengine.h"
+#include "targetengine.h"
 
 class InfoBlockController : public QObject {
   Q_OBJECT
@@ -264,6 +265,8 @@ public:
   explicit TargetsController(QObject* parent = 0);
 
 public slots:
+  void onTargetCountChanged(int count);
+  void updateTarget(const QString& tag, const RadarTarget& trgt);
 
 signals:
   void setRect(int rectId, const QRect& r);
@@ -274,6 +277,8 @@ private:
 
   int _trg_text_id;
   int _cnt_text_id;
+  int _cog_text_id;
+  int _sog_text_id;
 };
 
 

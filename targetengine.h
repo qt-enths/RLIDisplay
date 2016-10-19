@@ -54,6 +54,10 @@ public:
 
   int getTailsTime(void);
 
+signals:
+  void targetCountChanged(int count);
+  void selectedTargetUpdated(const QString& tag, const RadarTarget& trgt);
+
 public slots:
   void onTailsTimer();
   void onTailsTimeChanged(int minutes);
