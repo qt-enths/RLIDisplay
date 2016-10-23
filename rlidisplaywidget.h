@@ -47,6 +47,9 @@ signals:
   void displayVNDistance(float dist, const char * fmt);
   void displaydBRG(float brg, float crsangle);
 
+public slots:
+  void onCoordsChanged(const QVector2D& new_coords);
+
 protected slots:
   void mousePressEvent(QMouseEvent* e);
   void mouseMoveEvent(QMouseEvent* e);

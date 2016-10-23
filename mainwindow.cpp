@@ -7,7 +7,7 @@
 #include "rlistrings.h"
 #include "rlicontrolevent.h"
 
-#define RLI_THREADS_NUM 3 // Required number of threads in global QThreadPool
+#define RLI_THREADS_NUM 6 // Required number of threads in global QThreadPool
 
 #ifndef Q_OS_WIN
 
@@ -74,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _target_ds = new TargetDataSource();
   _radar_ds = new RadarDataSource();
+  _ship_ds = new ShipDataSource();
   _chart_mngr = new ChartManager();
 
   ui->wgtRLIDisplay->setChartManager(_chart_mngr);
@@ -503,6 +504,12 @@ void MainWindow::onRLIWidgetInitialized() {
          , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
 
   _target_ds->start();
+
+
+  connect(_ship_ds, SIGNAL(coordsUpdated(QVector2D))
+         , ui->wgtRLIDisplay, SLOT(onCoordsChanged(QVector2D)));
+
+  _ship_ds->start();
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
   ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);

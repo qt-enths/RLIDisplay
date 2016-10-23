@@ -9,6 +9,7 @@
 #include "chartmanager.h"
 #include "targetdatasource.h"
 #include "radardatasource.h"
+#include "shipdatasource.h"
 #include "infocontrollers.h"
 #include "radarscale.h"
 #include "nmeaprocessor.h"
@@ -112,6 +113,7 @@ private:
   ChartManager* _chart_mngr;
   TargetDataSource* _target_ds;
   RadarDataSource* _radar_ds;
+  ShipDataSource* _ship_ds;
 
   Ui::MainWindow *ui;
 

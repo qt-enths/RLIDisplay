@@ -379,8 +379,8 @@ void ChartEngine::setChart(S52Chart* chrt, S52References* ref) {
 }
 
 void ChartEngine::update(QVector2D center, float scale, float angle, QPoint center_shift) {
-  bool need_update = (abs(_center.x() - center.x()) > 0.00000005
-                    || abs(_center.y() - center.y()) > 0.00000005
+  bool need_update = (abs(_center.x() - center.x()) > 0.0005
+                    || abs(_center.y() - center.y()) > 0.0005
                     || abs(_scale - scale) > 0.005
                     || abs(_angle - angle) > 0.005
                     || abs(_center_shift.x() - center_shift.x()) > 0.005
