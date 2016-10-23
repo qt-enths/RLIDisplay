@@ -21,6 +21,7 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _infoEngine = new InfoEngine();
   _menuEngine = new MenuEngine(QSize(12, 14));
   _targetEngine = new TargetEngine();
+  _routeEngine = new RouteEngine();
 
   _controlsEngine = new ControlsEngine();
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
@@ -38,6 +39,7 @@ RLIDisplayWidget::~RLIDisplayWidget() {
 
   delete _targetEngine;
   delete _controlsEngine;
+  delete _routeEngine;
 
   delete _fonts;
 }
@@ -172,6 +174,12 @@ void RLIDisplayWidget::initializeGL() {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Target engine init finish";
 
 
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Route engine init start";
+  if (!_routeEngine->init(context()))
+    return;
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Route engine init finish";
+
+
   if (!_controlsEngine->init(context()))
     return;
 
@@ -278,6 +286,7 @@ void RLIDisplayWidget::paintGL() {
   _controlsEngine->draw();
 
   _targetEngine->draw(_world_coords, scale);
+  _routeEngine->draw(_world_coords, scale);
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();

@@ -16,6 +16,7 @@
 #include "chartengine.h"
 #include "targetengine.h"
 #include "controlsengine.h"
+#include "routeengine.h"
 
 class RLIDisplayWidget : public QGLWidget, protected QGLFunctions
 {
@@ -84,6 +85,7 @@ private:
 
   TargetEngine* _targetEngine;
   ControlsEngine* _controlsEngine;
+  RouteEngine* _routeEngine;
 
   QVector2D _world_coords;
 };
