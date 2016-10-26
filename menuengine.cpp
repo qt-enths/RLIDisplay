@@ -542,6 +542,7 @@ void MenuEngine::initMainMenuTree() {
 
   RLIMenuItemAction* i044 = new RLIMenuItemAction(RLIStrings::nMenu044);
   m04->add_item(static_cast<RLIMenuItem*>(i044));
+  routeEditItem = i044;
 
   RLIMenuItemInt* i045 = new RLIMenuItemInt(RLIStrings::nMenu045, 0, 10, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i045));
@@ -673,8 +674,16 @@ void MenuEngine::onEnter() {
   if (_menu->item(_selected_line - 1)->type() == RLIMenuItem::MENU) {
     _menu = dynamic_cast<RLIMenuItemMenu*>(_menu->item(_selected_line - 1));
     _selected_line = 1;
-  } else
+  } else {
     _selection_active = !_selection_active;
+
+    if (_menu->item(_selected_line - 1) == routeEditItem) {
+      if (_selection_active)
+        emit startRouteEdit();
+      else
+        emit finishRouteEdit();
+    }
+  }
 
   _last_action_time = QDateTime::currentDateTime();
   _need_update = true;

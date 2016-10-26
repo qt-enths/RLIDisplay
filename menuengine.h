@@ -184,6 +184,9 @@ signals:
   void radarBrightnessChanged(int br);
   void onSimChanged(bool sim);
 
+  void startRouteEdit();
+  void finishRouteEdit();
+
 public slots:
   void setState(MenuState state);
   void onLanguageChanged(const QByteArray& lang);
@@ -219,6 +222,8 @@ private:
 
   RLIMenuItemMenu* _main_menu;
   RLIMenuItemMenu* _cnfg_menu;
+
+  RLIMenuItemAction* routeEditItem;
 
   int _selected_line;
   bool _selection_active;

@@ -1,14 +1,14 @@
 #include "controlsengine.h"
 
 #include <qmath.h>
-
-static double const PI = acos(-1);
+#include "rlimath.h"
 
 ControlsEngine::ControlsEngine() : QGLFunctions() {
   _initialized = false;
 
   _center = QPoint(0, 0);
   _cursor = QPoint(0, 0);
+  _visor_shift = QPoint(0, 0);
 
   _vn_p = 0.f;
   _vn_cu = 0.f;
@@ -31,6 +31,11 @@ ControlsEngine::~ControlsEngine() {
 
   if (_initialized)
     glDeleteBuffers(CTRL_ATTR_COUNT, vbo_ids);
+}
+
+QPointF ControlsEngine::getVdVnIntersection() {
+  return QPointF(sin(RLIMath::radians(_vn_cu)) * _vd
+                ,-cos(RLIMath::radians(_vn_cu)) * _vd);
 }
 
 bool ControlsEngine::init(const QGLContext* context) {
@@ -115,8 +120,8 @@ void ControlsEngine::drawVN() {
 
   //_vn_cu -= 2;
 
-  float vn_p_rads = PI * (_vn_p / 180);
-  float vn_cu_rads = PI * (_vn_cu / 180);
+  float vn_p_rads = RLIMath::radians(_vn_p);
+  float vn_cu_rads = RLIMath::radians(_vn_cu);
 
   glLineWidth(2);
   //glColor3f(0.93f, .62f, .46f);
@@ -135,16 +140,22 @@ void ControlsEngine::drawVN() {
   glLineStipple(1, 0xF0F0);
   glEnable(GL_LINE_STIPPLE);
 
+  glMatrixMode( GL_MODELVIEW );
+  glTranslatef( _visor_shift.x(), _visor_shift.y(), 0);
+
   glBegin(GL_LINES);
   glVertex2f(0, 0);
   glVertex2f(1600 * sin(vn_cu_rads), -1600 * cos(vn_cu_rads));
   glEnd();
 
+  glMatrixMode( GL_MODELVIEW );
+  glTranslatef( -_visor_shift.x(), -_visor_shift.y(), 0);
+
   glPopAttrib();
 }
 
 void ControlsEngine::drawPL() {
-  float vn_p_rads = PI * (_vn_p / 180);
+  float vn_p_rads = RLIMath::radians(_vn_p);
 
   QVector2D tan(sin(vn_p_rads), -cos(vn_p_rads));
   QVector2D norm(-tan.y(), tan.x());
@@ -186,8 +197,13 @@ void ControlsEngine::drawVD() {
   glVertexAttribPointer(loc_angle, 1, GL_FLOAT, GL_FALSE, 0, (void*) (0));
   glEnableVertexAttribArray(loc_angle);
 
+  glMatrixMode( GL_MODELVIEW );
+  glTranslatef( _visor_shift.x(), _visor_shift.y(), 0);
+
   glLineWidth(2);
   glDrawArrays(GL_LINE_STRIP, 0, CIRCLE_POINTS+1);
+
+  glTranslatef( -_visor_shift.x(), -_visor_shift.y(), 0);
 
   _prog->release();
 }
@@ -217,8 +233,8 @@ void ControlsEngine::drawOZ() {
   if (_oz_min_radius <= 30.f)
     _oz_min_radius_step *= -1.f;
 
-  float min_angle_rads = PI * (_oz_min_angle / 180.f);
-  float max_angle_rads = PI * (_oz_max_angle / 180.f);
+  float min_angle_rads = RLIMath::radians(_oz_min_angle);
+  float max_angle_rads = RLIMath::radians(_oz_max_angle);
 
   glShadeModel( GL_SMOOTH );
 

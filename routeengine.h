@@ -16,15 +16,20 @@ public:
   bool init(const QGLContext* context);
   void draw(QVector2D world_coords, float scale);
 
+  QVector2D getLastPoint() { return _routes[_current].last(); }
+
 public slots:
+  void clearCurrentRoute();
+  void addPointToCurrent(const QVector2D& p);
 
 protected slots:
 
 private:
   bool _initialized;
+  int _current;
 
   void initShader();
-  int loadBuffers(int routeIndex);
+  int loadBuffers();
 
   QMutex _routesMutex;
 

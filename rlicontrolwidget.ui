@@ -991,6 +991,12 @@
      </item>
      <item row="0" column="1">
       <widget class="QSlider" name="sldVN">
+       <property name="mouseTracking">
+        <bool>false</bool>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="minimum">
         <number>-90</number>
        </property>
@@ -1007,6 +1013,12 @@
      </item>
      <item row="1" column="1">
       <widget class="QSlider" name="sldVD">
+       <property name="mouseTracking">
+        <bool>false</bool>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="minimum">
         <number>-90</number>
        </property>

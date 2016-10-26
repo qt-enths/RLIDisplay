@@ -37,6 +37,7 @@ RLIControlWidget::RLIControlWidget(QWidget *parent) : QWidget(parent), ui(new Ui
   _vd_pos = TRIGGERED_SLIDER_DEFAULT;
 
   _reciever = NULL;
+  setFocusPolicy(Qt::NoFocus);
 }
 
 RLIControlWidget::~RLIControlWidget() {

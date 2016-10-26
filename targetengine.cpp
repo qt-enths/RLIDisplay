@@ -21,6 +21,12 @@ TargetEngine::~TargetEngine() {
   }
 }
 
+int TargetEngine::getCurrentIndex() {
+  if (_targets.contains(_selected))
+    return _targets.keys().indexOf(_selected);
+  else
+    return -1;
+}
 
 void TargetEngine::trySelect(QVector2D cursorCoords, float scale) {
   QList<QString> tags = _targets.keys();

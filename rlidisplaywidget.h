@@ -65,12 +65,19 @@ protected slots:
 
   void new_chart(const QString& name);
 
+  void onStartRouteEdit();
+  void onAddRoutePoint();
+  void onFinishRouteEdit();
+
 private:
   void fillWithTexture(GLuint texId);
 
   void moveCoursor(const QPoint &pos, bool repaint = true);
 
   bool _initialized;
+
+  bool _route_edition;
+
   int  _last_second;
   float _scale;
 

@@ -15,6 +15,11 @@ public:
   bool init(const QGLContext* context);
   void draw();
 
+  QPointF getVdVnIntersection();
+
+  inline void setVisorShift(const QPoint& p) { _visor_shift = p; }
+  inline QPoint getVisorShift() { return _visor_shift; }
+
   inline void setCursorPos(QPoint p) { _cursor = p; }
   inline QPoint getCursorPos() { return _cursor; }
 
@@ -46,6 +51,7 @@ private:
 
   QPoint _center;
   QPoint _cursor;
+  QPoint _visor_shift;
 
   float _vn_p;
   float _vn_cu;

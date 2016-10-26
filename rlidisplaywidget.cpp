@@ -28,6 +28,7 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _controlsEngine->setCenterPos(_maskEngine->getCenter());
 
   _initialized = false;
+  _route_edition = false;
 }
 
 RLIDisplayWidget::~RLIDisplayWidget() {
@@ -42,6 +43,27 @@ RLIDisplayWidget::~RLIDisplayWidget() {
   delete _routeEngine;
 
   delete _fonts;
+}
+
+void RLIDisplayWidget::onStartRouteEdit() {
+  _routeEngine->clearCurrentRoute();
+  _routeEngine->addPointToCurrent(_world_coords);
+  _route_edition = true;
+}
+
+void RLIDisplayWidget::onAddRoutePoint() {
+  QPointF pos = _controlsEngine->getVdVnIntersection();
+  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+  QVector2D last_route_point = _routeEngine->getLastPoint();
+  /*QPointF pos = _controlsEngine->getCursorPos();
+  QPointF cen = _controlsEngine->getCenterPos();
+  QVector2D cursor_coords = RLIMath::pos_to_coords(_world_coords, cen, pos, scale);*/
+  QVector2D cursor_coords = RLIMath::pos_to_coords(last_route_point, QPoint(0, 0), pos, scale);
+  _routeEngine->addPointToCurrent(cursor_coords);
+}
+
+void RLIDisplayWidget::onFinishRouteEdit() {
+  _route_edition = false;
 }
 
 void RLIDisplayWidget::onCoordsChanged(const QVector2D& new_coords) {
@@ -68,38 +90,6 @@ void RLIDisplayWidget::initializeGL() {
   qDebug() << "OpenGL: " << (const char*) glGetString(GL_VERSION);
   qDebug() << "Shaders: " << (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
   //qDebug() << "Extensions: " << (const char*) glGetString(GL_EXTENSIONS);
-
-  /*GLint ival[2];
-  glGetIntegerv(GL_MAX_SAMPLES, ival);
-  qDebug() << "Max sample count: " << ival[0];
-
-  glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS, ival);
-  qDebug() << "Max framebuffer layers: " << ival[0];
-
-  glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, ival);
-  qDebug() << "Max framebuffer height: " << ival[0];
-
-  glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, ival);
-  qDebug() << "Max framebuffer width: " << ival[0];
-
-  glGetIntegerv(GL_MAX_FRAMEBUFFER_SAMPLES, ival);
-  qDebug() << "Max framebuffer samples: " << ival[0];
-
-  glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, ival);
-  qDebug() << "Aliased point size range: " << (QString::number(ival[0]) + ":" + QString::number(ival[1])).toLatin1();
-
-  glGetIntegerv(GL_SMOOTH_POINT_SIZE_RANGE, ival);
-  qDebug() << "Smooth point size range: " << (QString::number(ival[0]) + ":" + QString::number(ival[1])).toLatin1();
-
-  glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE, ival);
-  qDebug() << "Aliased line width range: " << (QString::number(ival[0]) + ":" + QString::number(ival[1])).toLatin1();
-
-  glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE, ival);
-  qDebug() << "Smooth line width range: " << (QString::number(ival[0]) + ":" + QString::number(ival[1])).toLatin1();
-
-  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, ival);
-  qDebug() << "Max combined texture image units: " << ival[0];*/
-
 
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Fonts loading start";
@@ -283,7 +273,19 @@ void RLIDisplayWidget::paintGL() {
   // scale в update - метров/пиксель
   float scale = (_scale*1852.f) / _maskEngine->getRadius();
 
+
+  if (_route_edition) {
+    QVector2D _route_last = _routeEngine->getLastPoint();
+    QPointF v_pos = RLIMath::coords_to_pos(_world_coords, _route_last, QPoint(0, 0), scale);
+    _controlsEngine->setVisorShift(v_pos.toPoint());
+  } else {
+    _controlsEngine->setVisorShift(QPoint(0, 0));
+  }
+
   _controlsEngine->draw();
+
+
+
 
   _targetEngine->draw(_world_coords, scale);
   _routeEngine->draw(_world_coords, scale);
@@ -480,6 +482,11 @@ bool RLIDisplayWidget::event(QEvent* e) {
         _menuEngine->setState(MenuEngine::CONFIG);
       break;
       case RLIControlEvent::Up:
+        if (_route_edition) {
+          onAddRoutePoint();
+          break;
+        }
+
         if (_menuEngine->visible())
           _menuEngine->onUp();
         break;
@@ -494,7 +501,7 @@ bool RLIDisplayWidget::event(QEvent* e) {
           QPointF pos = _controlsEngine->getCursorPos();
           QPointF cen = _controlsEngine->getCenterPos();
           float scale = (_scale*1852.f) / _maskEngine->getRadius();
-          QVector2D cursor_coords = RLIMath::pos_to_coords(QVector2D(12.5000f, -81.6000f), cen, pos, scale);
+          QVector2D cursor_coords = RLIMath::pos_to_coords(_world_coords, cen, pos, scale);
           _targetEngine->trySelect(cursor_coords, scale);
         }
         break;

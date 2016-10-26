@@ -527,8 +527,12 @@ void MainWindow::onRLIWidgetInitialized() {
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
          , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
-         , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(startRouteEdit())
+         , ui->wgtRLIDisplay, SLOT(onStartRouteEdit()));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(finishRouteEdit())
+         , ui->wgtRLIDisplay, SLOT(onFinishRouteEdit()));
+
 
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(onSimChanged(bool))
          , this, SLOT(simulation_slot(bool)));
@@ -759,52 +763,43 @@ void MainWindow::evdevHandleThread()
 #endif // !Q_OS_WIN
 
 // gain_slot used only for simulated Control Panel Unit. Must be removed at finish build
-void MainWindow::gain_slot(int value)
-{
-    _radar_ds->setGain(value);
+void MainWindow::gain_slot(int value) {
+  _radar_ds->setGain(value);
 }
 
-void MainWindow::on_mnuAnalogZeroChanged(int val)
-{
-    _radar_ds->setAmpsOffset(val);
+void MainWindow::on_mnuAnalogZeroChanged(int val) {
+  _radar_ds->setAmpsOffset(val);
 }
 
-void MainWindow::simulation_slot(bool sim)
-{
-    _radar_ds->simulate(sim);
+void MainWindow::simulation_slot(bool sim) {
+  _radar_ds->simulate(sim);
 }
 
-void MainWindow::on_tails_menu(const QByteArray count)
-{
-    tail_minutes = atoi(count.data());
-    emit tails_changed((tail_mode == TailsController::TAILMODE_DOTS) ? tail_minutes : 0);
-    emit tails_mode_changed(tail_mode, count);
+void MainWindow::on_tails_menu(const QByteArray count) {
+  tail_minutes = atoi(count.data());
+  emit tails_changed((tail_mode == TailsController::TAILMODE_DOTS) ? tail_minutes : 0);
+  emit tails_mode_changed(tail_mode, count);
 }
 
-void MainWindow::on_band_menu(const QByteArray band)
-{
-    const char * pband = band.data();
-    int bandnum = sizeof(RLIStrings::bandArray) / sizeof(RLIStrings::bandArray[0][0]) / 2;
+void MainWindow::on_band_menu(const QByteArray band) {
+  const char * pband = band.data();
+  int bandnum = sizeof(RLIStrings::bandArray) / sizeof(RLIStrings::bandArray[0][0]) / 2;
 
-    for(int i = 0; i < bandnum; i++)
-    {
-        for(int j = 0; j < RLI_LANG_COUNT; j++)
-        {
-            if(strcmp(pband, RLIStrings::bandArray[i][j]) == 0)
-            {
-                switch(i)
-                {
-                case 0:
-                    emit band_changed(RLIStrings::nBandX);
-                    break;
-                case 1:
-                    emit band_changed(RLIStrings::nBandS);
-                    break;
-                case 2:
-                    emit band_changed(RLIStrings::nBandK);
-                    break;
-                }
-            }
+  for(int i = 0; i < bandnum; i++) {
+    for(int j = 0; j < RLI_LANG_COUNT; j++) {
+      if(strcmp(pband, RLIStrings::bandArray[i][j]) == 0) {
+        switch(i) {
+        case 0:
+          emit band_changed(RLIStrings::nBandX);
+          break;
+        case 1:
+          emit band_changed(RLIStrings::nBandS);
+          break;
+        case 2:
+          emit band_changed(RLIStrings::nBandK);
+          break;
         }
+      }
     }
+  }
 }

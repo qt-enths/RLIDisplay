@@ -8,6 +8,8 @@ RouteEngine::RouteEngine(QObject* parent) : QObject(parent), QGLFunctions() {
   route0.push_back(QVector2D(12.6000f, -81.5000f));
   route0.push_back(QVector2D(12.4000f, -81.5500f));
   _routes.push_back(route0);
+
+  _current = 0;
 }
 
 RouteEngine::~RouteEngine() {
@@ -15,6 +17,14 @@ RouteEngine::~RouteEngine() {
     delete _prog;
     glDeleteBuffers(ROUTE_ATTR_COUNT, _vbo_ids);
   }
+}
+
+void RouteEngine::clearCurrentRoute() {
+  _routes[_current].clear();
+}
+
+void RouteEngine::addPointToCurrent(const QVector2D& p) {
+  _routes[_current].push_back(p);
 }
 
 bool RouteEngine::init(const QGLContext* context) {
@@ -42,7 +52,7 @@ void RouteEngine::draw(QVector2D center_coords, float scale) {
   glUniform1f(_unif_locs[ROUTE_UNIF_SCALE], scale);
   glUniform2f(_unif_locs[ROUTE_UNIF_CENTER], center_coords.x(), center_coords.y());
 
-  int pCount = loadBuffers(0);
+  int pCount = loadBuffers();
 
   glPointSize(5);
   glDrawArrays(GL_POINTS, 0, pCount);
@@ -76,11 +86,11 @@ void RouteEngine::initShader() {
   setlocale(LC_ALL, "");
 }
 
-int RouteEngine::loadBuffers(int routeIndex) {
+int RouteEngine::loadBuffers() {
   std::vector<GLfloat> points;
 
   QList<QVector2D>::const_iterator it;
-  for (it = _routes.at(routeIndex).begin(); it != _routes.at(routeIndex).end(); it++) {
+  for (it = _routes.at(_current).begin(); it != _routes.at(_current).end(); it++) {
     points.push_back( (*it).x() );
     points.push_back( (*it).y() );
   }

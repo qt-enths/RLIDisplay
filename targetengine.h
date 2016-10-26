@@ -53,6 +53,7 @@ public:
   void draw(QVector2D world_coords, float scale);
 
   int getTailsTime(void);
+  int getCurrentIndex();
 
 signals:
   void targetCountChanged(int count);
