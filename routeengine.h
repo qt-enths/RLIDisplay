@@ -21,6 +21,7 @@ public:
 public slots:
   void clearCurrentRoute();
   void addPointToCurrent(const QVector2D& p);
+  void removePointFromCurrent();
 
 protected slots:
 
@@ -37,11 +38,14 @@ private:
   QList<QList<QVector2D> > _routes;
 
   // -----------------------------------------------
-  enum { ROUTE_ATTR_COORDS = 0
-       , ROUTE_ATTR_COUNT = 1 } ;
+  enum { ROUTE_ATTR_PREV_COORDS = 0
+       , ROUTE_ATTR_CURR_COORDS = 1
+       , ROUTE_ATTR_NEXT_COORDS = 2
+       , ROUTE_ATTR_COUNT = 3 } ;
   enum { ROUTE_UNIF_CENTER = 0
        , ROUTE_UNIF_SCALE = 1
-       , ROUTE_UNIF_COUNT = 2 } ;
+       , ROUTE_UNIF_TYPE = 2
+       , ROUTE_UNIF_COUNT = 3 } ;
 
   GLuint _vbo_ids[ROUTE_ATTR_COUNT];
   GLuint _attr_locs[ROUTE_ATTR_COUNT];

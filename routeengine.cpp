@@ -20,11 +20,22 @@ RouteEngine::~RouteEngine() {
 }
 
 void RouteEngine::clearCurrentRoute() {
+  _routesMutex.lock();
   _routes[_current].clear();
+  _routesMutex.unlock();
 }
 
 void RouteEngine::addPointToCurrent(const QVector2D& p) {
+  _routesMutex.lock();
   _routes[_current].push_back(p);
+  _routesMutex.unlock();
+}
+
+void RouteEngine::removePointFromCurrent() {
+  _routesMutex.lock();
+  if (_routes[_current].size() > 1)
+    _routes[_current].removeLast();
+  _routesMutex.unlock();
 }
 
 bool RouteEngine::init(const QGLContext* context) {
@@ -54,9 +65,25 @@ void RouteEngine::draw(QVector2D center_coords, float scale) {
 
   int pCount = loadBuffers();
 
+  glUniform1f(_unif_locs[ROUTE_UNIF_TYPE], 0);
   glPointSize(5);
   glDrawArrays(GL_POINTS, 0, pCount);
 
+  glPushAttrib(GL_ENABLE_BIT);
+
+  glLineStipple(1, 0xF0F0);
+  glEnable(GL_LINE_STIPPLE);
+
+  glLineWidth(1);
+  glDrawArrays(GL_LINE_STRIP, 0, pCount);
+
+  glPopAttrib();
+
+  glUniform1f(_unif_locs[ROUTE_UNIF_TYPE], 1);
+  glLineWidth(1);
+  glDrawArrays(GL_LINE_STRIP, 0, pCount);
+
+  glUniform1f(_unif_locs[ROUTE_UNIF_TYPE], 2);
   glLineWidth(1);
   glDrawArrays(GL_LINE_STRIP, 0, pCount);
 
@@ -75,10 +102,13 @@ void RouteEngine::initShader() {
   _prog->link();
   _prog->bind();
 
-  _attr_locs[ROUTE_ATTR_COORDS] = _prog->attributeLocation("world_coords");
+  _attr_locs[ROUTE_ATTR_PREV_COORDS] = _prog->attributeLocation("prev_world_coords");
+  _attr_locs[ROUTE_ATTR_CURR_COORDS] = _prog->attributeLocation("curr_world_coords");
+  _attr_locs[ROUTE_ATTR_NEXT_COORDS] = _prog->attributeLocation("next_world_coords");
 
   _unif_locs[ROUTE_UNIF_CENTER] = _prog->uniformLocation("center");
   _unif_locs[ROUTE_UNIF_SCALE] = _prog->uniformLocation("scale");
+  _unif_locs[ROUTE_UNIF_TYPE] = _prog->uniformLocation("type");
 
   _prog->release();
 
@@ -87,18 +117,46 @@ void RouteEngine::initShader() {
 }
 
 int RouteEngine::loadBuffers() {
-  std::vector<GLfloat> points;
+  std::vector<GLfloat> prev_points;
+  std::vector<GLfloat> curr_points;
+  std::vector<GLfloat> next_points;
 
   QList<QVector2D>::const_iterator it;
   for (it = _routes.at(_current).begin(); it != _routes.at(_current).end(); it++) {
-    points.push_back( (*it).x() );
-    points.push_back( (*it).y() );
+    curr_points.push_back( (*it).x() );
+    curr_points.push_back( (*it).y() );
+
+    if (it == _routes.at(_current).begin()) {
+      prev_points.push_back( (*it).x() );
+      prev_points.push_back( (*it).y() );
+    } else {
+      prev_points.push_back( (*(it-1)).x() );
+      prev_points.push_back( (*(it-1)).y() );
+    }
+
+    if ((it+1) == _routes.at(_current).end()) {
+      next_points.push_back( (*it).x() );
+      next_points.push_back( (*it).y() );
+    } else {
+      next_points.push_back( (*(it+1)).x() );
+      next_points.push_back( (*(it+1)).y() );
+    }
   }
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ROUTE_ATTR_COORDS]);
-  glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(GLfloat), points.data(), GL_DYNAMIC_DRAW);
-  glVertexAttribPointer(_attr_locs[ROUTE_ATTR_COORDS], 2, GL_FLOAT, GL_FALSE, 0, (void*) (0));
-  glEnableVertexAttribArray(_attr_locs[ROUTE_ATTR_COORDS]);
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ROUTE_ATTR_PREV_COORDS]);
+  glBufferData(GL_ARRAY_BUFFER, prev_points.size()*sizeof(GLfloat), prev_points.data(), GL_DYNAMIC_DRAW);
+  glVertexAttribPointer(_attr_locs[ROUTE_ATTR_PREV_COORDS], 2, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glEnableVertexAttribArray(_attr_locs[ROUTE_ATTR_PREV_COORDS]);
 
-  return points.size() / 2;
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ROUTE_ATTR_CURR_COORDS]);
+  glBufferData(GL_ARRAY_BUFFER, curr_points.size()*sizeof(GLfloat), curr_points.data(), GL_DYNAMIC_DRAW);
+  glVertexAttribPointer(_attr_locs[ROUTE_ATTR_CURR_COORDS], 2, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glEnableVertexAttribArray(_attr_locs[ROUTE_ATTR_CURR_COORDS]);
+
+  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ROUTE_ATTR_NEXT_COORDS]);
+  glBufferData(GL_ARRAY_BUFFER, next_points.size()*sizeof(GLfloat), next_points.data(), GL_DYNAMIC_DRAW);
+  glVertexAttribPointer(_attr_locs[ROUTE_ATTR_NEXT_COORDS], 2, GL_FLOAT, GL_FALSE, 0, (void*) (0));
+  glEnableVertexAttribArray(_attr_locs[ROUTE_ATTR_NEXT_COORDS]);
+
+  return curr_points.size() / 2;
 }

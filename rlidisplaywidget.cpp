@@ -506,6 +506,11 @@ bool RLIDisplayWidget::event(QEvent* e) {
         }
         break;
       case RLIControlEvent::Back:
+        if (_route_edition) {
+          _routeEngine->removePointFromCurrent();
+          break;
+        }
+
         if (_menuEngine->visible())
           _menuEngine->onBack();
         break;
