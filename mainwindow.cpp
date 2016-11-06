@@ -527,11 +527,20 @@ void MainWindow::onRLIWidgetInitialized() {
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
          , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
 
+
+
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(startRouteEdit())
          , ui->wgtRLIDisplay, SLOT(onStartRouteEdit()));
 
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(finishRouteEdit())
          , ui->wgtRLIDisplay, SLOT(onFinishRouteEdit()));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(loadRoute(int))
+         , ui->wgtRLIDisplay->routeEngine(), SLOT(loadFrom(int)));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(saveRoute(int))
+         , ui->wgtRLIDisplay->routeEngine(), SLOT(saveTo(int)));
+
 
 
   connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(onSimChanged(bool))

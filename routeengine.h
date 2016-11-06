@@ -16,18 +16,21 @@ public:
   bool init(const QGLContext* context);
   void draw(QVector2D world_coords, float scale);
 
-  QVector2D getLastPoint() { return _routes[_current].last(); }
+  QVector2D getLastPoint() { return _currentRoute.last(); }
+  inline bool isIndexUsed(int index) { return (index < 0 || index >= _routes.size() || _routes[index].size() > 0); }
 
 public slots:
   void clearCurrentRoute();
   void addPointToCurrent(const QVector2D& p);
   void removePointFromCurrent();
 
+  void loadFrom(int index);
+  void saveTo(int index);
+
 protected slots:
 
 private:
   bool _initialized;
-  int _current;
 
   void initShader();
   int loadBuffers();
@@ -35,7 +38,9 @@ private:
   QMutex _routesMutex;
 
   QGLShaderProgram* _prog;
-  QList<QList<QVector2D> > _routes;
+
+  QList<QVector2D> _currentRoute;
+  QVector<QList<QVector2D> > _routes;
 
   // -----------------------------------------------
   enum { ROUTE_ATTR_PREV_COORDS = 0

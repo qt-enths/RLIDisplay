@@ -13,6 +13,7 @@
 
 #include "asmfonts.h"
 #include "rlistrings.h"
+#include "routeengine.h"
 
 class RLIMenuItem : public QObject {
   Q_OBJECT
@@ -114,6 +115,7 @@ public:
   ~RLIMenuItemInt() {}
 
   inline QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QString::number(_value).toLatin1(); }
+  inline int intValue() { return _value; }
 
   void up();
   void down();
@@ -166,6 +168,8 @@ public:
   inline QSize size() { return _size; }
   inline GLuint getTextureId() { return _fbo->texture(); }
 
+  inline void setRouteEngine(RouteEngine* e) { _routeEngine = e; }
+
   inline void setFonts(AsmFonts* fonts) { _fonts = fonts; }
 
   bool init     (const QGLContext* context);
@@ -186,6 +190,9 @@ signals:
 
   void startRouteEdit();
   void finishRouteEdit();
+
+  void saveRoute(int index);
+  void loadRoute(int index);
 
 public slots:
   void setState(MenuState state);
@@ -224,6 +231,10 @@ private:
   RLIMenuItemMenu* _cnfg_menu;
 
   RLIMenuItemAction* routeEditItem;
+  RLIMenuItemInt* routeLoaderItem;
+  RLIMenuItemInt* routeSaverItem;
+
+  RouteEngine* _routeEngine;
 
   int _selected_line;
   bool _selection_active;

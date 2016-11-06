@@ -185,6 +185,7 @@ MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent
   initCnfgMenuTree();
 
   _menu = NULL;
+  _routeEngine = NULL;
   _last_action_time = QDateTime::currentDateTime();
 }
 
@@ -529,6 +530,7 @@ void MenuEngine::initMainMenuTree() {
 
   RLIMenuItemInt* i040 = new RLIMenuItemInt(RLIStrings::nMenu040, 1, 4, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i040));
+  routeLoaderItem = i040;
 
   RLIMenuItemInt* i041 = new RLIMenuItemInt(RLIStrings::nMenu041, 0, 10, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i041));
@@ -557,6 +559,7 @@ void MenuEngine::initMainMenuTree() {
 
   RLIMenuItemInt* i047 = new RLIMenuItemInt(RLIStrings::nMenu047, 1, 4, 1);
   m04->add_item(static_cast<RLIMenuItem*>(i047));
+  routeSaverItem = i047;
 
 
   // --------------------------
@@ -683,6 +686,15 @@ void MenuEngine::onEnter() {
       else
         emit finishRouteEdit();
     }
+
+    if (!_selection_active) {
+      if (_menu->item(_selected_line - 1) == routeLoaderItem)
+        emit loadRoute(routeLoaderItem->intValue());
+
+      if (_menu->item(_selected_line - 1) == routeSaverItem)
+        emit saveRoute(routeSaverItem->intValue());
+
+    }
   }
 
   _last_action_time = QDateTime::currentDateTime();
@@ -792,6 +804,19 @@ void MenuEngine::update() {
     drawText(_menu->name(_lang), 0, ALIGN_CENTER, MENU_TEXT_STATIC_COLOR);
 
     for (int i = 0; i < _menu->item_count(); i++) {
+
+      if ((_menu->item(i) == routeLoaderItem || _menu->item(i) == routeSaverItem) && _routeEngine != NULL) {
+        if (_routeEngine->isIndexUsed(static_cast<RLIMenuItemInt*>(_menu->item(i))->intValue())) {
+          drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, MENU_TEXT_STATIC_COLOR);
+          drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, MENU_TEXT_DYNAMIC_COLOR);
+        } else {
+          drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, MENU_TEXT_STATIC_COLOR);
+          drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, MENU_DISABLED_ITEM_COLOR);
+        }
+
+        continue;
+      }
+
       if (_menu->item(i)->locked()) {
         drawText(_menu->item(i)->name(_lang), i+1, ALIGN_LEFT, MENU_LOCKED_ITEM_COLOR);
         drawText(_menu->item(i)->value(_lang), i+1, ALIGN_RIGHT, MENU_LOCKED_ITEM_COLOR);

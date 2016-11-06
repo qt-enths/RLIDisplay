@@ -23,6 +23,8 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _targetEngine = new TargetEngine();
   _routeEngine = new RouteEngine();
 
+  _menuEngine->setRouteEngine(_routeEngine);
+
   _controlsEngine = new ControlsEngine();
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
   _controlsEngine->setCenterPos(_maskEngine->getCenter());

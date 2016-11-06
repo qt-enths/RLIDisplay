@@ -1,15 +1,11 @@
 #include "routeengine.h"
 
-RouteEngine::RouteEngine(QObject* parent) : QObject(parent), QGLFunctions() {
+RouteEngine::RouteEngine(QObject* parent) : QObject(parent), QGLFunctions(), _routes(200) {
   _initialized = false;
 
-  QList<QVector2D> route0;
-  route0.push_back(QVector2D(12.7000f, -81.6000f));
-  route0.push_back(QVector2D(12.6000f, -81.5000f));
-  route0.push_back(QVector2D(12.4000f, -81.5500f));
-  _routes.push_back(route0);
-
-  _current = 0;
+  _currentRoute.push_back(QVector2D(12.7000f, -81.6000f));
+  _currentRoute.push_back(QVector2D(12.6000f, -81.5000f));
+  _currentRoute.push_back(QVector2D(12.4000f, -81.5500f));
 }
 
 RouteEngine::~RouteEngine() {
@@ -21,21 +17,31 @@ RouteEngine::~RouteEngine() {
 
 void RouteEngine::clearCurrentRoute() {
   _routesMutex.lock();
-  _routes[_current].clear();
+  _currentRoute.clear();
   _routesMutex.unlock();
 }
 
 void RouteEngine::addPointToCurrent(const QVector2D& p) {
   _routesMutex.lock();
-  _routes[_current].push_back(p);
+  _currentRoute.push_back(p);
   _routesMutex.unlock();
 }
 
 void RouteEngine::removePointFromCurrent() {
   _routesMutex.lock();
-  if (_routes[_current].size() > 1)
-    _routes[_current].removeLast();
+  if (_currentRoute.size() > 1)
+    _currentRoute.removeLast();
   _routesMutex.unlock();
+}
+
+void RouteEngine::loadFrom(int index) {
+  if (index >= 0 && index < _routes.size())
+    _currentRoute = _routes[index];
+}
+
+void RouteEngine::saveTo(int index) {
+  if (index >= 0 && index < _routes.size())
+    _routes[index] = _currentRoute;
 }
 
 bool RouteEngine::init(const QGLContext* context) {
@@ -122,11 +128,11 @@ int RouteEngine::loadBuffers() {
   std::vector<GLfloat> next_points;
 
   QList<QVector2D>::const_iterator it;
-  for (it = _routes.at(_current).begin(); it != _routes.at(_current).end(); it++) {
+  for (it = _currentRoute.begin(); it != _currentRoute.end(); it++) {
     curr_points.push_back( (*it).x() );
     curr_points.push_back( (*it).y() );
 
-    if (it == _routes.at(_current).begin()) {
+    if (it == _currentRoute.begin()) {
       prev_points.push_back( (*it).x() );
       prev_points.push_back( (*it).y() );
     } else {
@@ -134,7 +140,7 @@ int RouteEngine::loadBuffers() {
       prev_points.push_back( (*(it-1)).y() );
     }
 
-    if ((it+1) == _routes.at(_current).end()) {
+    if ((it+1) == _currentRoute.end()) {
       next_points.push_back( (*it).x() );
       next_points.push_back( (*it).y() );
     } else {

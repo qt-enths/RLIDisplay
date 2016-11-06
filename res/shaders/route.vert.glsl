@@ -17,7 +17,12 @@ void main() {
   if (type == 0) {
     gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos, 0, 1);
   } else {
-    float farwater_width = 32.f;
+    float shift_dir = 1.f;
+    if (type != 1)
+      shift_dir = -1.f;
+
+    float farwater_width = 500.f; //meters
+    float farwater_width_pix = farwater_width / scale;
 
     vec2 prev_pix_pos;
     vec2 next_pix_pos;
@@ -32,12 +37,7 @@ void main() {
       next_pix_pos = pix_pos(next_world_coords);
       tan_pix_next = normalize(next_pix_pos - curr_pix_pos);
       norm_pix_next = vec2(tan_pix_next.y, -tan_pix_next.x);
-
-      if (type == 1)
-        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos + farwater_width*norm_pix_next, 0, 1);
-      else
-        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos - farwater_width*norm_pix_next, 0, 1);
-
+      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos + shift_dir*farwater_width_pix*norm_pix_next, 0, 1);
       return;
     }
 
@@ -45,12 +45,7 @@ void main() {
       prev_pix_pos = pix_pos(prev_world_coords);
       tan_pix_prev = normalize(curr_pix_pos - prev_pix_pos);
       norm_pix_prev = vec2(tan_pix_prev.y, -tan_pix_prev.x);
-
-      if (type == 1)
-        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos + farwater_width*norm_pix_prev, 0, 1);
-      else
-        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos - farwater_width*norm_pix_prev, 0, 1);
-
+      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos + shift_dir*farwater_width_pix*norm_pix_prev, 0, 1);
       return;
     }
 
@@ -63,29 +58,13 @@ void main() {
     norm_pix_prev = vec2(tan_pix_prev.y, -tan_pix_prev.x);
     norm_pix_next = vec2(tan_pix_next.y, -tan_pix_next.x);
 
-    if (  abs(norm_pix_prev.x - norm_pix_next.x) < 0.0001
-       && abs(norm_pix_prev.y - norm_pix_next.y) < 0.0001) {
-      if (type == 1)
-        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos + farwater_width*norm_pix_next, 0, 1);
-      else
-        gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos - farwater_width*norm_pix_next, 0, 1);
+    if (  abs(norm_pix_prev.x - norm_pix_next.x) < 0.0001 && abs(norm_pix_prev.y - norm_pix_next.y) < 0.0001) {
+      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(curr_pix_pos + shift_dir*farwater_width_pix*norm_pix_next, 0, 1);
     } else {
-      vec2 p11;
-      vec2 p12;
-      vec2 p21;
-      vec2 p22;
-
-      if (type == 1) {
-        p11 = prev_pix_pos + farwater_width*norm_pix_prev;
-        p12 = curr_pix_pos + farwater_width*norm_pix_prev;
-        p21 = curr_pix_pos + farwater_width*norm_pix_next;
-        p22 = next_pix_pos + farwater_width*norm_pix_next;
-      } else {
-        p11 = prev_pix_pos - farwater_width*norm_pix_prev;
-        p12 = curr_pix_pos - farwater_width*norm_pix_prev;
-        p21 = curr_pix_pos - farwater_width*norm_pix_next;
-        p22 = next_pix_pos - farwater_width*norm_pix_next;
-      }
+      vec2 p11 = prev_pix_pos + shift_dir*farwater_width_pix*norm_pix_prev;
+      vec2 p12 = curr_pix_pos + shift_dir*farwater_width_pix*norm_pix_prev;
+      vec2 p21 = curr_pix_pos + shift_dir*farwater_width_pix*norm_pix_next;
+      vec2 p22 = next_pix_pos + shift_dir*farwater_width_pix*norm_pix_next;
 
       vec2 shifted_pix_pos = line_intersection(p11, p12, p21, p22);
       gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix  * vec4(shifted_pix_pos, 0, 1);
