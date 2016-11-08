@@ -151,7 +151,7 @@ namespace RLIStrings {
   static char* nMenu040[2] = { "CALL ROUTE №", "ВЫЗОВ КАРТЫ №" };
   static char* nMenu041[2] = { "TAILS/PNT", "СЛЕДЫ/ТЧК" };
   static char* nMenu042[2] = { "-------------------", "-------------------" };
-  static char* nMenu043[2] = { "CALL ROUTE №", "ВЫЗОВ КАРТЫ №" };
+  static char* nMenu043[2] = { "FARWATER m", "ФАРВАТЕР м" };
   static char* nMenu044[2] = { "LINE OF A ROUTE", "ЛИНИЯ МАРШРУТА" };
   static char* nMenu045[2] = { "POINT NUMBER", "НОМЕР ТОЧКИ" };
   static char* nMenu046[2] = { "SYMBOLS", "СИМВОЛЫ" };
