@@ -7,16 +7,16 @@
 #include <QtOpenGL/QGLFunctions>
 #include <QtOpenGL/QGLShaderProgram>
 
-#include "chartmanager.h"
+#include "s52/chartmanager.h"
 
-#include "radarengine.h"
-#include "infoengine.h"
-#include "menuengine.h"
-#include "maskengine.h"
-#include "chartengine.h"
-#include "targetengine.h"
-#include "controlsengine.h"
-#include "routeengine.h"
+#include "layers/radarengine.h"
+#include "layers/infoengine.h"
+#include "layers/menuengine.h"
+#include "layers/maskengine.h"
+#include "layers/chartengine.h"
+#include "layers/targetengine.h"
+#include "layers/controlsengine.h"
+#include "layers/routeengine.h"
 
 class RLIDisplayWidget : public QGLWidget, protected QGLFunctions
 {

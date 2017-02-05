@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QDateTime>
 
-#include "rlistrings.h"
+#include "common/rlistrings.h"
 #include "rlicontrolevent.h"
 
 #define RLI_THREADS_NUM 6 // Required number of threads in global QThreadPool

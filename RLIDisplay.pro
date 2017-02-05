@@ -18,67 +18,68 @@ unix:INCLUDEPATH += /usr/local/include/
 unix:LIBS += -lgdal  -lrt
 win32:LIBS += -lgdal_i -lgeos_i
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
+SOURCES += main.cpp \
+    mainwindow.cpp \
     rlicontrolwidget.cpp \
     rlidisplaywidget.cpp \
-    asmfonts.cpp \
-    radardatasource.cpp \
-    radarengine.cpp \
-    infoengine.cpp \
-    infocontrollers.cpp \
+    layers/asmfonts.cpp \
+    layers/radarengine.cpp \
+    layers/infoengine.cpp \
+    datasources/infocontrollers.cpp \
     rlicontrolevent.cpp \
-    maskengine.cpp \
-    controlsengine.cpp \
-    menuengine.cpp \
-    chartmanager.cpp \
-    s52assets.cpp \
-    s52chart.cpp \
-    s52references.cpp \
-    triangulate.cpp \
-    chartengine.cpp \
-    chartlayers.cpp \
-    chartshaders.cpp \
-    radarscale.cpp \
-    targetengine.cpp \
-    targetdatasource.cpp \
-    nmeadata.cpp \
-    nmeaprocessor.cpp \
-    rlimath.cpp \
-    shipdatasource.cpp \
-    routeengine.cpp
+    layers/maskengine.cpp \
+    layers/controlsengine.cpp \
+    layers/menuengine.cpp \
+    s52/chartmanager.cpp \
+    s52/s52assets.cpp \
+    s52/s52chart.cpp \
+    s52/s52references.cpp \
+    common/triangulate.cpp \
+    layers/chartengine.cpp \
+    layers/chartlayers.cpp \
+    layers/chartshaders.cpp \
+    layers/targetengine.cpp \
+    common/rlimath.cpp \
+    layers/routeengine.cpp \
+    datasources/nmeadata.cpp \
+    datasources/nmeaprocessor.cpp \
+    datasources/radardatasource.cpp \
+    datasources/radarscale.cpp \
+    datasources/targetdatasource.cpp \
+    datasources/shipdatasource.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
     rlidisplaywidget.h \
-    asmfonts.h \
-    radardatasource.h \
-    radarengine.h \
-    xpmon_be.h \
-    infoengine.h \
-    infocontrollers.h \
+    layers/asmfonts.h \
+    layers/radarengine.h \
+    layers/infoengine.h \
+    datasources/infocontrollers.h \
     rlicontrolevent.h \
-    maskengine.h \
-    controlsengine.h \
-    menuengine.h \
-    chartmanager.h \
-    s52assets.h \
-    s52chart.h \
-    s52references.h \
-    triangulate.h \
-    chartengine.h \
-    chartlayers.h \
-    chartshaders.h \
-    apctrl.h \
-    rlistrings.h \
-    radarscale.h \
-    targetengine.h \
-    targetdatasource.h \
-    nmeadata.h \
-    nmeaprocessor.h \
-    rlimath.h \
-    shipdatasource.h \
-    routeengine.h
+    layers/maskengine.h \
+    layers/controlsengine.h \
+    layers/menuengine.h \
+    s52/chartmanager.h \
+    s52/s52assets.h \
+    s52/s52chart.h \
+    s52/s52references.h \
+    common/triangulate.h \
+    layers/chartengine.h \
+    layers/chartlayers.h \
+    layers/chartshaders.h \
+    datasources/apctrl.h \
+    common/rlistrings.h \
+    layers/targetengine.h \
+    common/rlimath.h \
+    layers/routeengine.h \
+    datasources/xpmon_be.h \
+    datasources/nmeadata.h \
+    datasources/nmeaprocessor.h \
+    datasources/radarscale.h \
+    datasources/radardatasource.h \
+    datasources/targetdatasource.h \
+    datasources/shipdatasource.h
+
 
 FORMS    += mainwindow.ui \
     rlicontrolwidget.ui

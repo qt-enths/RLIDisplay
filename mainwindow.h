@@ -6,13 +6,13 @@
 #include <QTimerEvent>
 #include <QSocketNotifier>
 
-#include "chartmanager.h"
-#include "targetdatasource.h"
-#include "radardatasource.h"
-#include "shipdatasource.h"
-#include "infocontrollers.h"
-#include "radarscale.h"
-#include "nmeaprocessor.h"
+#include "s52/chartmanager.h"
+#include "datasources/targetdatasource.h"
+#include "datasources/radardatasource.h"
+#include "datasources/shipdatasource.h"
+#include "datasources/infocontrollers.h"
+#include "datasources//radarscale.h"
+#include "datasources/nmeaprocessor.h"
 
 namespace Ui {
   class MainWindow;

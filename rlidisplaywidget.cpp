@@ -7,7 +7,7 @@
 #include <QDateTime>
 #include <QApplication>
 
-#include "rlimath.h"
+#include "common/rlimath.h"
 #include "rlicontrolevent.h"
 
 RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
