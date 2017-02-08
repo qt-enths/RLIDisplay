@@ -8,7 +8,7 @@
 #include <sys/select.h>
 #include <QWaitCondition>
 #include "nmeadata.h"
-#include "targetengine.h"
+#include "layers/targetengine.h"
 
 
 #if QT_VERSION >= 0x050000
