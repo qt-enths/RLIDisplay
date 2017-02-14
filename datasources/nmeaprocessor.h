@@ -17,13 +17,6 @@
     #include <QtConcurrentRun>
 #endif
 
-const int bufLen = 90;
-const int strLen = 81;
-const int parsNum = 6;
-const int portNum = 16;
-const int multiSentStrLen = 256;
-const int targetN = 100;
-
 
 enum status{
     SRCH_D,
@@ -52,6 +45,13 @@ enum parsType{
     ZV,
     LAST_PARSER_TYPE = ZV
 };
+
+const int bufLen = 90;
+const int strLen = 81;
+const int parsNum = LAST_PARSER_TYPE; //6;
+const int portNum = 16;
+const int multiSentStrLen = 256;
+const int targetN = 100;
 
 typedef struct{
     struct tm DateTime;
@@ -529,10 +529,12 @@ public:
     void open_fds(QStringList & ports);
     void initParsers();
     void targetChanged(unsigned int mmsi);
+    void hdgChanged(float hdg);
     int start(void);
 
 signals:
     void updateTarget(QString tag, RadarTarget target);
+    void updateHeading(float hdg);
 
 public slots:
 

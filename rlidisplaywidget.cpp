@@ -72,6 +72,10 @@ void RLIDisplayWidget::onCoordsChanged(const QVector2D& new_coords) {
   _world_coords = new_coords;
 }
 
+void RLIDisplayWidget::onHeadingChanged(float hdg) {
+  _controlsEngine->setVnP(hdg);
+}
+
 void RLIDisplayWidget::new_chart(const QString& name) {
   if (!_initialized)
     return;

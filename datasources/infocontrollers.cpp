@@ -240,7 +240,14 @@ CourseController::CourseController(QObject* parent) : InfoBlockController(parent
 }
 
 void CourseController::course_changed(float course) {
-  Q_UNUSED(course);
+  //Q_UNUSED(course);
+  //printf("Slot: %s. Hdg: %f\n", __func__, course);
+  if(_crs_text_id == -1)
+    return;
+  QString str;
+  str.setNum(course, 'f', 1);
+  for(int i = 0; i < RLI_LANG_COUNT; i++)
+    emit setText(_crs_text_id, i, str.toLocal8Bit());
 }
 
 void CourseController::speed_changed(float speed) {

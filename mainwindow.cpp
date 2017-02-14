@@ -503,6 +503,7 @@ void MainWindow::onRLIWidgetInitialized() {
   connect(_target_ds, SIGNAL(updateTarget(QString, RadarTarget))
          , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
 
+
   _target_ds->start();
 
 
@@ -591,6 +592,9 @@ void MainWindow::onRLIWidgetInitialized() {
   // Create and start NMEA processor
   _nmeaprc = new NMEAProcessor(this);
   connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+  connect(_nmeaprc, SIGNAL(updateHeading(float)), _crse_ctrl, SLOT(course_changed(float)));
+  connect(_nmeaprc, SIGNAL(updateHeading(float)), _radar_ds, SLOT(updateHeading(float)));
+  connect(_nmeaprc, SIGNAL(updateHeading(float)), ui->wgtRLIDisplay, SLOT(onHeadingChanged(float)));
   if(_nmeaPort.size())
   {
       QStringList ports;

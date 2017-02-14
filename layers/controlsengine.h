@@ -37,6 +37,9 @@ public:
   inline void setPlVisibility(bool val) { _is_pl_visible = val; }
   inline bool isPlVisible() { return _is_pl_visible; }
 
+public slots:
+  void setVnP(float hdg) {if((hdg >= 0.0) && (hdg < 360.0)) _vn_p = hdg;}
+
 private:
   void initBuffers();
   void initShader();

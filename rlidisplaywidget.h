@@ -51,6 +51,7 @@ signals:
 
 public slots:
   void onCoordsChanged(const QVector2D& new_coords);
+  void onHeadingChanged(float hdg);
 
 protected slots:
   void mousePressEvent(QMouseEvent* e);

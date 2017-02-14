@@ -182,6 +182,11 @@ protected:
   int setupHIP(hip_t hiptype, hip_channel_t hipch);
 
   bool simulation;
+
+  u_int32_t gyroReg;
+
+public slots:
+  void updateHeading(float hdg);
 };
 
 #endif // RADARDATASOURCE_H

@@ -268,14 +268,20 @@ void NMEAProcessor::targetChanged(unsigned int mmsi)
     QString tag;
     tag.sprintf("AIS_%d", mmsi);
 
-	fprintf(stderr, "%s: about to emit updateTarget\n", __func__);
+	//fprintf(stderr, "%s: about to emit updateTarget\n", __func__);
 
     emit updateTarget(tag, trg);
 
-	fprintf(stderr, "%s: updateTarget emitted\n", __func__);
+	//fprintf(stderr, "%s: updateTarget emitted\n", __func__);
 }
 
-void transmit(void){
+void NMEAProcessor::hdgChanged(float hdg)
+{
+	//printf("Emit updateHeading\n");
+    emit updateHeading(hdg);
+}
+
+void NMEAProcessor::transmit(void){
 
 }
 
@@ -866,6 +872,8 @@ void NMEAProcessor::initParsers(){
     parsers[VW-1] = new VW_Parser();
     parsers[SD-1] = new SD_Parser();
     parsers[AI-1] = new AI_Parser();
+
+    parsers[HE-1]->_prc = this;
     parsers[AI-1]->_prc = this;
 }
 
@@ -1217,6 +1225,12 @@ void HE_Parser::Pars(){
     else hdt.HeadDegr_F = Flag;
     if (GetC(&Flag, &hdt.T) == -1) return;
     else hdt.T_F = Flag;
+
+    if(_prc)
+	{
+        _prc->hdgChanged(hdt.HeadDegr);
+		//printf("_prc->hdgChanged finished\n");
+	}
 
     printHDT();
 

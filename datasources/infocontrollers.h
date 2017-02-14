@@ -112,7 +112,6 @@ private:
 };
 
 
-
 class CourseController : public InfoBlockController {
   Q_OBJECT
 public:

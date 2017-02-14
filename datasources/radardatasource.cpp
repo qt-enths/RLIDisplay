@@ -49,6 +49,7 @@ uint32_t gmax = 0;
 #define APCTRL_GEN_BASEADDR      0xe02c
 #define APCTRL_ADC_BASEADDR      0xe030
 #define APCTRL_E038_BASEADDR     0xe038
+#define APCTRL_GYROREG_BASEADDR  0xe04C
 
 #define APCTRL_CTRL_INTIZIEN     0x0001
 #define APCTRL_CTRL_NOISEON      0x0002
@@ -122,7 +123,12 @@ RadarDataSource::RadarDataSource() {
   hip_main          = HIP_NONE;
   hip_sarp          = HIP_NONE;
 
+#ifndef Q_OS_WIN
+  simulation        = false;
+#else  // Q_OS_WIN
   simulation        = true;
+#endif // Q_OS_WIN
+  gyroReg           = 0;
 }
 
 RadarDataSource::~RadarDataSource() {
@@ -445,6 +451,9 @@ void RadarDataSource::start(const char * radarfn) {
 	{
 		fprintf(stderr, "%s: mainWnd is NULL!!!\n", __func__);
 	}
+
+    apctrl_regwr(APCTRL_GYROREG_BASEADDR, gyroReg);
+	printf("APCTRL_GYROREG_BASEADDR written with 0x%X\n", gyroReg);
 
     syncstate    = RDSS_NOTSYNC;
     finish_flag  = false;
@@ -1837,6 +1846,31 @@ int RadarDataSource::simulate(bool sim)
         res = e;
     }
 
-#endif // Q_OS_WIN
+#endif // !Q_OS_WIN
     return res;
+}
+
+void RadarDataSource::updateHeading(float hdg)
+{
+  int res;
+  u_int32_t regv;
+
+  regv = (u_int32_t)(hdg * 4096.0 / 360.0);
+  if(regv == gyroReg)
+    return;
+#ifndef Q_OS_WIN
+  if(fd == -1)
+    return;
+  res = apctrl_regwr(APCTRL_GYROREG_BASEADDR, regv);
+  if(res < 0)
+  {
+    fprintf(stderr, "%s: APCTRL_GYROREG_BASEADDR write with value 0x%X failed\n", __func__, regv);
+  }
+  else
+  {
+    gyroReg = regv;
+    fprintf(stderr, "%s: APCTRL_GYROREG_BASEADDR writen with 0x%X\n", __func__, regv);
+  }
+  // TODO: check return value of apctrl_regwr and signal error
+#endif // !Q_OS_WIN
 }
