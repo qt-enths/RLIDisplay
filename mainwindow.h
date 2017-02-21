@@ -51,7 +51,6 @@ public slots:
 #endif // !Q_OS_WIN
 
   void gain_slot(int value); // Used only for simulated Control Panel Unit. Must be removed at finish build
-  void simulation_slot(bool sim);
 
 signals:
   void scale_changed(std::pair<QByteArray, QByteArray> scale);
@@ -69,11 +68,8 @@ private slots:
   void onRLIWidgetInitialized();
 
   void on_btnClose_clicked();
-  void on_tails_menu(const QByteArray count);
-  void on_band_menu(const QByteArray band);
-
-public slots:
-  void on_mnuAnalogZeroChanged(int val);
+  void onTailsMenu(const QByteArray count);
+  void onBandMenu(const QByteArray band);
 
 private:
   void setupInfoBlock(InfoBlockController* ctrl);

@@ -1291,14 +1291,12 @@ int RadarDataSource::chkScans(int start)
     return good_end;
 }
 
-int RadarDataSource::setAmpsOffset(int off)
-{
-    ampoffset = off;
-    return 0;
+void RadarDataSource::setAmpsOffset(int off) {
+  ampoffset = off;
 }
-int RadarDataSource::getAmpsOffset(void)
-{
-    return ampoffset;
+
+int RadarDataSource::getAmpsOffset(void) {
+  return ampoffset;
 }
 
 int RadarDataSource::preprocessBearing(u_int32_t * brgdata, bool inv)
@@ -1777,6 +1775,10 @@ int RadarDataSource::nextHIP(hip_channel_t hipch)
         return res;
     *ptype = htype;
     return 0;
+}
+
+void RadarDataSource::onSimulationChanged(const QByteArray& str) {
+  simulate(str.length() == 3);
 }
 
 int RadarDataSource::simulate(bool sim)

@@ -120,7 +120,9 @@ public:
   void up();
   void down();
 
-  virtual int setValue(QByteArray val);
+public slots:
+  int setValue(int val);
+  int setValue(QByteArray val);
 
 signals:
   void valueChanged(int);
@@ -179,14 +181,10 @@ public:
   inline bool visible() { return _state != DISABLED; }
   inline QByteArray toQByteArray(const char* str) { return _enc->fromUnicode(_dec->toUnicode(str)); }
 
-  RLIMenuItem * findItem(RLIMenuItemMenu * mnu, char * name, int lang_id);
-  RLIMenuItem * findItem(enum MenuState type, char * name, int lang_id);
-  int setMenuItemIntValue(int val, MenuState type, char * name, int lang_id = 0);
-
 signals:
   void languageChanged(const QByteArray& lang);
   void radarBrightnessChanged(int br);
-  void onSimChanged(bool sim);
+  void simulationChanged(const QByteArray& sim);
 
   void startRouteEdit();
   void finishRouteEdit();
@@ -194,10 +192,13 @@ signals:
   void saveRoute(int index);
   void loadRoute(int index);
 
+  void analogZeroChanged(int val);
+  void tailsModeChanged(const QByteArray& val);
+  void bandModeChanged(const QByteArray& val);
+
 public slots:
   void setState(MenuState state);
   void onLanguageChanged(const QByteArray& lang);
-  void onSimulation(const QByteArray sim);
 
   void update();
 
@@ -205,6 +206,8 @@ public slots:
   void onDown();
   void onEnter();
   void onBack();
+
+  void onAnalogZeroChanged(int val);
 
 private:
   void initMainMenuTree();
@@ -233,6 +236,8 @@ private:
   RLIMenuItemAction* routeEditItem;
   RLIMenuItemInt* routeLoaderItem;
   RLIMenuItemInt* routeSaverItem;
+
+  RLIMenuItemInt* analogZeroItem;
 
   RouteEngine* _routeEngine;
 

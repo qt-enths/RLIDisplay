@@ -63,10 +63,14 @@ public:
 
   void finish();
 
-  int setAmpsOffset(int off);
   int getAmpsOffset(void);
   int preprocessBearing(u_int32_t * brgdata, bool inv);
   int simulate(bool sim);
+
+public slots:
+  void updateHeading(float hdg);
+  void setAmpsOffset(int off);
+  void onSimulationChanged(const QByteArray& str);
 
 signals:
   void updateData(uint offset, uint count, GLfloat* amps);
@@ -184,9 +188,6 @@ protected:
   bool simulation;
 
   u_int32_t gyroReg;
-
-public slots:
-  void updateHeading(float hdg);
 };
 
 #endif // RADARDATASOURCE_H

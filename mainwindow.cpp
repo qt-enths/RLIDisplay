@@ -448,12 +448,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 
 void MainWindow::onRLIWidgetInitialized() {
-  //QString curfn("://res/cursors/cross_12px_72dpi.png");
-  QString curfn("://res/cursors/cross_72dpi_12px_r0_g128_b255.png");
-  QPixmap qpm(curfn);
-  QCursor pCur(qpm);
-  setCursor(pCur);
-  //setCursor(Qt::CrossCursor);
+  setCursor(QCursor(QPixmap("://res/cursors/cross_72dpi_12px_r0_g128_b255.png")));
+
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
   connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
@@ -519,73 +515,52 @@ void MainWindow::onRLIWidgetInitialized() {
   _chart_mngr->loadCharts();
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup menu signals";
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         , ui->wgtRLIDisplay->infoEngine(), SLOT(onLanguageChanged(QByteArray)));
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         ,ui->wgtRLIDisplay->infoEngine(), SLOT(onLanguageChanged(QByteArray)));
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         , ui->wgtRLIDisplay->menuEngine(), SLOT(onLanguageChanged(QByteArray)));
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         ,ui->wgtRLIDisplay->menuEngine(), SLOT(onLanguageChanged(QByteArray)));
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
-         , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
-
-
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(startRouteEdit())
-         , ui->wgtRLIDisplay, SLOT(onStartRouteEdit()));
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(finishRouteEdit())
-         , ui->wgtRLIDisplay, SLOT(onFinishRouteEdit()));
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(loadRoute(int))
-         , ui->wgtRLIDisplay->routeEngine(), SLOT(loadFrom(int)));
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(saveRoute(int))
-         , ui->wgtRLIDisplay->routeEngine(), SLOT(saveTo(int)));
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
+         ,ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
 
 
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(onSimChanged(bool))
-         , this, SLOT(simulation_slot(bool)));
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(startRouteEdit())
+         ,ui->wgtRLIDisplay, SLOT(onStartRouteEdit()));
 
-  connect( ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D))
-         , _pstn_ctrl, SLOT(pos_changed(QVector2D)));
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(finishRouteEdit())
+         ,ui->wgtRLIDisplay, SLOT(onFinishRouteEdit()));
+
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(loadRoute(int))
+         ,ui->wgtRLIDisplay->routeEngine(), SLOT(loadFrom(int)));
+
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(saveRoute(int))
+         ,ui->wgtRLIDisplay->routeEngine(), SLOT(saveTo(int)));
 
 
-  ui->wgtRLIDisplay->menuEngine()->setMenuItemIntValue(_radar_ds->getAmpsOffset(), MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
-  RLIMenuItem * mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::CONFIG, RLIStrings::nMenu112[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
-  RLIMenuItemInt * mii = dynamic_cast<RLIMenuItemInt *>(mnuitem);
-  if(mii)
-      connect(mii, SIGNAL(valueChanged(int)), this, SLOT(on_mnuAnalogZeroChanged(int)));
-  else
-      fprintf(stderr, "Failed to find menu: \'%s\'\n", RLIStrings::nMenu112[RLI_LANG_ENGLISH]);
 
-  mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::MAIN, RLIStrings::nMenu013[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
-  RLIMenuItemList * milist = dynamic_cast<RLIMenuItemList *>(mnuitem);
-  if(milist)
-  {
-      connect(milist, SIGNAL(valueChanged(const QByteArray)), this, SLOT(on_tails_menu(const QByteArray)));
-      connect(this, SIGNAL(tails_mode_changed(int, const QByteArray)), _tals_ctrl, SLOT(tails_changed(int, const QByteArray)));
-      connect(this, SIGNAL(tails_changed(int)), ui->wgtRLIDisplay->targetEngine(), SLOT(onTailsTimeChanged(int)));
-  }
-  else
-      fprintf(stderr, "Failed to find menu: \'%s\'\n", RLIStrings::nMenu013[RLI_LANG_ENGLISH]);
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(simulationChanged(QByteArray))
+        , _radar_ds, SLOT(onSimulationChanged(QByteArray)));
 
-  mnuitem = ui->wgtRLIDisplay->menuEngine()->findItem(MenuEngine::CONFIG, RLIStrings::nMenu105[RLI_LANG_ENGLISH], RLI_LANG_ENGLISH);
-  milist = dynamic_cast<RLIMenuItemList *>(mnuitem);
-  if(milist)
-  {
-      connect(milist, SIGNAL(valueChanged(const QByteArray)), this, SLOT(on_band_menu(const QByteArray)));
-      connect(this, SIGNAL(band_changed(char **)), _lbl6_ctrl, SLOT(onTextChanged(char**)));
-  }
-  else
-      fprintf(stderr, "Failed to find menu: \'%s\'\n", RLIStrings::nMenu013[RLI_LANG_ENGLISH]);
+
+  connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D)), _pstn_ctrl, SLOT(pos_changed(QVector2D)));
+
+
+  ui->wgtRLIDisplay->menuEngine()->onAnalogZeroChanged(_radar_ds->getAmpsOffset());
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(analogZeroChanged(int)), _radar_ds, SLOT(setAmpsOffset(int)));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(tailsModeChanged(QByteArray)), this, SLOT(onTailsMenu(const QByteArray)));
+  connect(this, SIGNAL(tails_mode_changed(int, const QByteArray)), _tals_ctrl, SLOT(tails_changed(int, const QByteArray)));
+  connect(this, SIGNAL(tails_changed(int)), ui->wgtRLIDisplay->targetEngine(), SLOT(onTailsTimeChanged(int)));
+
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(bandModeChanged(QByteArray)), this, SLOT(onBandMenu(const QByteArray)));
+  connect(this, SIGNAL(band_changed(char **)), _lbl6_ctrl, SLOT(onTextChanged(char**)));
 
   this->setFocus();
 
   // Set zero distance for VRM
-  RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton
-                                         , RLIControlEvent::VD
-                                         , -1e6);
+  RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, -1e6);
   qApp->postEvent(ui->wgtRLIDisplay, evt);
 
 #ifndef Q_OS_WIN
@@ -614,8 +589,7 @@ void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
   connect(ui->wgtRLIDisplay, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
 }
 
-void MainWindow::resizeEvent(QResizeEvent* e) {
-  Q_UNUSED(e);
+void MainWindow::resizeEvent(QResizeEvent*) {
   QRect rli_geom = ui->wgtRLIDisplay->geometry();
 
   rli_geom.setWidth(4 * (rli_geom.width() / 4));
@@ -629,8 +603,7 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
   ui->wgtRLIDisplay->setGeometry(rli_geom);
 }
 
-void MainWindow::timerEvent(QTimerEvent* e) {
-  Q_UNUSED(e);
+void MainWindow::timerEvent(QTimerEvent*) {
   const rli_scale_t* scale =  _radar_scale->getCurScale();
 
   ui->wgtRLIDisplay->setScale(scale->len);
@@ -643,135 +616,121 @@ void MainWindow::on_btnClose_clicked() {
 
 #ifndef Q_OS_WIN
 
-int MainWindow::setupEvdev(char *evdevfn)
-{
-    int             res;
-    int             fd, ver;
-    struct input_id iid;
-    char            edname[256];
+int MainWindow::setupEvdev(char *evdevfn) {
+  int     res;
+  int     fd, ver;
+  struct  input_id iid;
+  char    edname[256];
 
-    if(evdevFd != -1)
-    {
-        fprintf(stderr, "WARNING: Input event device file is already opened.\n");
-        return 1;
-    }
+  if(evdevFd != -1) {
+    fprintf(stderr, "WARNING: Input event device file is already opened.\n");
+    return 1;
+  }
 
-    if (evdevThread.isRunning())
-        return 2;
+  if (evdevThread.isRunning())
+    return 2;
 
-    if(evdevfn == NULL)
-    {
-        fprintf(stderr, "WARNING: Name of an input event device file is given.\n\tGain, Rain and Waves controls are unavailable\n");
-        return -1000;
-    }
+  if(evdevfn == NULL) {
+    fprintf(stderr, "WARNING: Name of an input event device file is given.\n\tGain, Rain and Waves controls are unavailable\n");
+    return -1000;
+  }
 
-    fd = ::open(evdevfn, O_RDWR);
-    if(fd == -1)
-    {
-        res = errno;
-        fprintf(stderr, "WARNING: Failed to open input event device file.\n\tGain, Rain and Waves controls are unavailable\n");
-        fprintf(stderr, "Error: %s\n", strerror(res));
-        return res;
-    }
+  fd = ::open(evdevfn, O_RDWR);
+  if(fd == -1) {
+    res = errno;
+    fprintf(stderr, "WARNING: Failed to open input event device file.\n\tGain, Rain and Waves controls are unavailable\n");
+    fprintf(stderr, "Error: %s\n", strerror(res));
+    return res;
+  }
 
-    res = ::ioctl(fd, EVIOCGVERSION, &ver);
-    if(res == -1)
-    {
-        res = errno;
-        fprintf(stderr, "WARNING: Failed to get version of input event device.\n");
-        fprintf(stderr, "Error: %s\n", strerror(res));
-    }
-    else
-        printf("Version of input device driver: %d\n", ver);
+  res = ::ioctl(fd, EVIOCGVERSION, &ver);
+  if(res == -1) {
+    res = errno;
+    fprintf(stderr, "WARNING: Failed to get version of input event device.\n");
+    fprintf(stderr, "Error: %s\n", strerror(res));
+  } else
+    printf("Version of input device driver: %d\n", ver);
 
-    res = ::ioctl(fd, EVIOCGID, &iid);
-    if(res == -1)
-    {
-        res = errno;
-        fprintf(stderr, "WARNING: Failed to get ID of input event device.\n");
-        fprintf(stderr, "Error: %s\n", strerror(res));
-    }
-    else
-        printf("ID of input event device:\n\tbus %04x, vendor %04x, product %04x, version %04x\n", iid.bustype, iid.vendor, iid.product, iid.version);
+  res = ::ioctl(fd, EVIOCGID, &iid);
+  if(res == -1) {
+    res = errno;
+    fprintf(stderr, "WARNING: Failed to get ID of input event device.\n");
+    fprintf(stderr, "Error: %s\n", strerror(res));
+  } else
+    printf("ID of input event device:\n\tbus %04x, vendor %04x, product %04x, version %04x\n", iid.bustype, iid.vendor, iid.product, iid.version);
 
-    res = ::ioctl(fd, EVIOCGNAME(sizeof(edname)), edname);
-    if(res == -1)
-    {
-        res = errno;
-        fprintf(stderr, "ERROR: Failed to get the name of the input event device.\n\tGain, Rain and Waves controls are unavailable\n");
-        fprintf(stderr, "Error: %s\n", strerror(res));
-        ::close(fd);
-        return res;
-    }
-    printf("Input event device name: %s\n", edname);
+  res = ::ioctl(fd, EVIOCGNAME(sizeof(edname)), edname);
+  if(res == -1) {
+    res = errno;
+    fprintf(stderr, "ERROR: Failed to get the name of the input event device.\n\tGain, Rain and Waves controls are unavailable\n");
+    fprintf(stderr, "Error: %s\n", strerror(res));
+    ::close(fd);
+    return res;
+  }
+  printf("Input event device name: %s\n", edname);
 
-    QString sname(edname);
-    res = sname.indexOf("Pult", 0, Qt::CaseInsensitive);
-    if(res == -1)
-    {
-        res = errno;
-        fprintf(stderr, "ERROR: Wrong input event device name. Must be \'Board Pult\'.\n\tGain, Rain and Waves controls are unavailable\n");
-        fprintf(stderr, "Error: %s\n", strerror(res));
-        ::close(fd);
-        return res;
-    }
+  QString sname(edname);
+  res = sname.indexOf("Pult", 0, Qt::CaseInsensitive);
+  if(res == -1) {
+    res = errno;
+    fprintf(stderr, "ERROR: Wrong input event device name. Must be \'Board Pult\'.\n\tGain, Rain and Waves controls are unavailable\n");
+    fprintf(stderr, "Error: %s\n", strerror(res));
+    ::close(fd);
+    return res;
+  }
 
-	evdevFd = fd;
+  evdevFd = fd;
 
-    stopEvdev   = 0;
-    evdevThread = QtConcurrent::run(this, &MainWindow::evdevHandleThread);
-    return 0;
+  stopEvdev   = 0;
+  evdevThread = QtConcurrent::run(this, &MainWindow::evdevHandleThread);
+  return 0;
 }
 
-void MainWindow::evdevHandleThread()
-{
-    struct input_event ie;
-    int                value;
+void MainWindow::evdevHandleThread() {
+  struct input_event ie;
+  int    value;
 
-    if(evdevFd == -1)
-    {
-        fprintf(stderr, "WARNING: Input event device file is not opened.\n\tGain, Rain and Waves controls are unavailable\n");
-        return;
+  if(evdevFd == -1) {
+    fprintf(stderr, "WARNING: Input event device file is not opened.\n\tGain, Rain and Waves controls are unavailable\n");
+    return;
+  }
+
+  while(!stopEvdev) {
+    int res = read(evdevFd, &ie, sizeof(ie));
+
+    if(res != sizeof(ie)) {
+      printf("read returned: %d\n", res);
+      continue;
     }
-    while(!stopEvdev)
-    {
-        int res = read(evdevFd, &ie, sizeof(ie));
 
-        if(res != sizeof(ie))
-        {
-            printf("read returned: %d\n", res);
-            continue;
-        }
-        if(ie.type != EV_ABS)
-        {
-            printf("type != EV_ABS: %d\n", ie.type);
-            continue;
-        }
-        //----- now the e.code field contains the axis ID, value should be in range [0; 255]
-        //
-
-        switch(ie.code)
-        {
-        case ABS_THROTTLE:
-            value = ie.value * ABS_AXIS_MUL;
-            value = 255 - value;
-            _radar_ds->setGain(value);
-            emit gain_changed(value);
-            break;
-        case ABS_GAS:
-            value = ie.value * ABS_AXIS_MUL;
-            value = 255 - value;
-            emit wave_changed(value);
-            break;
-        case ABS_BRAKE:
-            value = ie.value * ABS_AXIS_MUL;
-            value = 255 - value;
-            emit rain_changed(value);
-            break;
-        default:
-            printf("EV_ABS: code: %u, value %d\n", (unsigned int) ie.code, ie.value);
-        }
+    if(ie.type != EV_ABS) {
+      printf("type != EV_ABS: %d\n", ie.type);
+      continue;
     }
+
+    //----- now the e.code field contains the axis ID, value should be in range [0; 255]
+    //
+    switch(ie.code) {
+    case ABS_THROTTLE:
+      value = ie.value * ABS_AXIS_MUL;
+      value = 255 - value;
+      _radar_ds->setGain(value);
+      emit gain_changed(value);
+      break;
+    case ABS_GAS:
+      value = ie.value * ABS_AXIS_MUL;
+      value = 255 - value;
+      emit wave_changed(value);
+      break;
+    case ABS_BRAKE:
+      value = ie.value * ABS_AXIS_MUL;
+      value = 255 - value;
+      emit rain_changed(value);
+      break;
+    default:
+      printf("EV_ABS: code: %u, value %d\n", (unsigned int) ie.code, ie.value);
+    }
+  }
 }
 #endif // !Q_OS_WIN
 
@@ -780,21 +739,13 @@ void MainWindow::gain_slot(int value) {
   _radar_ds->setGain(value);
 }
 
-void MainWindow::on_mnuAnalogZeroChanged(int val) {
-  _radar_ds->setAmpsOffset(val);
-}
-
-void MainWindow::simulation_slot(bool sim) {
-  _radar_ds->simulate(sim);
-}
-
-void MainWindow::on_tails_menu(const QByteArray count) {
+void MainWindow::onTailsMenu(const QByteArray count) {
   tail_minutes = atoi(count.data());
   emit tails_changed((tail_mode == TailsController::TAILMODE_DOTS) ? tail_minutes : 0);
   emit tails_mode_changed(tail_mode, count);
 }
 
-void MainWindow::on_band_menu(const QByteArray band) {
+void MainWindow::onBandMenu(const QByteArray band) {
   const char * pband = band.data();
   int bandnum = sizeof(RLIStrings::bandArray) / sizeof(RLIStrings::bandArray[0][0]) / 2;
 

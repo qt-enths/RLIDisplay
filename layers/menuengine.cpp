@@ -114,8 +114,15 @@ void RLIMenuItemInt::down() {
   }
 }
 
-int RLIMenuItemInt::setValue(QByteArray val)
-{
+int RLIMenuItemInt::setValue(int val) {
+  if((val < _min) || (val > _max))
+    return -2;
+
+  _value = val;
+  return 0;
+}
+
+int RLIMenuItemInt::setValue(QByteArray val) {
     int  res;
     bool ok = false;
 
@@ -224,6 +231,7 @@ void MenuEngine::initCnfgMenuTree() {
   i105->addVariant(RLIStrings::bandArray[1]);
   i105->addVariant(RLIStrings::bandArray[2]);
   m10->add_item(static_cast<RLIMenuItem*>(i105));
+  connect(i105, SIGNAL(valueChanged(QByteArray)), this, SIGNAL(bandModeChanged(QByteArray)), Qt::QueuedConnection);
 
   RLIMenuItemList* i106 = new RLIMenuItemList(RLIStrings::nMenu106, 0);
   i106->addVariant(RLIStrings::OffOnArray[0]);
@@ -246,6 +254,8 @@ void MenuEngine::initCnfgMenuTree() {
 
   RLIMenuItemInt* i112 = new RLIMenuItemInt(RLIStrings::nMenu112, -2048, 2048, 0);
   m11->add_item(static_cast<RLIMenuItem*>(i112));
+  connect(i112, SIGNAL(valueChanged(int)), this, SIGNAL(analogZeroChanged(int)), Qt::QueuedConnection);
+  analogZeroItem = i112;
 
   RLIMenuItemInt* i113 = new RLIMenuItemInt(RLIStrings::nMenu113, 1, 255, 25);
   m11->add_item(static_cast<RLIMenuItem*>(i113));
@@ -401,6 +411,7 @@ void MenuEngine::initMainMenuTree() {
   i013->addVariant(RLIStrings::trackArray[3]);
   i013->addVariant(RLIStrings::trackArray[4]);
   m01->add_item(static_cast<RLIMenuItem*>(i013));
+  connect(i013, SIGNAL(valueChanged(QByteArray)), this, SIGNAL(tailsModeChanged(QByteArray)), Qt::QueuedConnection);
 
   RLIMenuItemList* i014 = new RLIMenuItemList(RLIStrings::nMenu014, 1);
   i014->addVariant(RLIStrings::OffOnArray[0]);
@@ -484,7 +495,7 @@ void MenuEngine::initMainMenuTree() {
   RLIMenuItemList* i031 = new RLIMenuItemList(RLIStrings::nMenu031, 0);
   i031->addVariant(RLIStrings::OffOnArray[0]);
   i031->addVariant(RLIStrings::OffOnArray[1]);
-  connect(i031, SIGNAL(valueChanged(const QByteArray)), this, SLOT(onSimulation(const QByteArray)));
+  connect(i031, SIGNAL(valueChanged(const QByteArray)), this, SIGNAL(simulationChanged(QByteArray)), Qt::QueuedConnection);
   m03->add_item(static_cast<RLIMenuItem*>(i031));
 
   RLIMenuItemList* i032 = new RLIMenuItemList(RLIStrings::nMenu032, 1);
@@ -617,6 +628,10 @@ void MenuEngine::setState(MenuState state) {
   _last_action_time = QDateTime::currentDateTime();
 }
 
+void MenuEngine::onAnalogZeroChanged(int val) {
+  analogZeroItem->setValue(val);
+}
+
 void MenuEngine::onLanguageChanged(const QByteArray& lang) {
   QString lang_str = _dec1->toUnicode(lang);
 
@@ -631,11 +646,6 @@ void MenuEngine::onLanguageChanged(const QByteArray& lang) {
       _lang = RLI_LANG_RUSSIAN;
       _need_update = true;
   }
-}
-
-void MenuEngine::onSimulation(const QByteArray sim)
-{
-    emit onSimChanged(((sim.size() == 3) ? true : false));
 }
 
 void MenuEngine::onUp() {
@@ -952,74 +962,4 @@ bool MenuEngine::initShader() {
   _prog->release();
 
   return true;
-}
-
-RLIMenuItem * MenuEngine::findItem(RLIMenuItemMenu * mnu, char * name, int lang_id)
-{
-    int l_id_from, l_id_to;
-
-    if((lang_id >= RLI_LANG_FIRST) && (lang_id <= RLI_LANG_LAST))
-    {
-        l_id_from = lang_id;
-        l_id_to   = lang_id;
-    }
-    else
-    {
-        l_id_from = RLI_LANG_FIRST;
-        l_id_to   = RLI_LANG_LAST;
-    }
-
-    for(int i = 0; i < mnu->item_count(); i++)
-    {
-        RLIMenuItem * mi = mnu->item(i);
-        RLIMenuItemMenu * m = dynamic_cast<RLIMenuItemMenu *>(mi);
-        if(m != NULL)
-        {
-            mi = findItem(m, name, lang_id);
-            if(mi)
-                return mi;
-            continue;
-        }
-        for(int j = l_id_from; j <= l_id_to; j++)
-        {
-            if(mi->name(j) == name)
-                return mi;
-        }
-    }
-    return NULL;
-}
-
-RLIMenuItem * MenuEngine::findItem(enum MenuState type, char * name, int lang_id)
-{
-    RLIMenuItemMenu * mnu;
-
-    if(type == MAIN)
-        mnu = _main_menu;
-    else if(type == CONFIG)
-        mnu = _cnfg_menu;
-    else
-        return NULL;
-    return findItem(mnu, name, lang_id);
-}
-
-int MenuEngine::setMenuItemIntValue(int val, enum MenuState type, char * name, int lang_id)
-{
-    RLIMenuItemMenu * mnu;
-
-    if(type == MAIN)
-        mnu = _main_menu;
-    else if(type == CONFIG)
-        mnu = _cnfg_menu;
-    else
-        return -10;
-
-    RLIMenuItem * item = findItem(mnu, name, lang_id);
-    if(item == NULL)
-        return -11;
-
-    QString str;
-    str.sprintf("%d", val);
-    QByteArray v;
-    v.append(str);
-    return item->setValue(v);
 }
