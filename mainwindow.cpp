@@ -7,7 +7,6 @@
 #include "common/rlistrings.h"
 #include "rlicontrolevent.h"
 
-#define RLI_THREADS_NUM 6 // Required number of threads in global QThreadPool
 
 #ifndef Q_OS_WIN
 
@@ -20,12 +19,10 @@
 #include <sys/stat.h>
 #include <linux/input.h>
 
-#define ABS_AXIS_MUL 1
-
 int MainWindow::sigintFd[2];
 
-static int setup_unix_signal_handlers()
-{
+
+static int setup_unix_signal_handlers() {
   struct sigaction intaction;
 
   intaction.sa_handler = MainWindow::intSignalHandler;
@@ -46,20 +43,14 @@ static int setup_unix_signal_handlers()
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction start";
 
-  if(QThreadPool::globalInstance()->maxThreadCount() < RLI_THREADS_NUM)
-      QThreadPool::globalInstance()->setMaxThreadCount(RLI_THREADS_NUM);
-
-#ifndef Q_OS_WIN
-  evdevFd    = -1;
-  stopEvdev  = 0;
-  memset(pressedKey, 0, sizeof(pressedKey));
-#endif // !Q_OS_WIN
-
   ui->setupUi(this);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init start";
 
 #ifndef Q_OS_WIN
+  _pult_driver = new BoardPultController(this);
+  memset(pressedKey, 0, sizeof(pressedKey));
+
   // Initializing SIGINT handling
   if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigintFd) == 0)
   {
@@ -162,36 +153,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _radar_scale = new RadarScale;
 
-  connect(this, SIGNAL(gain_changed(int)), _gain_ctrl, SLOT(onValueChanged(int)));
-  connect(this, SIGNAL(wave_changed(int)), _water_ctrl, SLOT(onValueChanged(int)));
-  connect(this, SIGNAL(rain_changed(int)), _rain_ctrl, SLOT(onValueChanged(int)));
+
+  connect(_pult_driver, SIGNAL(gain_changed(int)), _gain_ctrl, SLOT(onValueChanged(int)));
+  connect(_pult_driver, SIGNAL(wave_changed(int)), _water_ctrl, SLOT(onValueChanged(int)));
+  connect(_pult_driver, SIGNAL(rain_changed(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
   // gain_slot used only for simulated Control Panel Unit. Must be removed at finish build
-  connect(ui->wgtRLIControl, SIGNAL(gainChanged(u_int32_t)), _radar_ds, SLOT(setGain(u_int32_t)));
-
-#ifndef Q_OS_WIN
-  fprintf(stderr, "Trying /dev/input/event1\n");
-  if(setupEvdev("/dev/input/event1") != 0)
-  {
-     fprintf(stderr, "Trying /dev/input/event2\n");
-         if( setupEvdev("/dev/input/event2") != 0)
-         {
-                fprintf(stderr, "Trying /dev/input/event0\n");
-
-                if( setupEvdev("/dev/input/event0") != 0)
-                {
-                        fprintf(stderr, "ERROR: no input event device 'Board Pult'. Givinig up!\n");
-                }
-                else
-                        fprintf(stderr, "Input device: /dev/input/event0\n");
-         }
-         else
-                fprintf(stderr, "Input device: /dev/input/event2\n");
-  }
-  else
-         fprintf(stderr, "Input device: /dev/input/event1\n");
-#endif // !Q_OS_WIN
-
+  connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _radar_ds, SLOT(setGain(int)));
 
   connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
   startTimer(33);
@@ -201,14 +169,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 MainWindow::~MainWindow() {
 #ifndef Q_OS_WIN
-  printf("Waiting for the input event device thread to terminate.\n");
-  stopEvdev = 1;
-  while(evdevThread.isRunning());
-  printf("Input event device thread terminated.\n");
-  ::close(evdevFd);
-  evdevFd = -1;
 
   delete _nmeaprc;
+  delete _pult_driver;
 
 #endif // !Q_OS_WIN
 
@@ -251,32 +214,25 @@ MainWindow::~MainWindow() {
 }
 
 #ifndef Q_OS_WIN
-void MainWindow::intSignalHandler(int sig)
-{
+void MainWindow::intSignalHandler(int sig) {
   ::write(sigintFd[0], &sig, sizeof(sig));
 }
 
-void MainWindow::handleSigInt()
-{
+void MainWindow::handleSigInt() {
   snInt->setEnabled(false);
   int sig;
   ::read(sigintFd[1], &sig, sizeof(sig));
 
   // do Qt stuff
-  if(sig == SIGINT)
-  {
-      close();
-      printf("\nSIGINT caught. Waiting for all threads to terminate\n");
-  }
-  else if(sig == SIGTERM)
-  {
-      close();
-      printf("\nSIGTERM caught. Waiting for all threads to terminate\n");
-  }
-  else
-  {
-      close();
-      fprintf(stderr, "\nUnsupported signale %d caught. Waiting for all threads to terminate\n", sig);
+  if(sig == SIGINT) {
+    close();
+    printf("\nSIGINT caught. Waiting for all threads to terminate\n");
+  } else if(sig == SIGTERM) {
+    close();
+    printf("\nSIGTERM caught. Waiting for all threads to terminate\n");
+  } else {
+    close();
+    fprintf(stderr, "\nUnsupported signale %d caught. Waiting for all threads to terminate\n", sig);
   }
 
   snInt->setEnabled(true);
@@ -284,50 +240,43 @@ void MainWindow::handleSigInt()
 #endif // !Q_OS_WIN
 
 
-int MainWindow::findPressedKey(int key)
-{
-    for(int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
-    {
-        if(pressedKey[i] == key)
-            return i;
-    }
-    return -1;
+int MainWindow::findPressedKey(int key) {
+  for (int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
+    if (pressedKey[i] == key)
+      return i;
+
+  return -1;
 }
 
-int MainWindow::savePressedKey(int key)
-{
-    int zeroIdx = -1;
-    for(int i = sizeof(pressedKey) / sizeof(pressedKey[0]); i--; )
-    {
-        if(pressedKey[i] == 0)
-            zeroIdx = i;
-        if(pressedKey[i] == key)
-            return i;
-    }
-    if(zeroIdx == -1)
-        zeroIdx = sizeof(pressedKey) / sizeof(pressedKey[0]) - 1;
-    pressedKey[zeroIdx] = key;
-    return zeroIdx;
+int MainWindow::savePressedKey(int key) {
+  int zeroIdx = -1;
+  for (int i = sizeof(pressedKey) / sizeof(pressedKey[0]); i--; ) {
+    if (pressedKey[i] == 0)
+      zeroIdx = i;
+    if (pressedKey[i] == key)
+      return i;
+  }
+
+  if (zeroIdx == -1)
+    zeroIdx = sizeof(pressedKey) / sizeof(pressedKey[0]) - 1;
+  pressedKey[zeroIdx] = key;
+  return zeroIdx;
 }
 
-int MainWindow::countPressedKeys(void)
-{
-    int cnt = 0;
+int MainWindow::countPressedKeys(void) {
+  int cnt = 0;
 
-    for(int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
-    {
-        if(pressedKey != 0)
-            cnt++;
-    }
+  for (int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
+    if(pressedKey != 0)
+      cnt++;
 
-    return cnt;
+  return cnt;
 }
 
-void MainWindow::keyReleaseEvent(QKeyEvent *event)
-{
-    int idx = findPressedKey(event->key());
-    if(idx != -1)
-        pressedKey[idx] = 0;
+void MainWindow::keyReleaseEvent(QKeyEvent *event) {
+  int idx = findPressedKey(event->key());
+  if (idx != -1)
+    pressedKey[idx] = 0;
 }
 
 
@@ -618,125 +567,7 @@ void MainWindow::timerEvent(QTimerEvent*) {
 }
 
 
-#ifndef Q_OS_WIN
 
-int MainWindow::setupEvdev(char *evdevfn) {
-  int     res;
-  int     fd, ver;
-  struct  input_id iid;
-  char    edname[256];
-
-  if(evdevFd != -1) {
-    fprintf(stderr, "WARNING: Input event device file is already opened.\n");
-    return 1;
-  }
-
-  if (evdevThread.isRunning())
-    return 2;
-
-  if(evdevfn == NULL) {
-    fprintf(stderr, "WARNING: Name of an input event device file is given.\n\tGain, Rain and Waves controls are unavailable\n");
-    return -1000;
-  }
-
-  fd = ::open(evdevfn, O_RDWR);
-  if(fd == -1) {
-    res = errno;
-    fprintf(stderr, "WARNING: Failed to open input event device file.\n\tGain, Rain and Waves controls are unavailable\n");
-    fprintf(stderr, "Error: %s\n", strerror(res));
-    return res;
-  }
-
-  res = ::ioctl(fd, EVIOCGVERSION, &ver);
-  if(res == -1) {
-    res = errno;
-    fprintf(stderr, "WARNING: Failed to get version of input event device.\n");
-    fprintf(stderr, "Error: %s\n", strerror(res));
-  } else
-    printf("Version of input device driver: %d\n", ver);
-
-  res = ::ioctl(fd, EVIOCGID, &iid);
-  if(res == -1) {
-    res = errno;
-    fprintf(stderr, "WARNING: Failed to get ID of input event device.\n");
-    fprintf(stderr, "Error: %s\n", strerror(res));
-  } else
-    printf("ID of input event device:\n\tbus %04x, vendor %04x, product %04x, version %04x\n", iid.bustype, iid.vendor, iid.product, iid.version);
-
-  res = ::ioctl(fd, EVIOCGNAME(sizeof(edname)), edname);
-  if(res == -1) {
-    res = errno;
-    fprintf(stderr, "ERROR: Failed to get the name of the input event device.\n\tGain, Rain and Waves controls are unavailable\n");
-    fprintf(stderr, "Error: %s\n", strerror(res));
-    ::close(fd);
-    return res;
-  }
-  printf("Input event device name: %s\n", edname);
-
-  QString sname(edname);
-  res = sname.indexOf("Pult", 0, Qt::CaseInsensitive);
-  if(res == -1) {
-    res = errno;
-    fprintf(stderr, "ERROR: Wrong input event device name. Must be \'Board Pult\'.\n\tGain, Rain and Waves controls are unavailable\n");
-    fprintf(stderr, "Error: %s\n", strerror(res));
-    ::close(fd);
-    return res;
-  }
-
-  evdevFd = fd;
-
-  stopEvdev   = 0;
-  evdevThread = QtConcurrent::run(this, &MainWindow::evdevHandleThread);
-  return 0;
-}
-
-void MainWindow::evdevHandleThread() {
-  struct input_event ie;
-  int    value;
-
-  if(evdevFd == -1) {
-    fprintf(stderr, "WARNING: Input event device file is not opened.\n\tGain, Rain and Waves controls are unavailable\n");
-    return;
-  }
-
-  while(!stopEvdev) {
-    int res = read(evdevFd, &ie, sizeof(ie));
-
-    if(res != sizeof(ie)) {
-      printf("read returned: %d\n", res);
-      continue;
-    }
-
-    if(ie.type != EV_ABS) {
-      printf("type != EV_ABS: %d\n", ie.type);
-      continue;
-    }
-
-    //----- now the e.code field contains the axis ID, value should be in range [0; 255]
-    //
-    switch(ie.code) {
-    case ABS_THROTTLE:
-      value = ie.value * ABS_AXIS_MUL;
-      value = 255 - value;
-      _radar_ds->setGain(value);
-      emit gain_changed(value);
-      break;
-    case ABS_GAS:
-      value = ie.value * ABS_AXIS_MUL;
-      value = 255 - value;
-      emit wave_changed(value);
-      break;
-    case ABS_BRAKE:
-      value = ie.value * ABS_AXIS_MUL;
-      value = 255 - value;
-      emit rain_changed(value);
-      break;
-    default:
-      printf("EV_ABS: code: %u, value %d\n", (unsigned int) ie.code, ie.value);
-    }
-  }
-}
-#endif // !Q_OS_WIN
 
 
 

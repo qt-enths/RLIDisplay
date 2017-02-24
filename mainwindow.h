@@ -7,6 +7,7 @@
 #include <QSocketNotifier>
 
 #include "s52/chartmanager.h"
+#include "datasources/boardpultcontroller.h"
 #include "datasources/targetdatasource.h"
 #include "datasources/radardatasource.h"
 #include "datasources/shipdatasource.h"
@@ -30,18 +31,13 @@ public:
 
 #ifndef Q_OS_WIN
   static void intSignalHandler(int sig);
-
-  QFuture<void> evdevThread;
-  int evdevFd;
-  int stopEvdev;
-  int setupEvdev(char *evdevfn);
-  void evdevHandleThread();
 #endif // !Q_OS_WIN
 
 protected:
   int findPressedKey(int key);
   int savePressedKey(int key);
   int countPressedKeys(void);
+
   void keyReleaseEvent(QKeyEvent *event);
   void keyPressEvent(QKeyEvent * event);
 
@@ -52,11 +48,10 @@ public slots:
 
 signals:
   void scale_changed(std::pair<QByteArray, QByteArray> scale);
-  void gain_changed(int value);
-  void rain_changed(int value);
-  void wave_changed(int value);
+
   void tails_changed(int count);
   void tails_mode_changed(int mode, const QByteArray count);
+
   void band_changed(char** band);
 
 private slots:
@@ -72,6 +67,9 @@ private:
   void setupInfoBlock(InfoBlockController* ctrl);
 
   RadarScale* _radar_scale;
+
+  BoardPultController* _pult_driver;
+
 
   ValueBarController* _gain_ctrl;
   ValueBarController* _water_ctrl;

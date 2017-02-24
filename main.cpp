@@ -2,7 +2,8 @@
 
 #include <QApplication>
 #include <QGLFormat>
-#include <QDebug>
+
+#define RLI_THREADS_NUM 6 // Required number of threads in global QThreadPool
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
@@ -12,6 +13,9 @@ int main(int argc, char *argv[]) {
   f.setSampleBuffers(false);
   f.setSamples(0);
   QGLFormat::setDefaultFormat(f);
+
+  if (QThreadPool::globalInstance()->maxThreadCount() < RLI_THREADS_NUM)
+    QThreadPool::globalInstance()->setMaxThreadCount(RLI_THREADS_NUM);
 
   MainWindow w;
   w.show();

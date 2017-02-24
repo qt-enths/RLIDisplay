@@ -69,7 +69,7 @@ public:
 
 public slots:
   void updateHeading(float hdg);
-  void setGain(u_int32_t gain);
+  void setGain(int gain);
   void setAmpsOffset(int off);
   void onSimulationChanged(const QByteArray& str);
 

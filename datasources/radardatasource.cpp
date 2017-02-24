@@ -1635,15 +1635,14 @@ int RadarDataSource::setupScale(const rli_scale_t * pscale) {
   return res;
 }
 
-void RadarDataSource::setGain(u_int32_t gain) {
-  if(gain >= max_gain_level)
+void RadarDataSource::setGain(int gain) {
+  if (gain >= max_gain_level)
     gain_level = max_gain_level - 1;
   else
     gain_level = gain;
 }
 
-int RadarDataSource::amplify(u_int32_t * brg)
-{
+int RadarDataSource::amplify(u_int32_t* brg) {
     u_int32_t v;
     u_int32_t tr;
     u_int32_t ratio;
