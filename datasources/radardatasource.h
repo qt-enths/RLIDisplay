@@ -69,6 +69,7 @@ public:
 
 public slots:
   void updateHeading(float hdg);
+  void setGain(u_int32_t gain);
   void setAmpsOffset(int off);
   void onSimulationChanged(const QByteArray& str);
 
@@ -157,7 +158,6 @@ public:
 
   int setupScale(const rli_scale_t * pscale);
   static const u_int32_t max_gain_level; // Maximum amplification level
-  int setGain(u_int32_t gain);
   int amplify(u_int32_t * brg);
 
   enum hip_t

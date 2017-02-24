@@ -4,8 +4,7 @@
 #include <QGLFormat>
 #include <QDebug>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
 
   QGLFormat f = QGLFormat::defaultFormat();

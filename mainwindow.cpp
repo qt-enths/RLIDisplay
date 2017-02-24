@@ -167,7 +167,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(this, SIGNAL(rain_changed(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
   // gain_slot used only for simulated Control Panel Unit. Must be removed at finish build
-  connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), this, SLOT(gain_slot(int)));
+  connect(ui->wgtRLIControl, SIGNAL(gainChanged(u_int32_t)), _radar_ds, SLOT(setGain(u_int32_t)));
 
 #ifndef Q_OS_WIN
   fprintf(stderr, "Trying /dev/input/event1\n");
@@ -589,7 +589,14 @@ void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
   connect(ui->wgtRLIDisplay, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
 }
 
-void MainWindow::resizeEvent(QResizeEvent*) {
+void MainWindow::resizeEvent(QResizeEvent* e) {
+  QSize s = e->size();
+  if (float(s.height()) / float(s.width()) > 0.7)
+    ui->wgtRLIControl->hide();
+  else
+    ui->wgtRLIControl->show();
+
+
   QRect rli_geom = ui->wgtRLIDisplay->geometry();
 
   rli_geom.setWidth(4 * (rli_geom.width() / 4));
@@ -610,9 +617,6 @@ void MainWindow::timerEvent(QTimerEvent*) {
   ui->wgtRLIDisplay->update();
 }
 
-void MainWindow::on_btnClose_clicked() {
-  close();
-}
 
 #ifndef Q_OS_WIN
 
@@ -734,10 +738,7 @@ void MainWindow::evdevHandleThread() {
 }
 #endif // !Q_OS_WIN
 
-// gain_slot used only for simulated Control Panel Unit. Must be removed at finish build
-void MainWindow::gain_slot(int value) {
-  _radar_ds->setGain(value);
-}
+
 
 void MainWindow::onTailsMenu(const QByteArray count) {
   tail_minutes = atoi(count.data());

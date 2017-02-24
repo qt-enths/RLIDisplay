@@ -45,7 +45,7 @@ private slots:
   void on_btnConfigMenu_clicked();
 
 signals:
-  void gainChanged(int val);
+  void gainChanged(u_int32_t val);
   void waterChanged(int val);
   void rainChanged(int val);
 

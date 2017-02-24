@@ -99,7 +99,7 @@ void RLIControlWidget::on_btnMode3_clicked() {
 }
 
 void RLIControlWidget::on_sldGain_valueChanged(int value) {
-  emit gainChanged(value);
+  emit gainChanged(static_cast<u_int32_t>(value));
 }
 
 void RLIControlWidget::on_sldWater_valueChanged(int value) {
