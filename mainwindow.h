@@ -52,8 +52,6 @@ signals:
   void tails_changed(int count);
   void tails_mode_changed(int mode, const QByteArray count);
 
-  void band_changed(char** band);
-
 private slots:
   void resizeEvent(QResizeEvent* e);
   void timerEvent(QTimerEvent* e);
@@ -61,7 +59,6 @@ private slots:
   void onRLIWidgetInitialized();
 
   void onTailsMenu(const QByteArray count);
-  void onBandMenu(const QByteArray band);
 
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
@@ -89,7 +86,7 @@ private:
   LableController* _lbl3_ctrl;
   LableController* _lbl4_ctrl;
   LableController* _lbl5_ctrl;
-  LableController* _lbl6_ctrl;
+  LableController* _band_lbl_ctrl;
 
   PositionController* _pstn_ctrl;
   BlankController* _blnk_ctrl;
@@ -115,9 +112,9 @@ private:
 
 #ifndef Q_OS_WIN
   static int sigintFd[2];
-  QSocketNotifier *snInt;
+  QSocketNotifier* snInt;
 
-  NMEAProcessor * _nmeaprc;
+  NMEAProcessor* _nmeaprc;
   QString _nmeaPort;
 #endif // !Q_OS_WIN
 };

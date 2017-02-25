@@ -123,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(5, 5+3*(23+4)), 8, 0, this);
   _lbl5_ctrl = new LableController(RLIStrings::nPP12p, QRect(5, 5+4*(23+4), 104, 23), "12x14", this);
-  _lbl6_ctrl = new LableController(RLIStrings::nBandS, QRect(5, 5+5*(23+4), 104, 23), "12x14", this);
+  _band_lbl_ctrl = new LableController(RLIStrings::nBandS, QRect(5, 5+5*(23+4), 104, 23), "12x14", this);
   _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
@@ -194,7 +194,7 @@ MainWindow::~MainWindow() {
   delete _lbl3_ctrl;
   delete _lbl4_ctrl;
   delete _lbl5_ctrl;
-  delete _lbl6_ctrl;
+  delete _band_lbl_ctrl;
 
   delete _crse_ctrl;
 
@@ -428,7 +428,7 @@ void MainWindow::onRLIWidgetInitialized() {
   setupInfoBlock(_lbl3_ctrl);
   setupInfoBlock(_lbl4_ctrl);
   setupInfoBlock(_lbl5_ctrl);
-  setupInfoBlock(_lbl6_ctrl);
+  setupInfoBlock(_band_lbl_ctrl);
   setupInfoBlock(_dngr_ctrl);
   setupInfoBlock(_tals_ctrl);
   setupInfoBlock(_dgdt_ctrl);
@@ -503,8 +503,9 @@ void MainWindow::onRLIWidgetInitialized() {
   connect(this, SIGNAL(tails_mode_changed(int, const QByteArray)), _tals_ctrl, SLOT(tails_changed(int, const QByteArray)));
   connect(this, SIGNAL(tails_changed(int)), ui->wgtRLIDisplay->targetEngine(), SLOT(onTailsTimeChanged(int)));
 
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(bandModeChanged(QByteArray)), this, SLOT(onBandMenu(const QByteArray)));
-  connect(this, SIGNAL(band_changed(char **)), _lbl6_ctrl, SLOT(onTextChanged(char**)));
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(bandModeChanged(QByteArray)), ui->wgtRLIDisplay, SLOT(onBandMenu(const QByteArray)));
+
+  connect(ui->wgtRLIDisplay, SIGNAL(band_changed(char **)), _band_lbl_ctrl, SLOT(onTextChanged(char**)));
 
   this->setFocus();
 
@@ -577,25 +578,3 @@ void MainWindow::onTailsMenu(const QByteArray count) {
   emit tails_mode_changed(tail_mode, count);
 }
 
-void MainWindow::onBandMenu(const QByteArray band) {
-  const char * pband = band.data();
-  int bandnum = sizeof(RLIStrings::bandArray) / sizeof(RLIStrings::bandArray[0][0]) / 2;
-
-  for(int i = 0; i < bandnum; i++) {
-    for(int j = 0; j < RLI_LANG_COUNT; j++) {
-      if(strcmp(pband, RLIStrings::bandArray[i][j]) == 0) {
-        switch(i) {
-        case 0:
-          emit band_changed(RLIStrings::nBandX);
-          break;
-        case 1:
-          emit band_changed(RLIStrings::nBandS);
-          break;
-        case 2:
-          emit band_changed(RLIStrings::nBandK);
-          break;
-        }
-      }
-    }
-  }
-}

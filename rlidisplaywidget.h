@@ -42,16 +42,24 @@ public:
 
 signals:
   void initialized();
-  void cursor_moved(float peleng, float distance, const char * dist_fmt);
+
+  void cursor_moved(float peleng, float distance, const char* dist_fmt);
   void cursor_moved(QVector2D);
+
   void per_second();
+
   void resized(const QSize& s);
+
   void displayVNDistance(float dist, const char * fmt);
   void displaydBRG(float brg, float crsangle);
+
+  void band_changed(char** band);
+
 
 public slots:
   void onCoordsChanged(const QVector2D& new_coords);
   void onHeadingChanged(float hdg);
+  void onBandMenu(const QByteArray band);
 
 protected slots:
   void mousePressEvent(QMouseEvent* e);

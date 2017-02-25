@@ -76,6 +76,31 @@ void RLIDisplayWidget::onHeadingChanged(float hdg) {
   _controlsEngine->setVnP(hdg);
 }
 
+
+void RLIDisplayWidget::onBandMenu(const QByteArray band) {
+  const char* pband = band.data();
+  int bandnum = sizeof(RLIStrings::bandArray) / sizeof(RLIStrings::bandArray[0][0]) / 2;
+
+  for(int i = 0; i < bandnum; i++) {
+    for(int j = 0; j < RLI_LANG_COUNT; j++) {
+      if(strcmp(pband, RLIStrings::bandArray[i][j]) == 0) {
+        switch(i) {
+        case 0:
+          emit band_changed(RLIStrings::nBandX);
+          break;
+        case 1:
+          emit band_changed(RLIStrings::nBandS);
+          break;
+        case 2:
+          emit band_changed(RLIStrings::nBandK);
+          break;
+        }
+      }
+    }
+  }
+}
+
+
 void RLIDisplayWidget::new_chart(const QString& name) {
   if (!_initialized)
     return;

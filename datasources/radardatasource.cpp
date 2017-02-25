@@ -1636,7 +1636,7 @@ int RadarDataSource::setupScale(const rli_scale_t * pscale) {
 }
 
 void RadarDataSource::setGain(int gain) {
-  if (gain >= max_gain_level)
+  if (static_cast<u_int32_t>(gain) >= max_gain_level)
     gain_level = max_gain_level - 1;
   else
     gain_level = gain;
