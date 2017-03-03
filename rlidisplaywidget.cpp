@@ -15,7 +15,7 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _fonts = new AsmFonts();
 
   _chartEngine = new ChartEngine();
-  _radarEngine = new RadarEngine(4096, 800);
+  _radarEngine = new RadarEngine(8192, 800);
   _maskEngine = new MaskEngine(size());
   _maskEngine->setCursorPos(_maskEngine->getCenter());
   _infoEngine = new InfoEngine();

@@ -45,10 +45,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   ui->setupUi(this);
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init start";
-
 #ifndef Q_OS_WIN
-  _pult_driver = new BoardPultController(this);
   memset(pressedKey, 0, sizeof(pressedKey));
 
   // Initializing SIGINT handling
@@ -63,6 +60,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qDebug() << "Couldn't create INT socketpair. Ctrl+C will terminate the program without cleaning.";
 #endif // !Q_OS_WIN
 
+  _pult_driver = new BoardPultController(this);
   _target_ds = new TargetDataSource();
   _radar_ds = new RadarDataSource();
   _ship_ds = new ShipDataSource();
@@ -72,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   tail_mode    = TailsController::TAILMODE_OFF;
   tail_minutes = 1;
+
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init start";
 
   QStringList args = qApp->arguments();
   QRegExp     rx("--ampoff=[+|-]?[0-9]+$");
@@ -151,13 +151,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   _vn_ctrl = new VnController(this);
   _vd_ctrl = new VdController(this);
 
-  _radar_scale = new RadarScale;
+  _radar_scale = new RadarScale();
 
 
+  qDebug() << 1;
   connect(_pult_driver, SIGNAL(gain_changed(int)), _gain_ctrl, SLOT(onValueChanged(int)));
   connect(_pult_driver, SIGNAL(wave_changed(int)), _water_ctrl, SLOT(onValueChanged(int)));
   connect(_pult_driver, SIGNAL(rain_changed(int)), _rain_ctrl, SLOT(onValueChanged(int)));
-
+qDebug() << 2;
   // gain_slot used only for simulated Control Panel Unit. Must be removed at finish build
   connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _radar_ds, SLOT(setGain(int)));
 

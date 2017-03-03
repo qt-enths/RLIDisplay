@@ -473,10 +473,8 @@ void RadarDataSource::worker() {
   int file = 0;
   int offset = 0;
 
-  //qSleep(10000);
-
   while(!finish_flag) {
-    qSleep(19);
+    qSleep(9);
 
     if(simulation)
     {
@@ -910,10 +908,12 @@ bool RadarDataSource::loadObserves1(char* filename, GLfloat* amps) {
     file.read((char*) memblock, size);
     file.close();
 
-    for (int i = 0; i < BEARINGS_PER_CYCLE; i++) {
+    for (int i = 0; i < BEARINGS_PER_CYCLE/2; i++) {
       float div = memblock[headerSize + i*dataSize + 1];
-      for (int j = 0; j < PELENG_SIZE; j++)
-        amps[i*PELENG_SIZE + j] = memblock[headerSize + i*dataSize + 2 + j] / div;
+      for (int j = 0; j < PELENG_SIZE; j++) {
+        amps[(2*i)*PELENG_SIZE + j] = memblock[headerSize + i*dataSize + 2 + j] / div;
+        amps[(2*i + 1)*PELENG_SIZE + j] = memblock[headerSize + i*dataSize + 2 + j] / div;
+      }
     }
 
     delete[] memblock;

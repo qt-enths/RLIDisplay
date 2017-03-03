@@ -14,7 +14,7 @@
 #endif
 
 const int PELENG_SIZE         = 800;
-const int BEARINGS_PER_CYCLE  = 4096;
+const int BEARINGS_PER_CYCLE  = 8192;
 const int BEARING_PACK_SIZE   = (800 + 3) * sizeof(uint32_t); // Number of information bytes in DMA transaction
 const int BEARING_PACK_WORDS  = 1024; // Number of words in DMA transaction
 const int RDS_MAX_SCANS       = 3;

@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <QApplication>
 
+#include <stdint.h>
+typedef uint32_t u_int32_t;
 #include "rlicontrolevent.h"
 
 #define TRIGGERED_SLIDER_MIN -90

@@ -165,5 +165,5 @@ void BoardPultController::evdevHandleThread() {
       printf("EV_ABS: code: %u, value %d\n", (unsigned int) ie.code, ie.value);
     }
   }
-}
 #endif // !Q_OS_WIN
+}
