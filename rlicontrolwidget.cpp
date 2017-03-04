@@ -161,3 +161,7 @@ void RLIControlWidget::on_btnConfigMenu_clicked() {
     qApp->postEvent(_reciever, e);
   }
 }
+
+void RLIControlWidget::on_btnClose_clicked() {
+  emit closeApp();
+}

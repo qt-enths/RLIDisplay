@@ -56,6 +56,8 @@ private slots:
   void resizeEvent(QResizeEvent* e);
   void timerEvent(QTimerEvent* e);
 
+  void onClose();
+
   void onRLIWidgetInitialized();
 
   void onTailsMenu(const QByteArray count);

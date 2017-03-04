@@ -69,6 +69,8 @@ private:
   void initShader();
   void drawPelengs(uint first, uint last);
 
+  void fillCoordTable();
+
   bool _initialized;
 
   // Radar parameters
@@ -76,6 +78,9 @@ private:
   uint    _radius;
   uint    _peleng_count;
   uint    _peleng_len;
+
+  std::vector<GLfloat> _coord_table;
+  //std::vector<GLfloat> _first_pix;
 
   bool  _draw_circle;
   uint  _last_drawn_peleng;

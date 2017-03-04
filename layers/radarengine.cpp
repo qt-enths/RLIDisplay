@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <math.h>
 
+#include <QFile>
 #include <QDateTime>
 
 static double const PI = acos(-1);
@@ -135,9 +136,83 @@ void RadarEngine::resizeData(uint pel_count, uint pel_len) {
   _peleng_count = pel_count;
   _peleng_len = pel_len;
 
+  fillCoordTable();
+
   if (_initialized)
     clearData();
 }
+
+void RadarEngine::fillCoordTable() {
+  _coord_table.clear();
+  //_first_pix.clear();
+
+  uint square_side = 2*_peleng_len - 1;
+  char* used_pixel_map = new char[square_side*square_side];
+  std::fill_n(used_pixel_map, square_side*square_side, 0);
+
+  std::vector<QPoint> quarter;
+
+  QFile file("res/pelengs/coordtable.txt");
+  file.open(QIODevice::ReadOnly);
+  QTextStream in(&file);
+  while(!in.atEnd()) {
+    QString line = in.readLine();
+
+    for (QString p_s : line.split(",")) {
+      QStringList p_l_s = p_s.split(";");
+
+      if (p_l_s.length() < 2)
+        continue;
+
+      QPoint p(p_l_s[0].toInt(), p_l_s[1].toInt());
+      quarter.push_back(p);
+    }
+  }
+  file.close();
+
+  for (uint index = 0; index < _peleng_count; index++) {
+    for (uint radius = 0; radius < _peleng_len; radius++) {
+      /*
+      double angle = (2 * PI * static_cast<float>(index)) / _peleng_count;
+      int x = round( static_cast<double>(radius) * sin(angle));
+      int y = round(-static_cast<double>(radius) * cos(angle));
+      */
+
+      int x, y;
+      if (index < _peleng_count / 4) {
+        x = quarter[index*_peleng_len+radius].x();
+        y = -quarter[index*_peleng_len+radius].y();
+      } else if (index >= _peleng_count / 4 && index < _peleng_count / 2) {
+        x = quarter[(index-_peleng_count/4)*_peleng_len+radius].y();
+        y = quarter[(index-_peleng_count/4)*_peleng_len+radius].x();
+      } else if (index >= _peleng_count / 2 && index < 3*_peleng_count / 4) {
+        x = -quarter[(index-_peleng_count/2)*_peleng_len+radius].x();
+        y = quarter[(index-_peleng_count/2)*_peleng_len+radius].y();
+      } else if (index >= 3 * _peleng_count / 4 && index < _peleng_count) {
+        x = -quarter[(index-3*_peleng_count/4)*_peleng_len+radius].y();
+        y = -quarter[(index-3*_peleng_count/4)*_peleng_len+radius].x();
+      }
+
+      int flat_coord = (x + _peleng_len - 1) * square_side + (y + _peleng_len - 1);
+
+      //_coord_table.push_back(x);
+      //_coord_table.push_back(y);
+
+      if (used_pixel_map[flat_coord] == 0) {
+        //_first_pix.push_back(1);
+        used_pixel_map[flat_coord] = 1;
+        flat_coord *= -1;
+      } //else
+        //_first_pix.push_back(0);
+
+      _coord_table.push_back(flat_coord);
+    }
+  }
+
+  delete[] used_pixel_map;
+}
+
+
 
 void RadarEngine::resizeTexture(uint radius) {
   if (_radius == radius)
@@ -225,46 +300,18 @@ void RadarEngine::clearTexture() {
 
 
 void RadarEngine::clearData() {
-  std::vector<GLfloat> poss;
   std::vector<GLfloat> amps;
-  //std::vector<GLfloat> fsts;
 
-  uint square_side = 2*_peleng_len - 1;
-  char* used_pixel_map = new char[square_side*square_side];
-  std::fill_n(used_pixel_map, square_side*square_side, 0);
-
-  for (uint index = 0; index < _peleng_count; index++) {
-    for (uint radius = 0; radius < _peleng_len; radius++) {
-      double angle = (2 * PI * static_cast<float>(index)) / _peleng_count;
-      int x = round( static_cast<double>(radius) * sin(angle));
-      int y = round(-static_cast<double>(radius) * cos(angle));
-
-      int flat_coord = (x + _peleng_len - 1) * square_side + (y + _peleng_len - 1);
-
-      //poss.push_back(x);
-      //poss.push_back(y);
-
-      if (used_pixel_map[flat_coord] == 0) {
-        //fsts.push_back(1);
-        used_pixel_map[flat_coord] = 1;
-        flat_coord *= -1;
-      } //else
-        //fsts.push_back(0);
-
-      poss.push_back(flat_coord);
-
+  for (uint index = 0; index < _peleng_count; index++)
+    for (uint radius = 0; radius < _peleng_len; radius++)
       amps.push_back(0.f);
-    }
-  }
-
-  delete[] used_pixel_map;
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
-  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), poss.data(), GL_DYNAMIC_DRAW);
-  //glBufferData(GL_ARRAY_BUFFER, 2*_peleng_count*_peleng_len*sizeof(GLfloat), poss.data(), GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), _coord_table.data(), GL_DYNAMIC_DRAW);
+  //glBufferData(GL_ARRAY_BUFFER, 2*_peleng_count*_peleng_len*sizeof(GLfloat), _coord_table.data(), GL_DYNAMIC_DRAW);
 
   //glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_FST]);
-  //glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), fsts.data(), GL_DYNAMIC_DRAW);
+  //glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), _first_pix.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
   glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), amps.data(), GL_DYNAMIC_DRAW);

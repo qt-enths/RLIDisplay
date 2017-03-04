@@ -44,10 +44,14 @@ private slots:
 
   void on_btnConfigMenu_clicked();
 
+  void on_btnClose_clicked();
+
 signals:
   void gainChanged(int val);
   void waterChanged(int val);
   void rainChanged(int val);
+
+  void closeApp();
 
 private:
   int _vn_pos;

@@ -804,20 +804,21 @@ void RadarDataSource::radar_worker() {
 
 bool RadarDataSource::loadData() {
   char file1[25] = "res/pelengs/r1nm3h0_4096";
-  char file2[25] = "res/pelengs/r1nm6h0_4096";
+  //char file2[25] = "res/pelengs/r1nm6h0_4096";
   //char file3[23] = "res/pelengs/simout.bin";
 
   if (!loadObserves1(file1/*, file_divs[0]*/, file_amps[0]))
     return false;
-  if (!loadObserves1(file2/*, file_divs[1]*/, file_amps[1]))
-    return false;
+  //if (!loadObserves1(file2/*, file_divs[1]*/, file_amps[1]))
+  //  return false;
 
   /*
   if (!loadObserves2(file3, file_amps[0]))
     return false;
+  */
   if (!initWithDummy(file_amps[1]))
     return false;
-  */
+
 
   /*
   for(int i = 0; i < 2; i++) {
@@ -888,7 +889,8 @@ bool RadarDataSource::loadObserves2(char* filename, GLfloat* amps) {
 bool RadarDataSource::initWithDummy(GLfloat* amps) {
   for (uint i = 0; i < BEARINGS_PER_CYCLE; i++)
     for (uint j = 0; j < PELENG_SIZE; j++)
-      amps[i*PELENG_SIZE+j] = (255.f * ((j + i/2) % PELENG_SIZE)) / PELENG_SIZE;
+      //amps[i*PELENG_SIZE+j] = (255.f * ((j + i/2) % PELENG_SIZE)) / PELENG_SIZE;
+      amps[i*PELENG_SIZE+j] = (255.f * j) / PELENG_SIZE;
 
   return true;
 }
