@@ -195,15 +195,10 @@ void RadarEngine::fillCoordTable() {
 
       int flat_coord = (x + _peleng_len - 1) * square_side + (y + _peleng_len - 1);
 
-      //_coord_table.push_back(x);
-      //_coord_table.push_back(y);
-
       if (used_pixel_map[flat_coord] == 0) {
-        //_first_pix.push_back(1);
         used_pixel_map[flat_coord] = 1;
         flat_coord *= -1;
-      } //else
-        //_first_pix.push_back(0);
+      }
 
       _coord_table.push_back(flat_coord);
     }
@@ -272,12 +267,11 @@ void RadarEngine::initShader() {
 
   _unif_locs[UNIF_CLR]      = _prog->uniformLocation("clear");
   _unif_locs[UNIF_PEL_LEN]  = _prog->uniformLocation("pel_len");
-  _unif_locs[UNIF_SQ_SD]  = _prog->uniformLocation("square_side");
+  _unif_locs[UNIF_SQ_SD]    = _prog->uniformLocation("square_side");
   _unif_locs[UNIF_PAL]      = _prog->uniformLocation("palette");
   _unif_locs[UNIF_THR]      = _prog->uniformLocation("threshold");
 
   _attr_locs[ATTR_POS] = _prog->attributeLocation("pos");
-  //_attr_locs[ATTR_FST] = _prog->attributeLocation("first");
   _attr_locs[ATTR_AMP] = _prog->attributeLocation("amp");
 
   _prog->release();
@@ -308,10 +302,6 @@ void RadarEngine::clearData() {
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
   glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), _coord_table.data(), GL_DYNAMIC_DRAW);
-  //glBufferData(GL_ARRAY_BUFFER, 2*_peleng_count*_peleng_len*sizeof(GLfloat), _coord_table.data(), GL_DYNAMIC_DRAW);
-
-  //glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_FST]);
-  //glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), _first_pix.data(), GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
   glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), amps.data(), GL_DYNAMIC_DRAW);
@@ -405,20 +395,15 @@ void RadarEngine::drawPelengs(uint first, uint last) {
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
   glVertexAttribPointer(_attr_locs[ATTR_POS], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
-  //glVertexAttribPointer(_attr_locs[ATTR_POS], 2, GL_FLOAT, GL_FALSE, 0, (void*) (2 * first * _peleng_len * sizeof(GLfloat)));
   glEnableVertexAttribArray(_attr_locs[ATTR_POS]);
-
-  //glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_FST]);
-  //glVertexAttribPointer(_attr_locs[ATTR_FST], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
-  //glEnableVertexAttribArray(_attr_locs[ATTR_FST]);
 
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
   glVertexAttribPointer(_attr_locs[ATTR_AMP], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
   glEnableVertexAttribArray(_attr_locs[ATTR_AMP]);
 
-  /*glDepthFunc(GL_ALWAYS);
+  glDepthFunc(GL_ALWAYS);
   glUniform1f(_unif_locs[UNIF_CLR], 1.f);
-  glDrawArrays(GL_POINTS, 0, (last - first + 1) * _peleng_len);*/
+  glDrawArrays(GL_POINTS, 0, (last - first + 1) * _peleng_len);
 
   glDepthFunc(GL_GREATER);
   glUniform1f(_unif_locs[UNIF_CLR], 0.f);

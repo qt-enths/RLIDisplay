@@ -1,8 +1,6 @@
 #version 120
 
-//attribute vec2 pos;
 attribute float pos;
-//attribute float first;
 attribute float amp;
 
 uniform float clear;
@@ -19,23 +17,13 @@ void main() {
 
   gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos2, -amp/255, 1);
 
-  /*if (clear == 0) {
+  if (clear == 0)
     gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos2, -amp/255, 1);
-  } else {
+  else
     if (pos < 0)
       gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos2, 1, 1);
     else
       gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(0, 0, 0, 0);
-  }*/
-
-  /*if (clear == 0) {
-    gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos, -amp/255, 1);
-  } else {
-    if (first == 1)
-      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(pos, 1, 1);
-    else
-      gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vec4(0, 0, 0, 0);
-  }*/
 
   norm_amp = int(amp / 16.0);
 }

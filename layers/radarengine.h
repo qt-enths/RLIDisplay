@@ -80,7 +80,6 @@ private:
   uint    _peleng_len;
 
   std::vector<GLfloat> _coord_table;
-  //std::vector<GLfloat> _first_pix;
 
   bool  _draw_circle;
   uint  _last_drawn_peleng;
@@ -91,7 +90,7 @@ private:
   QGLFramebufferObject* _fbo;
   QGLShaderProgram* _prog;
 
-  enum { ATTR_POS = 0, /*ATTR_FST = 1, */ATTR_AMP = 1, ATTR_CNT = 2 } ;
+  enum { ATTR_POS = 0, ATTR_AMP = 1, ATTR_CNT = 2 } ;
   enum { UNIF_CLR = 0, UNIF_PEL_LEN = 1, UNIF_SQ_SD = 2, UNIF_PAL = 3, UNIF_THR = 4, UNIF_CNT = 5 } ;
 
   GLuint _vbo_ids[ATTR_CNT];
