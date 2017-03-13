@@ -49,27 +49,19 @@ public slots:
 signals:
   void scale_changed(std::pair<QByteArray, QByteArray> scale);
 
-  void tails_changed(int count);
-  void tails_mode_changed(int mode, const QByteArray count);
-
 private slots:
   void resizeEvent(QResizeEvent* e);
   void timerEvent(QTimerEvent* e);
 
   void onClose();
-
   void onRLIWidgetInitialized();
-
-  void onTailsMenu(const QByteArray count);
 
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
 
   RadarScale* _radar_scale;
 
-  BoardPultController* _pult_driver;
-
-
+  // Контроллеры инфоблоков
   ValueBarController* _gain_ctrl;
   ValueBarController* _water_ctrl;
   ValueBarController* _rain_ctrl;
@@ -100,6 +92,10 @@ private:
   VnController* _vn_ctrl;
   VdController* _vd_ctrl;
 
+  // Контроллер пульта управления (для обработки вращения энкодеров)
+  BoardPultController* _pult_driver;
+
+  // Источники данных
   ChartManager* _chart_mngr;
   TargetDataSource* _target_ds;
   RadarDataSource* _radar_ds;
@@ -108,9 +104,6 @@ private:
   Ui::MainWindow *ui;
 
   int pressedKey[4];
-
-  int tail_mode;
-  int tail_minutes;
 
 #ifndef Q_OS_WIN
   static int sigintFd[2];

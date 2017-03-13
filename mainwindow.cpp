@@ -50,10 +50,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->setupUi(this);
 
   connect(ui->wgtRLIControl, SIGNAL(closeApp()), SLOT(onClose()));
-
-#ifndef Q_OS_WIN
   memset(pressedKey, 0, sizeof(pressedKey));
 
+#ifndef Q_OS_WIN
   // Initializing SIGINT handling
   if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigintFd) == 0)
   {
@@ -73,9 +72,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   _chart_mngr = new ChartManager();
 
   ui->wgtRLIDisplay->setChartManager(_chart_mngr);
-
-  tail_mode    = TailsController::TAILMODE_OFF;
-  tail_minutes = 1;
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init start";
 
@@ -245,6 +241,187 @@ void MainWindow::handleSigInt() {
 #endif // !Q_OS_WIN
 
 
+void MainWindow::onRLIWidgetInitialized() {
+  setCursor(QCursor(QPixmap("://res/cursors/cross_72dpi_12px_r0_g128_b255.png")));
+
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
+  connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
+        , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
+
+  connect(this, SIGNAL(scale_changed(std::pair<QByteArray, QByteArray>))
+        , _scle_ctrl, SLOT(scale_changed(std::pair<QByteArray, QByteArray>)));
+
+  connect(ui->wgtRLIDisplay, SIGNAL(displayVNDistance(float, const char *)), _vd_ctrl, SLOT(display_distance(float, const char *)));
+  connect(ui->wgtRLIDisplay, SIGNAL(displaydBRG(float, float)), _vn_ctrl, SLOT(display_brg(float, float)));
+
+
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";
+
+  setupInfoBlock(_gain_ctrl);
+  setupInfoBlock(_water_ctrl);
+  setupInfoBlock(_rain_ctrl);
+  setupInfoBlock(_apch_ctrl);
+  setupInfoBlock(_rdtn_ctrl);
+  setupInfoBlock(_curs_ctrl);
+  setupInfoBlock(_clck_ctrl);
+  setupInfoBlock(_pstn_ctrl);
+  setupInfoBlock(_blnk_ctrl);
+  setupInfoBlock(_crse_ctrl);
+  setupInfoBlock(_scle_ctrl);
+  setupInfoBlock(_lbl1_ctrl);
+  setupInfoBlock(_lbl2_ctrl);
+  setupInfoBlock(_lbl3_ctrl);
+  setupInfoBlock(_lbl4_ctrl);
+  setupInfoBlock(_lbl5_ctrl);
+  setupInfoBlock(_band_lbl_ctrl);
+  setupInfoBlock(_dngr_ctrl);
+  setupInfoBlock(_tals_ctrl);
+  setupInfoBlock(_dgdt_ctrl);
+  setupInfoBlock(_vctr_ctrl);
+  setupInfoBlock(_trgs_ctrl);
+  setupInfoBlock(_vn_ctrl);
+  setupInfoBlock(_vd_ctrl);
+
+  qRegisterMetaType<RadarTarget>("RadarTarget");
+
+  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(targetCountChanged(int))
+         , _trgs_ctrl, SLOT(onTargetCountChanged(int)));
+
+  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(selectedTargetUpdated(QString, RadarTarget))
+         , _trgs_ctrl, SLOT(updateTarget(QString, RadarTarget)));
+
+  connect(_target_ds, SIGNAL(updateTarget(QString, RadarTarget))
+         , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+
+
+  _target_ds->start();
+
+
+  connect(_ship_ds, SIGNAL(coordsUpdated(QVector2D))
+         , ui->wgtRLIDisplay, SLOT(onCoordsChanged(QVector2D)));
+
+  _ship_ds->start();
+
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
+  ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);
+
+  connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));
+  _chart_mngr->loadCharts();
+
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup menu signals";
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         , ui->wgtRLIDisplay->infoEngine(), SLOT(onLanguageChanged(QByteArray)) );
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         , ui->wgtRLIDisplay->menuEngine(), SLOT(onLanguageChanged(QByteArray)) );
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
+         , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)) );
+
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(startRouteEdit())
+         , ui->wgtRLIDisplay, SLOT(onStartRouteEdit()) );
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(finishRouteEdit())
+         , ui->wgtRLIDisplay, SLOT(onFinishRouteEdit()) );
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(loadRoute(int))
+         , ui->wgtRLIDisplay->routeEngine(), SLOT(loadFrom(int)) );
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(saveRoute(int))
+         , ui->wgtRLIDisplay->routeEngine(), SLOT(saveTo(int)) );
+
+
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(simulationChanged(QByteArray))
+        , _radar_ds, SLOT(onSimulationChanged(QByteArray)));
+
+
+  connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D)), _pstn_ctrl, SLOT(pos_changed(QVector2D)));
+
+
+  ui->wgtRLIDisplay->menuEngine()->onAnalogZeroChanged(_radar_ds->getAmpsOffset());
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(analogZeroChanged(int)), _radar_ds, SLOT(setAmpsOffset(int)));
+
+  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(tailsModeChanged(QByteArray))
+         , _target_ds, SLOT(onTailsModeChanged(const QByteArray)));
+
+  connect(_target_ds, SIGNAL(tailsModeChanged(int, int)), _tals_ctrl, SLOT(onTailsModeChanged(int,int)));
+  connect(_target_ds, SIGNAL(tailsModeChanged(int, int))
+        , ui->wgtRLIDisplay->targetEngine(), SLOT(onTailsModeChanged(int, int)));
+
+
+
+  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(bandModeChanged(QByteArray)), ui->wgtRLIDisplay, SLOT(onBandMenu(const QByteArray)));
+
+  connect(ui->wgtRLIDisplay, SIGNAL(band_changed(char **)), _band_lbl_ctrl, SLOT(onTextChanged(char**)));
+
+  this->setFocus();
+
+  // Set zero distance for VRM
+  RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, -1e6);
+  qApp->postEvent(ui->wgtRLIDisplay, evt);
+
+#ifndef Q_OS_WIN
+  // Create and start NMEA processor
+  _nmeaprc = new NMEAProcessor(this);
+  connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+  connect(_nmeaprc, SIGNAL(updateHeading(float)), _crse_ctrl, SLOT(course_changed(float)));
+  connect(_nmeaprc, SIGNAL(updateHeading(float)), _radar_ds, SLOT(updateHeading(float)));
+  connect(_nmeaprc, SIGNAL(updateHeading(float)), ui->wgtRLIDisplay, SLOT(onHeadingChanged(float)));
+
+  if (_nmeaPort.size()) {
+    QStringList ports;
+    ports.push_back(_nmeaPort);
+    _nmeaprc->open_fds(ports);
+    _nmeaprc->start();
+  }
+#endif // !Q_OS_WIN
+}
+
+void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
+  InfoBlock* blck = ui->wgtRLIDisplay->infoEngine()->addInfoBlock();
+  ctrl->setupBlock(blck, ui->wgtRLIDisplay->size());
+
+  connect(ctrl, SIGNAL(setRect(int, QRect)), blck, SLOT(setRect(int, QRect)));
+  connect(ctrl, SIGNAL(setText(int, int, QByteArray)), blck, SLOT(setText(int, int, QByteArray)));
+  connect(ui->wgtRLIDisplay, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
+}
+
+void MainWindow::resizeEvent(QResizeEvent* e) {
+  QSize s = e->size();
+  if (float(s.height()) / float(s.width()) > 0.7)
+    ui->wgtRLIControl->hide();
+  else
+    ui->wgtRLIControl->show();
+
+
+  QRect rli_geom = ui->wgtRLIDisplay->geometry();
+
+  rli_geom.setWidth(4 * (rli_geom.width() / 4));
+  rli_geom.setHeight(3 * (rli_geom.height() / 3));
+
+  if (rli_geom.height() > 3 * (rli_geom.width() / 4))
+    rli_geom.setHeight(3 * (rli_geom.width() / 4));
+  else
+    rli_geom.setWidth(4 * (rli_geom.height() / 3));
+
+  ui->wgtRLIDisplay->setGeometry(rli_geom);
+}
+
+void MainWindow::timerEvent(QTimerEvent*) {
+  const rli_scale_t* scale =  _radar_scale->getCurScale();
+
+  ui->wgtRLIDisplay->setScale(scale->len);
+  ui->wgtRLIDisplay->update();
+}
+
+
+
+
+
+
+
 int MainWindow::findPressedKey(int key) {
   for (int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
     if (pressedKey[i] == key)
@@ -352,10 +529,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     case Qt::Key_T:
     {
-        if(++tail_mode > TailsController::TAILMODE_LAST)
-            tail_mode = TailsController::TAILMODE_FIRST;
-        emit tails_changed((tail_mode == TailsController::TAILMODE_DOTS) ? tail_minutes : 0);
-        emit tails_mode_changed(tail_mode, QByteArray::number(tail_minutes));
+        _target_ds->incrementMode();
         break;
     }
     case Qt::Key_Up:
@@ -394,192 +568,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         qApp->postEvent(ui->wgtRLIDisplay, e);
         break;
     }
-    default:
-        QMainWindow::keyPressEvent(event);
     }
+
+    QMainWindow::keyPressEvent(event);
     savePressedKey(event->key());
 }
-
-
-void MainWindow::onRLIWidgetInitialized() {
-  setCursor(QCursor(QPixmap("://res/cursors/cross_72dpi_12px_r0_g128_b255.png")));
-
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
-  connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
-        , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
-
-  connect(this, SIGNAL(scale_changed(std::pair<QByteArray, QByteArray>))
-        , _scle_ctrl, SLOT(scale_changed(std::pair<QByteArray, QByteArray>)));
-
-  connect(ui->wgtRLIDisplay, SIGNAL(displayVNDistance(float, const char *)), _vd_ctrl, SLOT(display_distance(float, const char *)));
-  connect(ui->wgtRLIDisplay, SIGNAL(displaydBRG(float, float)), _vn_ctrl, SLOT(display_brg(float, float)));
-
-
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";
-
-  setupInfoBlock(_gain_ctrl);
-  setupInfoBlock(_water_ctrl);
-  setupInfoBlock(_rain_ctrl);
-  setupInfoBlock(_apch_ctrl);
-  setupInfoBlock(_rdtn_ctrl);
-  setupInfoBlock(_curs_ctrl);
-  setupInfoBlock(_clck_ctrl);
-  setupInfoBlock(_pstn_ctrl);
-  setupInfoBlock(_blnk_ctrl);
-  setupInfoBlock(_crse_ctrl);
-  setupInfoBlock(_scle_ctrl);
-  setupInfoBlock(_lbl1_ctrl);
-  setupInfoBlock(_lbl2_ctrl);
-  setupInfoBlock(_lbl3_ctrl);
-  setupInfoBlock(_lbl4_ctrl);
-  setupInfoBlock(_lbl5_ctrl);
-  setupInfoBlock(_band_lbl_ctrl);
-  setupInfoBlock(_dngr_ctrl);
-  setupInfoBlock(_tals_ctrl);
-  setupInfoBlock(_dgdt_ctrl);
-  setupInfoBlock(_vctr_ctrl);
-  setupInfoBlock(_trgs_ctrl);
-  setupInfoBlock(_vn_ctrl);
-  setupInfoBlock(_vd_ctrl);
-
-  qRegisterMetaType<RadarTarget>("RadarTarget");
-
-  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(targetCountChanged(int))
-         , _trgs_ctrl, SLOT(onTargetCountChanged(int)));
-
-  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(selectedTargetUpdated(QString, RadarTarget))
-         , _trgs_ctrl, SLOT(updateTarget(QString, RadarTarget)));
-
-  connect(_target_ds, SIGNAL(updateTarget(QString, RadarTarget))
-         , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
-
-
-  _target_ds->start();
-
-
-  connect(_ship_ds, SIGNAL(coordsUpdated(QVector2D))
-         , ui->wgtRLIDisplay, SLOT(onCoordsChanged(QVector2D)));
-
-  _ship_ds->start();
-
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
-  ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);
-
-  connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));
-  _chart_mngr->loadCharts();
-
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup menu signals";
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         ,ui->wgtRLIDisplay->infoEngine(), SLOT(onLanguageChanged(QByteArray)));
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         ,ui->wgtRLIDisplay->menuEngine(), SLOT(onLanguageChanged(QByteArray)));
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
-         ,ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)));
-
-
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(startRouteEdit())
-         ,ui->wgtRLIDisplay, SLOT(onStartRouteEdit()));
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(finishRouteEdit())
-         ,ui->wgtRLIDisplay, SLOT(onFinishRouteEdit()));
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(loadRoute(int))
-         ,ui->wgtRLIDisplay->routeEngine(), SLOT(loadFrom(int)));
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(saveRoute(int))
-         ,ui->wgtRLIDisplay->routeEngine(), SLOT(saveTo(int)));
-
-
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(simulationChanged(QByteArray))
-        , _radar_ds, SLOT(onSimulationChanged(QByteArray)));
-
-
-  connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D)), _pstn_ctrl, SLOT(pos_changed(QVector2D)));
-
-
-  ui->wgtRLIDisplay->menuEngine()->onAnalogZeroChanged(_radar_ds->getAmpsOffset());
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(analogZeroChanged(int)), _radar_ds, SLOT(setAmpsOffset(int)));
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(tailsModeChanged(QByteArray)), this, SLOT(onTailsMenu(const QByteArray)));
-  connect(this, SIGNAL(tails_mode_changed(int, const QByteArray)), _tals_ctrl, SLOT(tails_changed(int, const QByteArray)));
-  connect(this, SIGNAL(tails_changed(int)), ui->wgtRLIDisplay->targetEngine(), SLOT(onTailsTimeChanged(int)));
-
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(bandModeChanged(QByteArray)), ui->wgtRLIDisplay, SLOT(onBandMenu(const QByteArray)));
-
-  connect(ui->wgtRLIDisplay, SIGNAL(band_changed(char **)), _band_lbl_ctrl, SLOT(onTextChanged(char**)));
-
-  this->setFocus();
-
-  // Set zero distance for VRM
-  RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, -1e6);
-  qApp->postEvent(ui->wgtRLIDisplay, evt);
-
-#ifndef Q_OS_WIN
-  // Create and start NMEA processor
-  _nmeaprc = new NMEAProcessor(this);
-  connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
-  connect(_nmeaprc, SIGNAL(updateHeading(float)), _crse_ctrl, SLOT(course_changed(float)));
-  connect(_nmeaprc, SIGNAL(updateHeading(float)), _radar_ds, SLOT(updateHeading(float)));
-  connect(_nmeaprc, SIGNAL(updateHeading(float)), ui->wgtRLIDisplay, SLOT(onHeadingChanged(float)));
-  if(_nmeaPort.size())
-  {
-      QStringList ports;
-      ports.push_back(_nmeaPort);
-      _nmeaprc->open_fds(ports);
-      _nmeaprc->start();
-  }
-#endif // !Q_OS_WIN
-}
-
-void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
-  InfoBlock* blck = ui->wgtRLIDisplay->infoEngine()->addInfoBlock();
-  ctrl->setupBlock(blck, ui->wgtRLIDisplay->size());
-
-  connect(ctrl, SIGNAL(setRect(int, QRect)), blck, SLOT(setRect(int, QRect)));
-  connect(ctrl, SIGNAL(setText(int, int, QByteArray)), blck, SLOT(setText(int, int, QByteArray)));
-  connect(ui->wgtRLIDisplay, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
-}
-
-void MainWindow::resizeEvent(QResizeEvent* e) {
-  QSize s = e->size();
-  if (float(s.height()) / float(s.width()) > 0.7)
-    ui->wgtRLIControl->hide();
-  else
-    ui->wgtRLIControl->show();
-
-
-  QRect rli_geom = ui->wgtRLIDisplay->geometry();
-
-  rli_geom.setWidth(4 * (rli_geom.width() / 4));
-  rli_geom.setHeight(3 * (rli_geom.height() / 3));
-
-  if (rli_geom.height() > 3 * (rli_geom.width() / 4))
-    rli_geom.setHeight(3 * (rli_geom.width() / 4));
-  else
-    rli_geom.setWidth(4 * (rli_geom.height() / 3));
-
-  ui->wgtRLIDisplay->setGeometry(rli_geom);
-}
-
-void MainWindow::timerEvent(QTimerEvent*) {
-  const rli_scale_t* scale =  _radar_scale->getCurScale();
-
-  ui->wgtRLIDisplay->setScale(scale->len);
-  ui->wgtRLIDisplay->update();
-}
-
-
-
-
-
-
-void MainWindow::onTailsMenu(const QByteArray count) {
-  tail_minutes = atoi(count.data());
-  emit tails_changed((tail_mode == TailsController::TAILMODE_DOTS) ? tail_minutes : 0);
-  emit tails_mode_changed(tail_mode, count);
-}
-

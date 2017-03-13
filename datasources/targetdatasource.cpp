@@ -6,6 +6,9 @@
 TargetDataSource::TargetDataSource(QObject *parent) : QObject(parent) {
   _timerId = -1;
 
+  tail_mode    = TAILMODE_OFF;
+  tail_minutes = 1;
+
   RadarTarget trgt;
 
   trgt.Lost = false;
@@ -87,4 +90,17 @@ void TargetDataSource::timerEvent(QTimerEvent* e) {
 
     emit updateTarget(QString::number(i+1), target);
   }
+}
+
+void TargetDataSource::incrementMode() {
+  if (++tail_mode > TAILMODE_LAST)
+    tail_mode = TAILMODE_FIRST;
+
+  emit tailsModeChanged(tail_mode, (tail_mode == TAILMODE_DOTS) ? tail_minutes : 0);
+}
+
+void TargetDataSource::onTailsModeChanged(const QByteArray mode) {
+  tail_minutes = atoi(mode.data());
+
+  emit tailsModeChanged(tail_mode, (tail_mode == TAILMODE_DOTS) ? tail_minutes : 0);
 }

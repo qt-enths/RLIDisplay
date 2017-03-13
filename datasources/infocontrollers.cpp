@@ -2,6 +2,7 @@
 #include "../mainwindow.h"
 
 #include "../common/rlistrings.h"
+#include "targetdatasource.h"
 
 #include <QTime>
 #include <QDebug>
@@ -393,42 +394,24 @@ TailsController::TailsController(QObject* parent) : InfoBlockController(parent) 
   _minutes     = 0;
 }
 
-void TailsController::tails_count_changed(int count) {
+void TailsController::onTailsModeChanged(int mode, int minutes) {
+  _minutes = minutes;
 
-  _minutes = count;
-
-  QString mins;
-  for (int i = 0; i < RLI_LANG_COUNT; i++)
-  {
-      if(_minutes <= 0)
-          mins.sprintf("%s", RLIStrings::nOff[i]);
-      else
-          mins.sprintf("%d", _minutes);
-      _block->setText(_min_text_id, i, enc->fromUnicode(dec->toUnicode(mins.toLocal8Bit())));
-  }
-}
-
-void TailsController::tails_changed(int mode, const QByteArray count) {
-
-  _minutes = atoi(count.data());
-
-  if(mode == TAILMODE_OFF)
-      _minutes = 0;
+  if (mode == TargetDataSource::TAILMODE_OFF)
+    _minutes = 0;
 
   QByteArray smode;
   QString mins;
-  for (int i = 0; i < RLI_LANG_COUNT; i++)
-  {
-      if(mode == TAILMODE_DOTS)
-          smode = RLIStrings::nDot[i];
-      else
-          smode = RLIStrings::nTrl[i];
-      if(_minutes <= 0)
-          mins.sprintf("%s", RLIStrings::nOff[i]);
-      else
-          mins.sprintf("%d", _minutes);
-      _block->setText(_mode_text_id, i, enc->fromUnicode(dec->toUnicode(smode)));
-      _block->setText(_min_text_id, i, enc->fromUnicode(dec->toUnicode(mins.toLocal8Bit())));
+  for (int i = 0; i < RLI_LANG_COUNT; i++) {
+    smode = (mode == TargetDataSource::TAILMODE_DOTS) ? RLIStrings::nDot[i] : RLIStrings::nTrl[i];
+
+    if (_minutes <= 0)
+      mins.sprintf("%s", RLIStrings::nOff[i]);
+    else
+      mins.sprintf("%d", _minutes);
+
+    _block->setText(_mode_text_id, i, enc->fromUnicode(dec->toUnicode(smode)));
+    _block->setText(_min_text_id, i, enc->fromUnicode(dec->toUnicode(mins.toLocal8Bit())));
   }
 }
 

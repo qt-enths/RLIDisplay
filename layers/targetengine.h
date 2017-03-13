@@ -61,7 +61,7 @@ signals:
 
 public slots:
   void onTailsTimer();
-  void onTailsTimeChanged(int minutes);
+  void onTailsModeChanged(int mode, int minutes);
   void trySelect(QVector2D cursorCoords, float scale);
   void deleteTarget(QString tag);
   void updateTarget(QString tag, RadarTarget target);

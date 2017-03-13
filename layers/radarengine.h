@@ -9,7 +9,7 @@
 #include <QtOpenGL/QGLFramebufferObject>
 #include <QtOpenGL/QGLShaderProgram>
 
-
+// Класс для расчета радарной палитры
 class RadarPalette {
 public:
   RadarPalette();
@@ -24,30 +24,33 @@ private:
   void updatePalette();
 
   // Параметры:
-  int rgbRLI_Var;         //Текущая палитры (день/ночь)
+  int rgbRLI_Var;         //Текущая палитра (день/ночь)
   int brightnessRLI;      //Яркость РЛИ 0..255
 
+  // Текущая палитра
   float palette[16][3];
 
   // Описание палитры РЛИ
   typedef struct rgbRLI_struct {
-    unsigned char Rbg,Gbg,Bbg; //RGB фона
-    unsigned char R01,G01,B01; //RGB для 1й градации РЛИ
-    unsigned char R08,G08,B08; //RGB для 8й градации РЛИ
-    unsigned char R15,G15,B15; //RGB для 15й градации РЛИ
-    unsigned char Rtk,Gtk,Btk; //RGB следов
-    float gamma01_08; //линейность яркости от 1й до 8й градации РЛИ
-    float gamma08_15; //линейность яркости от 8й до 15й градации РЛИ
+    unsigned char Rbg,Gbg,Bbg;        //RGB фона
+    unsigned char R01,G01,B01;        //RGB для 1й градации РЛИ
+    unsigned char R08,G08,B08;        //RGB для 8й градации РЛИ
+    unsigned char R15,G15,B15;        //RGB для 15й градации РЛИ
+    unsigned char Rtk,Gtk,Btk;        //RGB следов
+    float gamma01_08;                 //линейность яркости от 1й до 8й градации РЛИ
+    float gamma08_15;                 //линейность яркости от 8й до 15й градации РЛИ
   } rgbRLI_struct;
 };
 
 
+// Класс для отрисовки радарного круга
 class RadarEngine : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
   explicit RadarEngine  (uint pel_count, uint pel_len);
   virtual ~RadarEngine  ();
 
+  // Инициализация OpenGL структур
   bool init           (const QGLContext* context);
   void resizeData     (uint pel_count, uint pel_len);
   void resizeTexture  (uint radius);
@@ -75,15 +78,12 @@ private:
 
   // Radar parameters
   QPoint  _center;
-  uint    _radius;
-  uint    _peleng_count;
-  uint    _peleng_len;
+  uint    _radius, _peleng_count, _peleng_len;
 
   std::vector<GLfloat> _coord_table;
 
   bool  _draw_circle;
-  uint  _last_drawn_peleng;
-  uint  _last_added_peleng;
+  uint  _last_drawn_peleng, _last_added_peleng;
 
   // Framebuffer vars
   QGLFramebufferObjectFormat _fbo_format;
@@ -97,6 +97,7 @@ private:
   GLuint _unif_locs[UNIF_CNT];
   GLuint _attr_locs[ATTR_CNT];
 
+  // Палитра
   RadarPalette* _pal;
 };
 
