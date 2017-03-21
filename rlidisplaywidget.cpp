@@ -85,9 +85,9 @@ void RLIDisplayWidget::onBandMenu(const QByteArray band) {
   const char* pband = band.data();
   int bandnum = sizeof(RLIStrings::bandArray) / sizeof(RLIStrings::bandArray[0][0]) / 2;
 
-  for(int i = 0; i < bandnum; i++) {
-    for(int j = 0; j < RLI_LANG_COUNT; j++) {
-      if(strcmp(pband, RLIStrings::bandArray[i][j]) == 0) {
+  for(int i = 0; i < bandnum; i++)
+    for(int j = 0; j < RLI_LANG_COUNT; j++)
+      if(strcmp(pband, RLIStrings::bandArray[i][j]) == 0)
         switch(i) {
         case 0:
           emit band_changed(RLIStrings::nBandX);
@@ -99,9 +99,6 @@ void RLIDisplayWidget::onBandMenu(const QByteArray band) {
           emit band_changed(RLIStrings::nBandK);
           break;
         }
-      }
-    }
-  }
 }
 
 
@@ -444,12 +441,7 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint, RadarScale* 
 }
 
 
-void RLIDisplayWidget::mouseReleaseEvent(QMouseEvent* e) {
-  Q_UNUSED(e);
-}
-
-void RLIDisplayWidget::wheelEvent(QWheelEvent * e)
-{
+void RLIDisplayWidget::wheelEvent(QWheelEvent * e) {
     int numDegrees = e->delta() / 8;
     int numSteps = numDegrees / 15;
 
@@ -474,12 +466,6 @@ bool RLIDisplayWidget::event(QEvent* e) {
     QPoint cursor_pos;
 
     switch (re->button()) {
-      case RLIControlEvent::NoButton:
-        break;
-      case RLIControlEvent::ButtonMinus:
-        break;
-      case RLIControlEvent::ButtonPlus:
-        break;
       case RLIControlEvent::CenterShift:
         cursor_pos = _controlsEngine->getCursorPos();
         if (QLineF(cursor_pos, _maskEngine->getCenter()).length() < _maskEngine->getRadius()) {
@@ -571,22 +557,18 @@ bool RLIDisplayWidget::event(QEvent* e) {
         break;
       }
       case RLIControlEvent::VD:
-        _controlsEngine->shiftVd(re->spinnerVal());
-        foreach(QWidget* w, QApplication::topLevelWidgets()) {
-          MainWindow* mainWnd = dynamic_cast<MainWindow *>(w);
-          if(mainWnd) {
-            float ratio = 1;
-            const char * fmt = NULL;
+        {
+          _controlsEngine->shiftVd(re->spinnerVal());
 
-            ratio = _rli_scale.len / maskEngine()->getRadius();
-            fmt = _rli_scale.val_fmt;
+          float ratio = 1;
+          const char* fmt = NULL;
 
-            emit displayVNDistance(_controlsEngine->getVd() * ratio, fmt);
-            break;
-          }
+          ratio = _rli_scale.len / maskEngine()->getRadius();
+          fmt = _rli_scale.val_fmt;
+
+          emit displayVNDistance(_controlsEngine->getVd() * ratio, fmt);
+          break;
         }
-
-        break;
       default:
         break;
     }
@@ -596,9 +578,9 @@ bool RLIDisplayWidget::event(QEvent* e) {
 }
 
 void RLIDisplayWidget::setWorldCoords(QVector2D coords) {
-    _world_coords = coords;
+  _world_coords = coords;
 }
 
 QVector2D RLIDisplayWidget::getWorldCoords(void) const {
-    return _world_coords;
+  return _world_coords;
 }

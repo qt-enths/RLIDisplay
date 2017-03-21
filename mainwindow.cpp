@@ -461,100 +461,100 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event) {
 
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
-    switch(event->key())
-    {
-    case Qt::Key_S:
-        if(_radar_ds)
-            _radar_ds->nextHIP(RadarDataSource::HIPC_MAIN);
-        break;
-    case Qt::Key_W:
-    {
-        if(findPressedKey(Qt::Key_B) != -1)
-        {
-            RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
-            qApp->postEvent(ui->wgtRLIDisplay, e);
-        }
-        else
-        {
-            RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Menu);
-            qApp->postEvent(ui->wgtRLIDisplay, e);
-        }
-        break;
-    }
-    case Qt::Key_Plus:
-        {
-          _radar_ds->nextScale();
-          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
+  switch(event->key())
+  {
+  case Qt::Key_S:
+      if(_radar_ds)
+          _radar_ds->nextHIP(RadarDataSource::HIPC_MAIN);
+      break;
+  case Qt::Key_W:
+  {
+      if(findPressedKey(Qt::Key_B) != -1)
+      {
+          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
           qApp->postEvent(ui->wgtRLIDisplay, e);
-        }
-        break;
-    case Qt::Key_Minus:
-        {
-          _radar_ds->prevScale();
-          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
+      }
+      else
+      {
+          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Menu);
           qApp->postEvent(ui->wgtRLIDisplay, e);
-        }
-        break;
-    case Qt::Key_C:
-    {
-        QPoint p = mapFromGlobal(QCursor::pos());
-        QMouseEvent * evt = new QMouseEvent(QEvent::MouseButtonPress, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-        qApp->postEvent(ui->wgtRLIDisplay, evt);
-        evt = new QMouseEvent(QEvent::MouseButtonRelease, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-        qApp->postEvent(ui->wgtRLIDisplay, evt);
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::CenterShift);
+      }
+      break;
+  }
+  case Qt::Key_Plus:
+      {
+        _radar_ds->nextScale();
+        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
         qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    case Qt::Key_U:
-    {
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
+      }
+      break;
+  case Qt::Key_Minus:
+      {
+        _radar_ds->prevScale();
+        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
         qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    case Qt::Key_T:
-    {
-        _target_ds->incrementMode();
-        break;
-    }
-    case Qt::Key_Up:
-    {
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Up);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    case Qt::Key_Down:
-    {
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Down);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    case Qt::Key_Enter:
-    {
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    case Qt::Key_Return:
-    {
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    case Qt::Key_Escape:
-    {
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Back);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    case Qt::Key_Backslash:
-    {
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ParallelLines);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-        break;
-    }
-    }
+      }
+      break;
+  case Qt::Key_C:
+  {
+      QPoint p = mapFromGlobal(QCursor::pos());
+      QMouseEvent * evt = new QMouseEvent(QEvent::MouseButtonPress, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+      qApp->postEvent(ui->wgtRLIDisplay, evt);
+      evt = new QMouseEvent(QEvent::MouseButtonRelease, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+      qApp->postEvent(ui->wgtRLIDisplay, evt);
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::CenterShift);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  case Qt::Key_U:
+  {
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  case Qt::Key_T:
+  {
+      _target_ds->incrementMode();
+      break;
+  }
+  case Qt::Key_Up:
+  {
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Up);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  case Qt::Key_Down:
+  {
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Down);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  case Qt::Key_Enter:
+  {
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  case Qt::Key_Return:
+  {
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  case Qt::Key_Escape:
+  {
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Back);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  case Qt::Key_Backslash:
+  {
+      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ParallelLines);
+      qApp->postEvent(ui->wgtRLIDisplay, e);
+      break;
+  }
+  }
 
-    QMainWindow::keyPressEvent(event);
-    savePressedKey(event->key());
+  QMainWindow::keyPressEvent(event);
+  savePressedKey(event->key());
 }

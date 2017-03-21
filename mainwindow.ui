@@ -10,6 +10,9 @@
     <height>629</height>
    </rect>
   </property>
+  <property name="cursor">
+   <cursorShape>BlankCursor</cursorShape>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -489,7 +492,6 @@
         <property name="autoFillBackground">
          <bool>true</bool>
         </property>
-        <zorder></zorder>
        </widget>
       </item>
       <item>
