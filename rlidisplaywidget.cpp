@@ -53,9 +53,13 @@ void RLIDisplayWidget::onStartRouteEdit() {
   _route_edition = true;
 }
 
+void RLIDisplayWidget::onScaleChanged(RadarScale scale) {
+  _rli_scale = *scale.current;
+}
+
 void RLIDisplayWidget::onAddRoutePoint() {
   QPointF pos = _controlsEngine->getVdVnIntersection();
-  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+  float scale = (_rli_scale.len*1852.f) / _maskEngine->getRadius();
   QVector2D last_route_point = _routeEngine->getLastPoint();
   /*QPointF pos = _controlsEngine->getCursorPos();
   QPointF cen = _controlsEngine->getCenterPos();
@@ -302,7 +306,7 @@ void RLIDisplayWidget::paintGL() {
 
   //_scale - радиус дырки в маске в пикселях
   // scale в update - метров/пиксель
-  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+  float scale = (_rli_scale.len*1852.f) / _maskEngine->getRadius();
 
 
   if (_route_edition) {
@@ -410,12 +414,11 @@ void RLIDisplayWidget::mouseMoveEvent(QMouseEvent* e) {
     moveCoursor(e->pos(), false);
 }
 
-void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
+void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint, RadarScale* curscale) {
   QPointF cen = _controlsEngine->getCenterPos();
-  float scale = (_scale*1852.f) / _maskEngine->getRadius();
+  float scale = (_rli_scale.len*1852.f) / _maskEngine->getRadius();
   QVector2D cursor_coords = RLIMath::pos_to_coords(QVector2D(12.5000f, -81.6000f), cen, pos, scale);
   emit cursor_moved(cursor_coords);
-
 
   const char * dist_fmt = NULL;
   if(repaint)
@@ -427,22 +430,15 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint) {
 
   float distance = sqrt(pow(pos.y() - cen.y(), 2) + pow(pos.x() - cen.x(), 2));
 
-  foreach(QWidget * w, QApplication::topLevelWidgets()) {
-    MainWindow * mainWnd = dynamic_cast<MainWindow *>(w);
-    if(mainWnd) {
-      float ratio = 1;
-      RadarScale * curscale = mainWnd->getRadarScale();
-      if(curscale) {
-        const rli_scale_t * scale = curscale->getCurScale();
-        if(scale) {
-          ratio = scale->len / maskEngine()->getRadius();
-          dist_fmt = scale->val_fmt;
-        }
-      }
-      distance *= ratio;
-      break;
+  float ratio = 1;
+  if(curscale) {
+    const rli_scale_t * scale = curscale->getCurScale();
+    if(scale) {
+      ratio = scale->len / maskEngine()->getRadius();
+      dist_fmt = scale->val_fmt;
     }
   }
+  distance *= ratio;
 
   emit cursor_moved(peleng, distance, dist_fmt);
 }
@@ -531,7 +527,7 @@ bool RLIDisplayWidget::event(QEvent* e) {
         } else {
           QPointF pos = _controlsEngine->getCursorPos();
           QPointF cen = _controlsEngine->getCenterPos();
-          float scale = (_scale*1852.f) / _maskEngine->getRadius();
+          float scale = (_rli_scale.len*1852.f) / _maskEngine->getRadius();
           QVector2D cursor_coords = RLIMath::pos_to_coords(_world_coords, cen, pos, scale);
           _targetEngine->trySelect(cursor_coords, scale);
         }
@@ -553,7 +549,7 @@ bool RLIDisplayWidget::event(QEvent* e) {
       case RLIControlEvent::NoSpinner:
         break;
       case RLIControlEvent::VN:
-    {
+      {
         _controlsEngine->shiftVnCu(re->spinnerVal()); //shiftVnP(re->spinnerVal());
         //_maskEngine->setAngleShift(_controlsEngine->getVnP());
         float brg = _controlsEngine->getVnCu();
@@ -564,38 +560,30 @@ bool RLIDisplayWidget::event(QEvent* e) {
         float hdg = _controlsEngine->getVnP();
         float counterhdg;
         if(hdg <= 180)
-            counterhdg = hdg + 180;
+          counterhdg = hdg + 180;
         else
-            counterhdg = 180 - hdg;
+          counterhdg = 180 - hdg;
         if((brg >= hdg) && (brg <= counterhdg))
-            crsangle = brg - hdg;
+          crsangle = brg - hdg;
         else
-            crsangle = (-1) * (360 - brg + hdg);
+          crsangle = (-1) * (360 - brg + hdg);
         emit displaydBRG(brg, crsangle);
         break;
-    }
+      }
       case RLIControlEvent::VD:
         _controlsEngine->shiftVd(re->spinnerVal());
-        foreach(QWidget * w, QApplication::topLevelWidgets())
-        {
-            MainWindow * mainWnd = dynamic_cast<MainWindow *>(w);
-            if(mainWnd)
-            {
-                float ratio = 1;
-                const char * fmt = NULL;
-                RadarScale * curscale = mainWnd->getRadarScale();
-                if(curscale)
-                {
-                    const rli_scale_t * scale = curscale->getCurScale();
-                    if(scale)
-                    {
-                        ratio = scale->len / maskEngine()->getRadius();
-                        fmt = scale->val_fmt;
-                    }
-                }
-                emit displayVNDistance(_controlsEngine->getVd() * ratio, fmt);
-                break;
-            }
+        foreach(QWidget* w, QApplication::topLevelWidgets()) {
+          MainWindow* mainWnd = dynamic_cast<MainWindow *>(w);
+          if(mainWnd) {
+            float ratio = 1;
+            const char * fmt = NULL;
+
+            ratio = _rli_scale.len / maskEngine()->getRadius();
+            fmt = _rli_scale.val_fmt;
+
+            emit displayVNDistance(_controlsEngine->getVd() * ratio, fmt);
+            break;
+          }
         }
 
         break;
@@ -607,12 +595,10 @@ bool RLIDisplayWidget::event(QEvent* e) {
   return QGLWidget::event(e);
 }
 
-void RLIDisplayWidget::setWorldCoords(QVector2D coords)
-{
+void RLIDisplayWidget::setWorldCoords(QVector2D coords) {
     _world_coords = coords;
 }
 
-QVector2D RLIDisplayWidget::getWorldCoords(void) const
-{
+QVector2D RLIDisplayWidget::getWorldCoords(void) const {
     return _world_coords;
 }

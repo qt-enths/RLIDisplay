@@ -93,6 +93,8 @@ const u_int32_t RadarDataSource::max_gain_level = 255;
 
 RadarDataSource::RadarDataSource() {
   finish_flag = true;
+  _radar_scale = new RadarScale();
+
   loadData();
 
 #ifndef Q_OS_WIN
@@ -1614,7 +1616,21 @@ int RadarDataSource::apctrl_adcspi_send(u_int32_t baseaddr, u_int32_t addrv, u_i
 #endif // !Q_OS_WIN
 
 
-int RadarDataSource::setupScale(const rli_scale_t * pscale) {
+void RadarDataSource::nextScale() {
+  if (_radar_scale->nextScale() == 0) {
+    const rli_scale_t* scale = _radar_scale->getCurScale();
+    setupScale(scale);
+  }
+}
+
+void RadarDataSource::prevScale() {
+  if(_radar_scale->prevScale() == 0) {
+    const rli_scale_t* scale = _radar_scale->getCurScale();
+    setupScale(scale);
+  }
+}
+
+int RadarDataSource::setupScale(const rli_scale_t* pscale) {
   int res = 1;
 
   #ifndef Q_OS_WIN
@@ -1633,6 +1649,8 @@ int RadarDataSource::setupScale(const rli_scale_t * pscale) {
     return res;
   }
   #endif // !Q_OS_WIN
+
+  emit scaleChanged(*_radar_scale);
 
   return res;
 }

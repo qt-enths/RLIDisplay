@@ -89,16 +89,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   rx.setPattern("--radar-device");
   argpos = args.indexOf(rx);
 
-  if((argpos >= 0) && (argpos < args.count() - 1))
-      _radar_ds->start(args.at(argpos + 1).toStdString().c_str());
-  else
-  {
-      rx.setPattern("--use-dump");
-      argpos = args.indexOf(rx);
-      if(argpos >= 0)
-          _radar_ds->start_dump();
-      else
-          _radar_ds->start();
+  if ((argpos >= 0) && (argpos < args.count() - 1))
+    _radar_ds->start(args.at(argpos + 1).toStdString().c_str());
+  else {
+    rx.setPattern("--use-dump");
+    argpos = args.indexOf(rx);
+    if(argpos >= 0)
+      _radar_ds->start_dump();
+    else
+      _radar_ds->start();
   }
 
 #ifndef Q_OS_WIN
@@ -152,8 +151,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _vn_ctrl = new VnController(this);
   _vd_ctrl = new VdController(this);
-
-  _radar_scale = new RadarScale();
 
   connect(_pult_driver, SIGNAL(gain_changed(int)), _gain_ctrl, SLOT(onValueChanged(int)));
   connect(_pult_driver, SIGNAL(wave_changed(int)), _water_ctrl, SLOT(onValueChanged(int)));
@@ -248,8 +245,12 @@ void MainWindow::onRLIWidgetInitialized() {
   connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
         , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
 
-  connect(this, SIGNAL(scale_changed(std::pair<QByteArray, QByteArray>))
-        , _scle_ctrl, SLOT(scale_changed(std::pair<QByteArray, QByteArray>)));
+  connect(_radar_ds, SIGNAL(scaleChanged(RadarScale))
+        , _scle_ctrl, SLOT(onScaleChanged(RadarScale)));
+
+  connect(_radar_ds, SIGNAL(scaleChanged(RadarScale))
+        , ui->wgtRLIDisplay, SLOT(onScaleChanged(RadarScale)));
+  ui->wgtRLIDisplay->onScaleChanged(_radar_ds->getCurrentScale());
 
   connect(ui->wgtRLIDisplay, SIGNAL(displayVNDistance(float, const char *)), _vd_ctrl, SLOT(display_distance(float, const char *)));
   connect(ui->wgtRLIDisplay, SIGNAL(displaydBRG(float, float)), _vn_ctrl, SLOT(display_brg(float, float)));
@@ -410,9 +411,6 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
 }
 
 void MainWindow::timerEvent(QTimerEvent*) {
-  const rli_scale_t* scale =  _radar_scale->getCurScale();
-
-  ui->wgtRLIDisplay->setScale(scale->len);
   ui->wgtRLIDisplay->update();
 }
 
@@ -462,8 +460,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event) {
 }
 
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
-{
+void MainWindow::keyPressEvent(QKeyEvent *event) {
     switch(event->key())
     {
     case Qt::Key_S:
@@ -485,29 +482,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         break;
     }
     case Qt::Key_Plus:
-        if(_radar_scale->nextScale() == 0)
         {
-            const rli_scale_t * scale = _radar_scale->getCurScale();
-            _radar_ds->setupScale(scale);
-            std::pair<QByteArray, QByteArray> s = _radar_scale->getCurScaleText();
-            emit scale_changed(s);
-            RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton
-                                                   , RLIControlEvent::VD
-                                                   , 0);
-            qApp->postEvent(ui->wgtRLIDisplay, e);
+          _radar_ds->nextScale();
+          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
+          qApp->postEvent(ui->wgtRLIDisplay, e);
         }
         break;
     case Qt::Key_Minus:
-        if(_radar_scale->prevScale() == 0)
         {
-            const rli_scale_t * scale = _radar_scale->getCurScale();
-            _radar_ds->setupScale(scale);
-            std::pair<QByteArray, QByteArray> s = _radar_scale->getCurScaleText();
-            emit scale_changed(s);
-            RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton
-                                                   , RLIControlEvent::VD
-                                                   , 0);
-            qApp->postEvent(ui->wgtRLIDisplay, e);
+          _radar_ds->prevScale();
+          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
+          qApp->postEvent(ui->wgtRLIDisplay, e);
         }
         break;
     case Qt::Key_C:

@@ -67,6 +67,10 @@ public:
   int preprocessBearing(u_int32_t * brgdata, bool inv);
   int simulate(bool sim);
 
+  inline RadarScale getCurrentScale() { return *_radar_scale; }
+  void nextScale();
+  void prevScale();
+
 public slots:
   void updateHeading(float hdg);
   void setGain(int gain);
@@ -75,6 +79,7 @@ public slots:
 
 signals:
   void updateData(uint offset, uint count, GLfloat* amps);
+  void scaleChanged(RadarScale scale);
 
 private:
   bool loadData();
@@ -85,6 +90,8 @@ private:
   bool finish_flag;
   GLfloat file_amps[2][BEARINGS_PER_CYCLE * PELENG_SIZE];
   uint  file_curr;
+
+  RadarScale* _radar_scale;
 
   void worker();
   void dump_worker();

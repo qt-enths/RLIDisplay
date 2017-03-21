@@ -176,11 +176,13 @@ ScaleController::ScaleController(QObject* parent) : InfoBlockController(parent) 
   _unit_text_id = -1;
 }
 
-void ScaleController::scale_changed(std::pair<QByteArray, QByteArray> scale) {
-    emit setText(0, 0, scale.first);
-    emit setText(2, 0, scale.second);
-    emit setText(0, 1, scale.first);
-    emit setText(2, 1, scale.second);
+void ScaleController::onScaleChanged(RadarScale scale) {
+  std::pair<QByteArray, QByteArray> s = scale.getCurScaleText();
+
+  emit setText(0, 0, s.first);
+  emit setText(2, 0, s.second);
+  emit setText(0, 1, s.first);
+  emit setText(2, 1, s.second);
 }
 
 void ScaleController::initBlock(const QSize& size) {
@@ -189,10 +191,7 @@ void ScaleController::initBlock(const QSize& size) {
   _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
-  std::pair<QByteArray, QByteArray> s;
-  MainWindow * mainWnd = dynamic_cast<MainWindow *>(parent());
-  if(mainWnd)
-      s = mainWnd->getRadarScale()->getCurScaleText();
+  std::pair<QByteArray, QByteArray> s("0.125", "0.125");
 
   t.font_tag = "16x28";
   t.allign = INFOTEXT_ALLIGN_RIGHT;

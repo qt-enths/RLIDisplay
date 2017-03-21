@@ -9,6 +9,8 @@
 
 #include "s52/chartmanager.h"
 
+#include "datasources/radarscale.h"
+
 #include "layers/radarengine.h"
 #include "layers/infoengine.h"
 #include "layers/menuengine.h"
@@ -35,8 +37,6 @@ public:
 
   inline void setChartManager(ChartManager* mngr) { _chrt_mngr = mngr; }
 
-  void setScale(float scale) { _scale = scale; }
-
   void setWorldCoords(QVector2D coords);
   QVector2D getWorldCoords(void) const;
 
@@ -60,6 +60,7 @@ public slots:
   void onCoordsChanged(const QVector2D& new_coords);
   void onHeadingChanged(float hdg);
   void onBandMenu(const QByteArray band);
+  void onScaleChanged(RadarScale scale);
 
 protected slots:
   void mousePressEvent(QMouseEvent* e);
@@ -82,14 +83,14 @@ protected slots:
 private:
   void fillWithTexture(GLuint texId);
 
-  void moveCoursor(const QPoint &pos, bool repaint = true);
+  void moveCoursor(const QPoint &pos, bool repaint = true, RadarScale* curscale = NULL);
 
   bool _initialized;
 
   bool _route_edition;
 
   int  _last_second;
-  float _scale;
+  rli_scale_t _rli_scale;
 
   AsmFonts* _fonts;
   ChartManager* _chrt_mngr;

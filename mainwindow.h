@@ -27,8 +27,6 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
-  inline RadarScale* getRadarScale() { return _radar_scale; }
-
 #ifndef Q_OS_WIN
   static void intSignalHandler(int sig);
 #endif // !Q_OS_WIN
@@ -43,11 +41,8 @@ protected:
 
 public slots:
 #ifndef Q_OS_WIN
-  void handleSigInt();
+  void +-();
 #endif // !Q_OS_WIN
-
-signals:
-  void scale_changed(std::pair<QByteArray, QByteArray> scale);
 
 private slots:
   void resizeEvent(QResizeEvent* e);
@@ -58,8 +53,6 @@ private slots:
 
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
-
-  RadarScale* _radar_scale;
 
   // Контроллеры инфоблоков
   ValueBarController* _gain_ctrl;

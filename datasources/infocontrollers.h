@@ -6,6 +6,7 @@
 #include <QTextEncoder>
 #include <QTextDecoder>
 
+#include "../datasources/radarscale.h"
 #include "../layers/infoengine.h"
 #include "../layers/targetengine.h"
 
@@ -97,7 +98,7 @@ public:
   explicit ScaleController(QObject* parent = 0);
 
 public slots:
-  void scale_changed(std::pair<QByteArray, QByteArray> scale);
+  void onScaleChanged(RadarScale scale);
 
 signals:
   void setRect(int rectId, const QRect& r);
