@@ -15,8 +15,6 @@ public:
   explicit RLIControlWidget(QWidget *parent = 0);
   ~RLIControlWidget();
 
-  inline void setReciever(QWidget* w) { _reciever = w; }
-
 private slots:
   void on_sldVN_sliderReleased();
   void on_sldVD_sliderReleased();
@@ -41,12 +39,14 @@ private slots:
   void on_btnTrace5_clicked();
   void on_btnTrace6_clicked();
 
-
   void on_btnConfigMenu_clicked();
 
   void on_btnClose_clicked();
 
 signals:
+  void vdChanged(float val);
+  void vnChanged(float val);
+
   void gainChanged(int val);
   void waterChanged(int val);
   void rainChanged(int val);
@@ -57,7 +57,6 @@ private:
   int _vn_pos;
   int _vd_pos;
 
-  QWidget* _reciever;
   Ui::RLIControlWidget *ui;
 };
 

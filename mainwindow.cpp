@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/socket.h>
+#include <sys/socket.h>m
 #include <sys/stat.h>
 #include <linux/input.h>
 
@@ -302,8 +302,9 @@ void MainWindow::onRLIWidgetInitialized() {
 
   _ship_ds->start();
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup rliwidget as control reciever";
-  ui->wgtRLIControl->setReciever(ui->wgtRLIDisplay);
+  connect(ui->wgtRLIControl, SIGNAL(vdChanged(float)), ui->wgtRLIDisplay, SLOT(onVdChanged(float)));
+  connect(ui->wgtRLIControl, SIGNAL(vnChanged(float)), ui->wgtRLIDisplay, SLOT(onVnChanged(float)));
+
 
   connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));
   _chart_mngr->loadCharts();

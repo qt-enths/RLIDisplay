@@ -2,11 +2,12 @@
 #include "ui_rlicontrolwidget.h"
 
 #include <QDebug>
+#include <QKeyEvent>
 #include <QApplication>
 
 #include <stdint.h>
 typedef uint32_t u_int32_t;
-#include "rlicontrolevent.h"
+
 
 #define TRIGGERED_SLIDER_MIN -90
 #define TRIGGERED_SLIDER_MAX 90
@@ -38,7 +39,6 @@ RLIControlWidget::RLIControlWidget(QWidget *parent) : QWidget(parent), ui(new Ui
   _vn_pos = TRIGGERED_SLIDER_DEFAULT;
   _vd_pos = TRIGGERED_SLIDER_DEFAULT;
 
-  _reciever = NULL;
   setFocusPolicy(Qt::NoFocus);
 }
 
@@ -60,44 +60,28 @@ void RLIControlWidget::on_sldVD_sliderReleased() {
 }
 
 void RLIControlWidget::on_sldVN_sliderMoved(int pos) {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton
-                                           , RLIControlEvent::VN
-                                           , pos - _vn_pos);
-    qApp->postEvent(_reciever, e);
-    _vn_pos = pos;
-  }
+  emit vnChanged(static_cast<float>(pos - _vn_pos));
+  _vn_pos = pos;
 }
 
 void RLIControlWidget::on_sldVD_sliderMoved(int pos) {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton
-                                           , RLIControlEvent::VD
-                                           , pos - _vd_pos);
-    qApp->postEvent(_reciever, e);
-    _vd_pos = pos;
-  }
+  emit vdChanged(static_cast<float>(pos - _vd_pos));
+  _vd_pos = pos;
 }
 
 void RLIControlWidget::on_btnModeDec_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ButtonMinus);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_Minus, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnModeInc_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ButtonPlus);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_Plus, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnMode3_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::CenterShift);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_sldGain_valueChanged(int value) {
@@ -113,53 +97,38 @@ void RLIControlWidget::on_sldRain_valueChanged(int value) {
 }
 
 void RLIControlWidget::on_btnOnOff3_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ParallelLines);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_Backslash, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnMenu_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Menu);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_W, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnTrace1_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Back);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnTrace4_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Up);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_Up, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnTrace5_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Down);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_Down, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnTrace6_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
-
 void RLIControlWidget::on_btnConfigMenu_clicked() {
-  if (_reciever != NULL) {
-    RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
-    qApp->postEvent(_reciever, e);
-  }
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_U, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
 }
 
 void RLIControlWidget::on_btnClose_clicked() {

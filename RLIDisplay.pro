@@ -26,7 +26,6 @@ SOURCES += main.cpp \
     layers/radarengine.cpp \
     layers/infoengine.cpp \
     datasources/infocontrollers.cpp \
-    rlicontrolevent.cpp \
     layers/maskengine.cpp \
     layers/controlsengine.cpp \
     layers/menuengine.cpp \
@@ -56,7 +55,6 @@ HEADERS  += mainwindow.h \
     layers/radarengine.h \
     layers/infoengine.h \
     datasources/infocontrollers.h \
-    rlicontrolevent.h \
     layers/maskengine.h \
     layers/controlsengine.h \
     layers/menuengine.h \
