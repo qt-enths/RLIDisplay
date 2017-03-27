@@ -57,6 +57,20 @@ signals:
 
 
 public slots:
+  // Обработка кнопок
+  void onMenuToggled();
+  void onConfigMenuToggled();
+  void onUpToggled();
+  void onDownToggled();
+  void onEnterToggled();
+  void onCenterShiftToggled();
+  void onParallelLinesToggled();
+  void onBackToggled();
+
+  void onVnChanged(float val);
+  void onVdChanged(float val);
+  // Обработка кнопок
+
   void onCoordsChanged(const QVector2D& new_coords);
   void onHeadingChanged(float hdg);
   void onBandMenu(const QByteArray band);
@@ -70,8 +84,6 @@ protected slots:
   void initializeGL();
   void resizeGL(int w, int h);
   void paintGL();
-
-  bool event(QEvent* e);
 
   void new_chart(const QString& name);
 

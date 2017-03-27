@@ -8,7 +8,8 @@
 #include <QApplication>
 
 #include "common/rlimath.h"
-#include "rlicontrolevent.h"
+
+
 
 RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _world_coords = QVector2D(12.5000f, -81.6000f);
@@ -442,139 +443,118 @@ void RLIDisplayWidget::moveCoursor(const QPoint& pos, bool repaint, RadarScale* 
 
 
 void RLIDisplayWidget::wheelEvent(QWheelEvent * e) {
-    int numDegrees = e->delta() / 8;
-    int numSteps = numDegrees / 15;
+  int numDegrees = e->delta() / 8;
+  int numSteps = numDegrees / 15;
 
-    if (e->orientation() == Qt::Horizontal) {
-        RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton
-                                               , RLIControlEvent::VN
-                                               , (float)numSteps / 10.0);
-        qApp->postEvent(this, evt);
-    } else {
-        RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton
-                                               , RLIControlEvent::VD
-                                               , numSteps);
-        qApp->postEvent(this, evt);
-        //vd_pos = pos;
-    }
-    e->accept();
+  if (e->orientation() == Qt::Horizontal)
+    onVnChanged((float)numSteps / 10.0);
+  else
+    onVnChanged((float)numSteps);
+
+  e->accept();
 }
 
-bool RLIDisplayWidget::event(QEvent* e) {
-  if (e->type() == QEvent::User + 111) {
-    RLIControlEvent* re = static_cast<RLIControlEvent*>(e);
-    QPoint cursor_pos;
 
-    switch (re->button()) {
-      case RLIControlEvent::CenterShift:
-        cursor_pos = _controlsEngine->getCursorPos();
-        if (QLineF(cursor_pos, _maskEngine->getCenter()).length() < _maskEngine->getRadius()) {
-          if(_controlsEngine->getCenterPos() != _maskEngine->getCenter())
-              cursor_pos = _maskEngine->getCenter();
-          _maskEngine->setCursorPos(cursor_pos);
-          _controlsEngine->setCenterPos(cursor_pos);
+void RLIDisplayWidget::onMenuToggled() {
+  if (_menuEngine->state() == MenuEngine::MAIN)
+    _menuEngine->setState(MenuEngine::DISABLED);
+  else
+    _menuEngine->setState(MenuEngine::MAIN);
+}
 
-          QPoint hole_center = _maskEngine->getCenter();
-          _radarEngine->shiftCenter(cursor_pos-hole_center);
-          moveCoursor(cursor_pos);
-        }
-        break;
-      case RLIControlEvent::ParallelLines:
-        _controlsEngine->setPlVisibility(!_controlsEngine->isPlVisible());
-        break;
-      case RLIControlEvent::Menu:
-        if (_menuEngine->state() == MenuEngine::MAIN)
-          _menuEngine->setState(MenuEngine::DISABLED);
-        else
-          _menuEngine->setState(MenuEngine::MAIN);
-        break;
-    case RLIControlEvent::ConfigMenu:
-      if (_menuEngine->state() == MenuEngine::CONFIG)
-        _menuEngine->setState(MenuEngine::DISABLED);
-      else
-        _menuEngine->setState(MenuEngine::CONFIG);
-      break;
-      case RLIControlEvent::Up:
-        if (_route_edition) {
-          onAddRoutePoint();
-          break;
-        }
+void RLIDisplayWidget::onConfigMenuToggled() {
+  if (_menuEngine->state() == MenuEngine::CONFIG)
+    _menuEngine->setState(MenuEngine::DISABLED);
+  else
+    _menuEngine->setState(MenuEngine::CONFIG);
+}
 
-        if (_menuEngine->visible())
-          _menuEngine->onUp();
-        break;
-      case RLIControlEvent::Down:
-        if (_menuEngine->visible())
-          _menuEngine->onDown();
-        break;
-      case RLIControlEvent::Enter:
-        if (_menuEngine->visible()) {
-          _menuEngine->onEnter();
-        } else {
-          QPointF pos = _controlsEngine->getCursorPos();
-          QPointF cen = _controlsEngine->getCenterPos();
-          float scale = (_rli_scale.len*1852.f) / _maskEngine->getRadius();
-          QVector2D cursor_coords = RLIMath::pos_to_coords(_world_coords, cen, pos, scale);
-          _targetEngine->trySelect(cursor_coords, scale);
-        }
-        break;
-      case RLIControlEvent::Back:
-        if (_route_edition) {
-          _routeEngine->removePointFromCurrent();
-          break;
-        }
-
-        if (_menuEngine->visible())
-          _menuEngine->onBack();
-        break;
-      default:
-        break;
-    }
-
-    switch (re->spinner()) {
-      case RLIControlEvent::NoSpinner:
-        break;
-      case RLIControlEvent::VN:
-      {
-        _controlsEngine->shiftVnCu(re->spinnerVal()); //shiftVnP(re->spinnerVal());
-        //_maskEngine->setAngleShift(_controlsEngine->getVnP());
-        float brg = _controlsEngine->getVnCu();
-        if(brg < 0)
-            brg = 360.0 + brg;
-
-        float crsangle;
-        float hdg = _controlsEngine->getVnP();
-        float counterhdg;
-        if(hdg <= 180)
-          counterhdg = hdg + 180;
-        else
-          counterhdg = 180 - hdg;
-        if((brg >= hdg) && (brg <= counterhdg))
-          crsangle = brg - hdg;
-        else
-          crsangle = (-1) * (360 - brg + hdg);
-        emit displaydBRG(brg, crsangle);
-        break;
-      }
-      case RLIControlEvent::VD:
-        {
-          _controlsEngine->shiftVd(re->spinnerVal());
-
-          float ratio = 1;
-          const char* fmt = NULL;
-
-          ratio = _rli_scale.len / maskEngine()->getRadius();
-          fmt = _rli_scale.val_fmt;
-
-          emit displayVNDistance(_controlsEngine->getVd() * ratio, fmt);
-          break;
-        }
-      default:
-        break;
-    }
+void RLIDisplayWidget::onUpToggled() {
+  if (_route_edition) {
+    onAddRoutePoint();
+    return;
   }
 
-  return QGLWidget::event(e);
+  if (_menuEngine->visible())
+    _menuEngine->onUp();
+}
+
+void RLIDisplayWidget::onDownToggled() {
+  if (_menuEngine->visible())
+    _menuEngine->onDown();
+}
+
+void RLIDisplayWidget::onEnterToggled() {
+  if (_menuEngine->visible()) {
+    _menuEngine->onEnter();
+  } else {
+    QPointF pos = _controlsEngine->getCursorPos();
+    QPointF cen = _controlsEngine->getCenterPos();
+    float scale = (_rli_scale.len*1852.f) / _maskEngine->getRadius();
+    QVector2D cursor_coords = RLIMath::pos_to_coords(_world_coords, cen, pos, scale);
+    _targetEngine->trySelect(cursor_coords, scale);
+  }
+}
+
+void RLIDisplayWidget::onCenterShiftToggled() {
+  QPoint cursor_pos = _controlsEngine->getCursorPos();
+  if (QLineF(cursor_pos, _maskEngine->getCenter()).length() < _maskEngine->getRadius()) {
+    if(_controlsEngine->getCenterPos() != _maskEngine->getCenter())
+        cursor_pos = _maskEngine->getCenter();
+    _maskEngine->setCursorPos(cursor_pos);
+    _controlsEngine->setCenterPos(cursor_pos);
+
+    QPoint hole_center = _maskEngine->getCenter();
+    _radarEngine->shiftCenter(cursor_pos-hole_center);
+    moveCoursor(cursor_pos);
+  }
+}
+
+void RLIDisplayWidget::onParallelLinesToggled() {
+  _controlsEngine->setPlVisibility(!_controlsEngine->isPlVisible());
+}
+
+void RLIDisplayWidget::onBackToggled() {
+  if (_route_edition) {
+    _routeEngine->removePointFromCurrent();
+    return;
+  }
+
+  if (_menuEngine->visible())
+    _menuEngine->onBack();
+}
+
+void RLIDisplayWidget::onVnChanged(float val) {
+  _controlsEngine->shiftVnCu(val); //shiftVnP(re->spinnerVal());
+  //_maskEngine->setAngleShift(_controlsEngine->getVnP());
+  float brg = _controlsEngine->getVnCu();
+  if(brg < 0)
+      brg = 360.0 + brg;
+
+  float crsangle;
+  float hdg = _controlsEngine->getVnP();
+  float counterhdg;
+  if(hdg <= 180)
+    counterhdg = hdg + 180;
+  else
+    counterhdg = 180 - hdg;
+  if((brg >= hdg) && (brg <= counterhdg))
+    crsangle = brg - hdg;
+  else
+    crsangle = (-1) * (360 - brg + hdg);
+  emit displaydBRG(brg, crsangle);
+}
+
+void RLIDisplayWidget::onVdChanged(float val) {
+  _controlsEngine->shiftVd(val);
+
+  float ratio = 1;
+  const char* fmt = NULL;
+
+  ratio = _rli_scale.len / maskEngine()->getRadius();
+  fmt = _rli_scale.val_fmt;
+
+  emit displayVNDistance(_controlsEngine->getVd() * ratio, fmt);
 }
 
 void RLIDisplayWidget::setWorldCoords(QVector2D coords) {

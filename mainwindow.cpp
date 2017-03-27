@@ -5,7 +5,6 @@
 #include <QDateTime>
 
 #include "common/rlistrings.h"
-#include "rlicontrolevent.h"
 
 
 #ifndef Q_OS_WIN
@@ -360,8 +359,7 @@ void MainWindow::onRLIWidgetInitialized() {
   this->setFocus();
 
   // Set zero distance for VRM
-  RLIControlEvent* evt = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, -1e6);
-  qApp->postEvent(ui->wgtRLIDisplay, evt);
+  ui->wgtRLIDisplay->onVdChanged(-1e6);
 
 #ifndef Q_OS_WIN
   // Create and start NMEA processor
@@ -461,40 +459,25 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event) {
 
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
-  switch(event->key())
-  {
+  switch(event->key()) {
   case Qt::Key_S:
-      if(_radar_ds)
-          _radar_ds->nextHIP(RadarDataSource::HIPC_MAIN);
-      break;
+    if(_radar_ds)
+      _radar_ds->nextHIP(RadarDataSource::HIPC_MAIN);
+    break;
   case Qt::Key_W:
-  {
-      if(findPressedKey(Qt::Key_B) != -1)
-      {
-          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
-          qApp->postEvent(ui->wgtRLIDisplay, e);
-      }
-      else
-      {
-          RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Menu);
-          qApp->postEvent(ui->wgtRLIDisplay, e);
-      }
-      break;
-  }
+    if(findPressedKey(Qt::Key_B) != -1)
+      ui->wgtRLIDisplay->onConfigMenuToggled();
+    else
+      ui->wgtRLIDisplay->onMenuToggled();
+    break;
   case Qt::Key_Plus:
-      {
-        _radar_ds->nextScale();
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-      }
-      break;
+    _radar_ds->nextScale();
+    ui->wgtRLIDisplay->onVdChanged(0);
+    break;
   case Qt::Key_Minus:
-      {
-        _radar_ds->prevScale();
-        RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::NoButton, RLIControlEvent::VD, 0);
-        qApp->postEvent(ui->wgtRLIDisplay, e);
-      }
-      break;
+    _radar_ds->prevScale();
+    ui->wgtRLIDisplay->onVdChanged(0);
+    break;
   case Qt::Key_C:
   {
       QPoint p = mapFromGlobal(QCursor::pos());
@@ -502,57 +485,33 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
       qApp->postEvent(ui->wgtRLIDisplay, evt);
       evt = new QMouseEvent(QEvent::MouseButtonRelease, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
       qApp->postEvent(ui->wgtRLIDisplay, evt);
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::CenterShift);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
+      ui->wgtRLIDisplay->onCenterShiftToggled();
       break;
   }
   case Qt::Key_U:
-  {
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ConfigMenu);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
-      break;
-  }
+    ui->wgtRLIDisplay->onConfigMenuToggled();
+    break;
   case Qt::Key_T:
-  {
-      _target_ds->incrementMode();
-      break;
-  }
+    _target_ds->incrementMode();
+    break;
   case Qt::Key_Up:
-  {
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Up);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
-      break;
-  }
+    ui->wgtRLIDisplay->onUpToggled();
+    break;
   case Qt::Key_Down:
-  {
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Down);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
-      break;
-  }
+    ui->wgtRLIDisplay->onDownToggled();
+    break;
   case Qt::Key_Enter:
-  {
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
-      break;
-  }
+    ui->wgtRLIDisplay->onEnterToggled();
+    break;
   case Qt::Key_Return:
-  {
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Enter);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
-      break;
-  }
+    ui->wgtRLIDisplay->onEnterToggled();
+    break;
   case Qt::Key_Escape:
-  {
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::Back);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
-      break;
-  }
+    ui->wgtRLIDisplay->onBackToggled();
+    break;
   case Qt::Key_Backslash:
-  {
-      RLIControlEvent* e = new RLIControlEvent(RLIControlEvent::ParallelLines);
-      qApp->postEvent(ui->wgtRLIDisplay, e);
-      break;
-  }
+    ui->wgtRLIDisplay->onParallelLinesToggled();
+    break;
   }
 
   QMainWindow::keyPressEvent(event);
