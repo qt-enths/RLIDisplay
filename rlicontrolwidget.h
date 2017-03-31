@@ -43,6 +43,8 @@ private slots:
 
   void on_btnClose_clicked();
 
+  void on_btnMagnifier_clicked();
+
 signals:
   void vdChanged(float val);
   void vnChanged(float val);

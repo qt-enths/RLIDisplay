@@ -10,8 +10,8 @@ int main(int argc, char *argv[]) {
 
   QGLFormat f = QGLFormat::defaultFormat();
   f.setDoubleBuffer(true);
-  f.setSampleBuffers(false);
-  f.setSamples(0);
+  f.setSampleBuffers(true);
+  f.setSamples(16);
   QGLFormat::setDefaultFormat(f);
 
   if (QThreadPool::globalInstance()->maxThreadCount() < RLI_THREADS_NUM)

@@ -23,6 +23,7 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _menuEngine = new MenuEngine(QSize(12, 14));
   _targetEngine = new TargetEngine();
   _routeEngine = new RouteEngine();
+  _magnifierEngine = new MagnifierEngine();
 
   _menuEngine->setRouteEngine(_routeEngine);
 
@@ -32,6 +33,7 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
 
   _initialized = false;
   _route_edition = false;
+  _is_magnifier_visible = false;
 }
 
 RLIDisplayWidget::~RLIDisplayWidget() {
@@ -44,6 +46,8 @@ RLIDisplayWidget::~RLIDisplayWidget() {
   delete _targetEngine;
   delete _controlsEngine;
   delete _routeEngine;
+
+  delete _magnifierEngine;
 
   delete _fonts;
 }
@@ -134,8 +138,8 @@ void RLIDisplayWidget::initializeGL() {
   glEnable(GL_DEPTH);
   glEnable(GL_DEPTH_TEST);
 
-  // Disable multisampling
-  glDisable(GL_MULTISAMPLE);
+  // Enable multisampling
+  glEnable(GL_MULTISAMPLE);
 
   // Disable Lighting
   glDisable(GL_LIGHTING);
@@ -204,6 +208,9 @@ void RLIDisplayWidget::initializeGL() {
 
 
   if (!_controlsEngine->init(context()))
+    return;
+
+  if (!_magnifierEngine->init(context()))
     return;
 
   setMouseTracking(true);
@@ -347,6 +354,8 @@ void RLIDisplayWidget::paintGL() {
     glBindTexture(GL_TEXTURE_2D, 0);
   }
 
+
+
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, _menuEngine->getTextureId());
 
@@ -361,6 +370,24 @@ void RLIDisplayWidget::paintGL() {
   glEnd();
 
   glBindTexture(GL_TEXTURE_2D, 0);
+
+
+  if (_is_magnifier_visible) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _magnifierEngine->getTextureId());
+
+    QSize magSize = _magnifierEngine->size();
+
+    glBegin(GL_QUADS);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(width() - magSize.width() - 11, 155 + magSize.height(), 0.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(width() - 11, 155 + magSize.height(), 0.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(width() - 11, 155, 0.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(width() - magSize.width() - 11, 155, 0.0f);
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
 
   glMatrixMode( GL_PROJECTION );
   glPopMatrix();
@@ -378,6 +405,8 @@ void RLIDisplayWidget::paintGL() {
   _maskEngine->update();
   _menuEngine->update();
   _infoEngine->update();
+
+  _magnifierEngine->update();
 
   glEnable(GL_BLEND);
   _chartEngine->update(_world_coords, scale, 0.f, center-hole_center);
@@ -467,6 +496,10 @@ void RLIDisplayWidget::onConfigMenuToggled() {
     _menuEngine->setState(MenuEngine::DISABLED);
   else
     _menuEngine->setState(MenuEngine::CONFIG);
+}
+
+void RLIDisplayWidget::onMagnifierToggled() {
+  _is_magnifier_visible = !_is_magnifier_visible;
 }
 
 void RLIDisplayWidget::onUpToggled() {

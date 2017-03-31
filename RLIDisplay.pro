@@ -46,7 +46,8 @@ SOURCES += main.cpp \
     datasources/radarscale.cpp \
     datasources/targetdatasource.cpp \
     datasources/shipdatasource.cpp \
-    datasources/boardpultcontroller.cpp
+    datasources/boardpultcontroller.cpp \
+    layers/magnifierengine.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
@@ -78,7 +79,8 @@ HEADERS  += mainwindow.h \
     datasources/radardatasource.h \
     datasources/targetdatasource.h \
     datasources/shipdatasource.h \
-    datasources/boardpultcontroller.h
+    datasources/boardpultcontroller.h \
+    layers/magnifierengine.h
 
 
 FORMS    += mainwindow.ui \

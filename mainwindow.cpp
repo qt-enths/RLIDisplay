@@ -513,6 +513,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
   case Qt::Key_Backslash:
     ui->wgtRLIDisplay->onParallelLinesToggled();
     break;
+  case Qt::Key_L:
+    ui->wgtRLIDisplay->onMagnifierToggled();
+    break;
   }
 
   QMainWindow::keyPressEvent(event);

@@ -19,6 +19,7 @@
 #include "layers/targetengine.h"
 #include "layers/controlsengine.h"
 #include "layers/routeengine.h"
+#include "layers/magnifierengine.h"
 
 class RLIDisplayWidget : public QGLWidget, protected QGLFunctions
 {
@@ -34,6 +35,7 @@ public:
   inline MenuEngine* menuEngine() { return _menuEngine; }
   inline RouteEngine* routeEngine() { return _routeEngine; }
   inline TargetEngine* targetEngine() { return _targetEngine; }
+  inline MagnifierEngine* magnifierEngine() { return _magnifierEngine; }
 
   inline void setChartManager(ChartManager* mngr) { _chrt_mngr = mngr; }
 
@@ -66,6 +68,7 @@ public slots:
   void onCenterShiftToggled();
   void onParallelLinesToggled();
   void onBackToggled();
+  void onMagnifierToggled();
 
   void onVnChanged(float val);
   void onVdChanged(float val);
@@ -99,6 +102,7 @@ private:
   bool _initialized;
 
   bool _route_edition;
+  bool _is_magnifier_visible;
 
   int  _last_second;
   rli_scale_t _rli_scale;
@@ -115,6 +119,8 @@ private:
   TargetEngine* _targetEngine;
   ControlsEngine* _controlsEngine;
   RouteEngine* _routeEngine;
+
+  MagnifierEngine* _magnifierEngine;
 
   QVector2D _world_coords;
 };

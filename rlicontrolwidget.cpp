@@ -134,3 +134,8 @@ void RLIControlWidget::on_btnConfigMenu_clicked() {
 void RLIControlWidget::on_btnClose_clicked() {
   emit closeApp();
 }
+
+void RLIControlWidget::on_btnMagnifier_clicked() {
+  QKeyEvent* e = new QKeyEvent(QEvent::KeyPress, Qt::Key_L, Qt::NoModifier);
+  qApp->postEvent(parent(), e);
+}
