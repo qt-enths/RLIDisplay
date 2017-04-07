@@ -100,6 +100,8 @@ private:
   void moveCoursor(const QPoint &pos, bool repaint = true, RadarScale* curscale = NULL);
 
   bool _initialized;
+  int _north;
+  int _north_inc;
 
   bool _route_edition;
   bool _is_magnifier_visible;

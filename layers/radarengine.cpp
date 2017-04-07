@@ -103,6 +103,7 @@ RadarEngine::RadarEngine(uint pel_count, uint pel_len) {
   resizeData(pel_count, pel_len);
 
   _center = QPoint(0, 0);
+  _north = 700;
 
   _fbo_format.setAttachment(QGLFramebufferObject::Depth);
   _fbo_format.setMipmap(false);
@@ -227,6 +228,10 @@ void RadarEngine::shiftCenter(QPoint center) {
 
   if (_initialized)
     clearTexture();
+}
+
+void RadarEngine::shiftNorth(uint north) {
+  _north = north;
 }
 
 
@@ -386,6 +391,7 @@ void RadarEngine::drawPelengs(uint first, uint last) {
   if (last < first || last >= _peleng_count)
     return;
 
+  uint north = _north;
   glPointSize(1);
 
   glUniform1f(_unif_locs[UNIF_PEL_LEN], _peleng_len);
@@ -393,19 +399,49 @@ void RadarEngine::drawPelengs(uint first, uint last) {
   glUniform3fv(_unif_locs[UNIF_PAL], 16*3, _pal->getPalette());
   glUniform1f(_unif_locs[UNIF_THR], 4);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
-  glVertexAttribPointer(_attr_locs[ATTR_POS], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
-  glEnableVertexAttribArray(_attr_locs[ATTR_POS]);
+  if ((first >= north) || (last < north)) {
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
+    glVertexAttribPointer( _attr_locs[ATTR_POS], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
+    glEnableVertexAttribArray(_attr_locs[ATTR_POS]);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
-  glVertexAttribPointer(_attr_locs[ATTR_AMP], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
-  glEnableVertexAttribArray(_attr_locs[ATTR_AMP]);
+    int first_pel = (_peleng_count+first-north)%_peleng_count;
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
+    glVertexAttribPointer( _attr_locs[ATTR_AMP], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first_pel * _peleng_len * sizeof(GLfloat)));
+    glEnableVertexAttribArray(_attr_locs[ATTR_AMP]);
 
-  //glDepthFunc(GL_ALWAYS);
-  //glUniform1f(_unif_locs[UNIF_CLR], 1.f);
-  //glDrawArrays(GL_POINTS, 0, (last - first + 1) * _peleng_len);
+    //glDepthFunc(GL_ALWAYS);
+    //glUniform1f(_unif_locs[UNIF_CLR], 1.f);
+    //glDrawArrays(GL_POINTS, 0, (last - first + 1) * _peleng_len);
 
-  glDepthFunc(GL_GREATER);
-  glUniform1f(_unif_locs[UNIF_CLR], 0.f);
-  glDrawArrays(GL_POINTS, 0, (last - first + 1) * _peleng_len);
+    glDepthFunc(GL_GREATER);
+    glUniform1f(_unif_locs[UNIF_CLR], 0.f);
+    glDrawArrays(GL_POINTS, 0, (last - first + 1) * _peleng_len);
+  } else {
+    int delta = north-first;
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
+    glVertexAttribPointer( _attr_locs[ATTR_POS], 1, GL_FLOAT, GL_FALSE, 0, (void*) (first * _peleng_len * sizeof(GLfloat)));
+    glEnableVertexAttribArray(_attr_locs[ATTR_POS]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
+    glVertexAttribPointer( _attr_locs[ATTR_AMP], 1, GL_FLOAT, GL_FALSE, 0, (void*) ((_peleng_count-delta) * _peleng_len * sizeof(GLfloat)));
+    glEnableVertexAttribArray(_attr_locs[ATTR_AMP]);
+
+    glDepthFunc(GL_GREATER);
+    glUniform1f(_unif_locs[UNIF_CLR], 0.f);
+    glDrawArrays(GL_POINTS, 0, delta * _peleng_len);
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_POS]);
+    glVertexAttribPointer( _attr_locs[ATTR_POS], 1, GL_FLOAT, GL_FALSE, 0, (void*) ((first+delta) * _peleng_len * sizeof(GLfloat)));
+    glEnableVertexAttribArray(_attr_locs[ATTR_POS]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
+    glVertexAttribPointer( _attr_locs[ATTR_AMP], 1, GL_FLOAT, GL_FALSE, 0, (void*) (0 * _peleng_len * sizeof(GLfloat)));
+    glEnableVertexAttribArray(_attr_locs[ATTR_AMP]);
+
+    glDepthFunc(GL_GREATER);
+    glUniform1f(_unif_locs[UNIF_CLR], 0.f);
+    glDrawArrays(GL_POINTS, 0, (last - first + 1 - delta) * _peleng_len);
+  }
 }

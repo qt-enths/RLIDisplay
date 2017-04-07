@@ -299,6 +299,11 @@ ChartEngine::ChartEngine() {
   _angle = 0;
   back_color = QColor(127, 127, 127);
 
+  //_fbo_format.setAttachment(QGLFramebufferObject::NoAttachment);
+  //_fbo_format.setMipmap(false);
+  _fbo_format.setSamples(0);
+  //_fbo_format.setInternalTextureFormat(GL_RGBA8);
+
   settings = new ChartSettingsModel("res//chart_display_settings.xml");
 }
 
@@ -337,7 +342,7 @@ bool ChartEngine::init(S52References* ref, const QGLContext* context) {
   shaders->init(context);
 
   canvas = QSize(255, 255);
-  _fbo = new QGLFramebufferObject(canvas);
+  _fbo = new QGLFramebufferObject(canvas, _fbo_format);
 
   initialized = true;
 
@@ -353,7 +358,7 @@ void ChartEngine::resize(uint radius) {
       return;
 
   delete _fbo;
-  _fbo = new QGLFramebufferObject(canvas);
+  _fbo = new QGLFramebufferObject(canvas, _fbo_format);
 
   draw();
 }

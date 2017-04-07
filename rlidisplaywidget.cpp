@@ -34,6 +34,9 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _initialized = false;
   _route_edition = false;
   _is_magnifier_visible = false;
+
+  _north = 1000;
+  _north_inc = 100;
 }
 
 RLIDisplayWidget::~RLIDisplayWidget() {
@@ -245,6 +248,14 @@ void RLIDisplayWidget::paintGL() {
   int curr_second = QTime::currentTime().second();
   if (curr_second != _last_second) {
     _last_second = curr_second;
+
+    _north += _north_inc;
+    if (_north > 1400)
+      _north_inc = -100;
+    if (_north < 600)
+      _north_inc = 100;
+    _radarEngine->shiftNorth(_north);
+
     emit per_second();
   }
 
@@ -485,6 +496,9 @@ void RLIDisplayWidget::wheelEvent(QWheelEvent * e) {
 
 
 void RLIDisplayWidget::onMenuToggled() {
+  if (_is_magnifier_visible)
+    return;
+
   if (_menuEngine->state() == MenuEngine::MAIN)
     _menuEngine->setState(MenuEngine::DISABLED);
   else
@@ -492,6 +506,9 @@ void RLIDisplayWidget::onMenuToggled() {
 }
 
 void RLIDisplayWidget::onConfigMenuToggled() {
+  if (_is_magnifier_visible)
+    return;
+
   if (_menuEngine->state() == MenuEngine::CONFIG)
     _menuEngine->setState(MenuEngine::DISABLED);
   else
@@ -499,7 +516,8 @@ void RLIDisplayWidget::onConfigMenuToggled() {
 }
 
 void RLIDisplayWidget::onMagnifierToggled() {
-  _is_magnifier_visible = !_is_magnifier_visible;
+  if (!_menuEngine->visible())
+    _is_magnifier_visible = !_is_magnifier_visible;
 }
 
 void RLIDisplayWidget::onUpToggled() {

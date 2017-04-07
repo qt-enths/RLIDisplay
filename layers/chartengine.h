@@ -112,6 +112,7 @@ private:
   float _scale;
   float _angle;
 
+  QGLFramebufferObjectFormat _fbo_format;
   QGLFramebufferObject* _fbo;
 
   S52Assets* assets;

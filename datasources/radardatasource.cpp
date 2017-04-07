@@ -811,15 +811,15 @@ bool RadarDataSource::loadData() {
 
   if (!loadObserves1(file1/*, file_divs[0]*/, file_amps[0]))
     return false;
-  //if (!loadObserves1(file2/*, file_divs[1]*/, file_amps[1]))
-  //  return false;
+  if (!loadObserves1(file1/*, file_divs[1]*/, file_amps[1]))
+    return false;
 
   /*
   if (!loadObserves2(file3, file_amps[0]))
     return false;
   */
-  if (!initWithDummy(file_amps[1]))
-    return false;
+  //if (!initWithDummy(file_amps[1]))
+  //  return false;
 
 
   /*

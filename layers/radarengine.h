@@ -52,9 +52,12 @@ public:
 
   // Инициализация OpenGL структур
   bool init           (const QGLContext* context);
+
   void resizeData     (uint pel_count, uint pel_len);
   void resizeTexture  (uint radius);
+
   void shiftCenter    (QPoint center);
+  void shiftNorth     (uint north);
 
   inline uint  getSize()        { return 2*_radius + 1; }
   inline uint  getTextureId ()  { return _fbo->texture(); }
@@ -78,6 +81,7 @@ private:
 
   // Radar parameters
   QPoint  _center;
+  uint    _north;
   uint    _radius, _peleng_count, _peleng_len;
 
   std::vector<GLfloat> _coord_table;
