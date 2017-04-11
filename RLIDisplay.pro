@@ -1,7 +1,7 @@
 TARGET = RLIDisplay
 TEMPLATE = app
 
-QT       += core gui opengl concurrent
+QT       += core gui opengl concurrent network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

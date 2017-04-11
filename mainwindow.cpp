@@ -461,26 +461,30 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event) {
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
   switch(event->key()) {
+  //Под. имп. Помех
   case Qt::Key_S:
     if(_radar_ds)
       _radar_ds->nextHIP(RadarDataSource::HIPC_MAIN);
     break;
+  //Меню
   case Qt::Key_W:
     if(findPressedKey(Qt::Key_B) != -1)
       ui->wgtRLIDisplay->onConfigMenuToggled();
     else
       ui->wgtRLIDisplay->onMenuToggled();
     break;
+  //Шкала +
   case Qt::Key_Plus:
     _radar_ds->nextScale();
     ui->wgtRLIDisplay->onVdChanged(0);
     break;
+  //Шкала -
   case Qt::Key_Minus:
     _radar_ds->prevScale();
     ui->wgtRLIDisplay->onVdChanged(0);
     break;
-  case Qt::Key_C:
-  {
+  //Вынос центра
+  case Qt::Key_C: {
       QPoint p = mapFromGlobal(QCursor::pos());
       QMouseEvent * evt = new QMouseEvent(QEvent::MouseButtonPress, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
       qApp->postEvent(ui->wgtRLIDisplay, evt);
@@ -489,32 +493,83 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
       ui->wgtRLIDisplay->onCenterShiftToggled();
       break;
   }
+  //Скрытое меню
   case Qt::Key_U:
     ui->wgtRLIDisplay->onConfigMenuToggled();
     break;
+  //Следы точки
   case Qt::Key_T:
     _target_ds->incrementMode();
     break;
+  //Выбор цели
   case Qt::Key_Up:
     ui->wgtRLIDisplay->onUpToggled();
     break;
+  //ЛИД / ЛОД
   case Qt::Key_Down:
     ui->wgtRLIDisplay->onDownToggled();
     break;
+  //Захват
   case Qt::Key_Enter:
     ui->wgtRLIDisplay->onEnterToggled();
     break;
+  //Захват
   case Qt::Key_Return:
     ui->wgtRLIDisplay->onEnterToggled();
     break;
+  //Сброс
   case Qt::Key_Escape:
     ui->wgtRLIDisplay->onBackToggled();
     break;
+  //Парал. Линии
   case Qt::Key_Backslash:
     ui->wgtRLIDisplay->onParallelLinesToggled();
     break;
+  //Электронная лупа
   case Qt::Key_L:
     ui->wgtRLIDisplay->onMagnifierToggled();
+    break;
+  //Обзор
+  case Qt::Key_X:
+    break;
+  //Узкий / Шир.
+  case Qt::Key_Greater:
+    break;
+  //Накоп. Видео
+  case Qt::Key_V:
+    break;
+  //Сброс АС
+  case Qt::Key_Q:
+    break;
+  //Манёвр
+  case Qt::Key_M:
+    break;
+  //Курс / Север / Курс стаб
+  case Qt::Key_H:
+    break;
+  //ИД / ОД
+  case Qt::Key_R:
+    break;
+  //НКД
+  case Qt::Key_D:
+    break;
+  //Карта (Маршрут)
+  case Qt::Key_A:
+    break;
+  //Выбор
+  case Qt::Key_G:
+    break;
+  //Стоп-кадр
+  case Qt::Key_F:
+    break;
+  //Откл. Звука
+  case Qt::Key_B:
+    break;
+  //Откл. ОК
+  case Qt::Key_K:
+    break;
+  //Вынос ВН/ВД
+  case Qt::Key_Slash:
     break;
   }
 

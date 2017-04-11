@@ -3,12 +3,17 @@
 
 #include <QObject>
 
-#ifndef Q_OS_WIN
 
+#ifndef Q_OS_WIN
 #include <sys/select.h>
+#else  // !Q_OS_WIN
+#include <winsock.h>
+#endif // !Q_OS_WIN
+
+#include <stdint.h>
 #include <QWaitCondition>
 #include "nmeadata.h"
-#include "layers/targetengine.h"
+#include "../layers/targetengine.h"
 
 
 #if QT_VERSION >= 0x050000
@@ -361,7 +366,7 @@ class NMEAProcessor;
 
 class Parser{
 public:
-    Parser(NMEAProcessor * prc = NULL);
+    Parser(NMEAProcessor * prc /*= NULL*/);
     virtual ~Parser() {};
     NMEAProcessor *_prc;
     char str[strLen];
@@ -370,7 +375,11 @@ public:
 //    char strs[parsStrN][strLen];
     int readStr, writeStr;
     int currComaPos, predComaPos;
+#ifndef Q_OS_WIN
     timespec *timeStamp;
+#else  // !Q_OS_WIN
+    unsigned long * timeStamp;
+#endif // !Q_OS_WIN
 //    bool strReady;
     bool structReady;
     parsType type;
@@ -389,7 +398,7 @@ public:
 
 class GP_Parser: public Parser{
 public:
-    GP_Parser();
+    GP_Parser(NMEAProcessor * prc = NULL);
     virtual void Pars();
     void printRMB();
     void printRMC(sTarget *currTarg);
@@ -398,7 +407,7 @@ public:
 
 class HE_Parser: public Parser{
 public:
-    HE_Parser();
+    HE_Parser(NMEAProcessor * prc = NULL);
     virtual void Pars();
     void printHDT();
 
@@ -406,7 +415,7 @@ public:
 
 class HC_Parser: public Parser{
 public:
-    HC_Parser();
+    HC_Parser(NMEAProcessor * prc = NULL);
     virtual void Pars();
     void printHDG();
 
@@ -414,7 +423,7 @@ public:
 
 class VW_Parser: public Parser{
 public:
-    VW_Parser();
+    VW_Parser(NMEAProcessor * prc = NULL);
     virtual void Pars();
     void printVHW();
 
@@ -422,7 +431,7 @@ public:
 
 class SD_Parser: public Parser{
 public:
-    SD_Parser();
+    SD_Parser(NMEAProcessor * prc = NULL);
     virtual void Pars();
     void printDPT();
 
@@ -439,7 +448,7 @@ public:
     int startBit;
 
     unsigned char byte_to_6bit(unsigned char byte);
-    AI_Parser();
+    AI_Parser(NMEAProcessor * prc = NULL);
 
     int uint_to_int(unsigned int x, int bitSize);
     char str6tochar(int bitSize);
@@ -493,7 +502,11 @@ public:
     unsigned short r;
     unsigned short w;
     char b[bufLen];
+#ifndef Q_OS_WIN
     int fd;
+#else  // !Q_OS_WIN
+    SOCKET fd;
+#endif // !Q_OS_WIN
 //    bool strBusy;
     status stat;
     short Dpos;
@@ -509,7 +522,11 @@ public:
     parsType getParsType(char s0, char s1);
     void WriteStr(Parser *prs);
     void getStr();
+#ifndef Q_OS_WIN
     struct timespec timeStamp;
+#else  // !Q_OS_WIN
+    unsigned long timeStamp;
+#endif // !Q_OS_WIN
 };
 
 void Error(char *s, int err);
@@ -521,20 +538,54 @@ public:
     explicit NMEAProcessor(QObject *parent = 0);
     ~NMEAProcessor();
 
+    enum HDG_t {
+        HDGT_FIRST        = 0,
+        HDGT_GYRO         = 0,
+        HDGT_GYRO_NONSEEK = 1,
+        HDGT_MAG          = 2,
+        HDGT_LAST         = 2
+    };
 
+    enum SPD_t
+    {
+        SPDT_FIRST   = 0,
+        SPDT_LOG_MEC = 0, // Water mechanical
+        SPDT_LOG_MAG = 1, // Water magnetic
+        SPDT_DOPPLER = 2, // Doppler (other/general)
+        SPDT_LAST    = 2
+    };
+
+    enum DBGFLG_t
+    {
+        DBGFLG_MSGENA = 1
+    };
+
+    uint32_t _dbgflags;
 
     QFuture<void> readPortsThread;
     QFuture<void> parsersThread;
+    QFuture<void> nmeaImitThread;
+    QString _nmeaImitFilename;
+    int _nmeaTcpPort;
 
     void open_fds(QStringList & ports);
     void initParsers();
     void targetChanged(unsigned int mmsi);
-    void hdgChanged(float hdg);
+    void hdgChanged(float hdg, HDG_t hdgt = HDGT_GYRO);
+    void spdChanged(float spd, SPD_t spdt = SPDT_LOG_MEC);
+    void dptChanged(float dpt);
+    void posChanged(float lon, float lat);
     int start(void);
+    int startNMEAImit(QString nmeafn, int port);
+    int nmea_imit(void);
 
 signals:
     void updateTarget(QString tag, RadarTarget target);
-    void updateHeading(float hdg);
+    void updateHdgGyro(float hdg);
+    void updateHdgMag(float hdg);
+    void updateSpdW(float spd);
+    void updateDepth(float dpt);
+    void updatePosition(float lon, float lat);
 
 public slots:
 
@@ -547,8 +598,6 @@ private:
     bool finish_flag;
 
     int maxfd;
-
 };
-#endif // !Q_OS_WIN
 
 #endif // !NMEAPROCESSOR_H

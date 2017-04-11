@@ -300,7 +300,7 @@ ChartEngine::ChartEngine() {
   back_color = QColor(127, 127, 127);
 
   //_fbo_format.setAttachment(QGLFramebufferObject::NoAttachment);
-  //_fbo_format.setMipmap(false);
+  _fbo_format.setMipmap(true);
   _fbo_format.setSamples(0);
   //_fbo_format.setInternalTextureFormat(GL_RGBA8);
 

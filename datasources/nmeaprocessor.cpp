@@ -1,6 +1,10 @@
 #include <QThread>
+#include <QDateTime>
+#include <QDate>
+#include <QTime>
+#include <QFile>
+#include <QTcpSocket>
 
-#ifndef Q_OS_WIN
 
 #include "nmeaprocessor.h"
 #include "nmeadata.h"
@@ -10,15 +14,31 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
+#include <errno.h>
+
+#ifndef Q_OS_WIN
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/select.h>
 #include <sys/ioctl.h>
-#include <string.h>
-#include <errno.h>
 #include <sys/time.h>
 #include <termios.h>
 #include <arpa/inet.h>
+
+#else  // !Q_OS_WIN
+
+#include <io.h>
+//#include <Winsock2.h>
+#include <time.h>
+
+#if !defined(ssize_t)
+typedef long ssize_t;
+#endif // !ssize_t
+
+#endif // !Q_OS_WIN
+
+#define __func__ __FUNCTION__
 
 
 using namespace std;
@@ -46,6 +66,7 @@ VDM vdm;
 
 fd_set readbufs;
 
+
 RingBuf bufs[portNum];
 
 Parser *parsers[parsNum];
@@ -72,12 +93,15 @@ pthread_cond_t string_needed = PTHREAD_COND_INITIALIZER;
 
 
 extern void qSleep(int ms);
+#ifndef Q_OS_WIN
 int fd_rs[portNum];
+#else  // !Q_OS_WIN
+SOCKET fd_rs[portNum];
+#endif // !Q_OS_WIN
 
+#ifndef Q_OS_WIN
 static int openport(const char * portname){
-
-    int fd;
-
+    int fd = -1;
     //fd = ::open(portname, O_NONBLOCK|O_RDONLY|O_NOCTTY);
     fd = ::open(portname, O_NONBLOCK | O_RDWR | O_NOCTTY);
     if(fd == -1)
@@ -144,22 +168,74 @@ static int openport(const char * portname){
     tcsetattr(fd, TCSANOW, &options);
 
 	write(fd, "Hello\r\n", 7); // Just to apply new settings (driver's bug fix)
+    return fd;
+}
+#else  // !Q_OS_WIN
+static SOCKET openport(const char * portname){
+    SOCKET fd = INVALID_SOCKET;
+    sockaddr_in service;
+    int iResult;
+    u_short port;
+
+    do{
+        fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if(fd == INVALID_SOCKET)
+        {
+            fprintf(stderr, "%s: socket function failed with error: %ld\n", __func__, WSAGetLastError());
+            break;
+        }
+
+        port = (u_short)atoi(portname);
+        service.sin_family = AF_INET;
+        service.sin_addr.s_addr = inet_addr("127.0.0.1");
+        service.sin_port = htons(port);
+
+        iResult = bind(fd, (SOCKADDR *)&service, sizeof (service));
+        if (iResult == SOCKET_ERROR) {
+            fprintf(stderr, "%s: bind function failed with error %d\n", __func__, WSAGetLastError());
+            iResult = closesocket(fd);
+            if (iResult == SOCKET_ERROR)
+                fprintf(stderr, "%s: closesocket function failed with error %d\n", __func__, WSAGetLastError());
+            fd = INVALID_SOCKET;
+            break;
+        }
+
+        if (listen(fd, SOMAXCONN) == SOCKET_ERROR)
+                fprintf(stderr, "%s: listen function failed with error: %d\n", __func__, WSAGetLastError());
+        else
+            fprintf(stderr, "%s: socket is listening on port: %d\n", __func__, (int)port);
+    }while(0);
 
     return fd;
 }
+#endif // !Q_OS_WIN
+
+#ifdef Q_OS_WIN
+#pragma comment(lib, "ws2_32.lib")
+#endif // Q_OS_WIN
 
 NMEAProcessor::NMEAProcessor(QObject *parent) :
     QObject(parent)
 {
+#ifdef Q_OS_WIN
+    WSADATA wsaData;
+    int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if(res != NO_ERROR) {
+        printf("WSAStartup() failed with error: %d\n", res);
+    }
+#endif // Q_OS_WIN
 	pstargs = new sTargetList;
 	ptargs  = new TargetList;
     FD_ZERO(&readbufs);
     maxfd = -1;
+#ifdef Q_OS_WIN
     for(int i = 0; i < portNum; i++)
         fd_rs[i] = -1;
+#endif // Q_OS_WIN
     memset(parsers, 0, sizeof(parsers));
     initParsers();
     finish_flag = false;
+    _dbgflags   = 0; //DBGFLG_MSGENA; // debug printing
 }
 
 NMEAProcessor::~NMEAProcessor()
@@ -172,7 +248,11 @@ NMEAProcessor::~NMEAProcessor()
   for(int i = 0; i < portNum; i++)
   {
       if(fd_rs[i] != -1)
+#ifndef Q_OS_WIN
           ::close(fd_rs[i]);
+#else  // !Q_OS_WIN
+          closesocket(fd_rs[i]);
+#endif // !Q_OS_WIN
   }
 
   for(int i = 0; i < parsNum; i++)
@@ -183,6 +263,9 @@ NMEAProcessor::~NMEAProcessor()
           parsers[i] = NULL;
       }
   }
+#ifdef Q_OS_WIN
+  WSACleanup();
+#endif // Q_OS_WIN
 }
 
 
@@ -190,8 +273,6 @@ void NMEAProcessor::readPorts(void)
 {
     struct timeval tv;
     fd_set readset;
-
-    fprintf(stderr, "\nreadPorts thread has started\n");
 
     while(!finish_flag)
     {
@@ -202,11 +283,39 @@ void NMEAProcessor::readPorts(void)
         int r = ::select(maxfd + 1, &readset, NULL, NULL, &tv);
         if (r == 0) continue;
         if (r == -1)
-            printf("Error selecting input port -- %s", strerror(errno));
+            fprintf(stderr, "Error selecting input port -- %s", strerror(errno));
 
 
         for (int i = 0; i < portNum; i++){
-            if (FD_ISSET(fd_rs[i], &readbufs)){
+            //if (FD_ISSET(fd_rs[i], &readbufs)){
+            if (FD_ISSET(fd_rs[i], &readset)){
+#ifdef Q_OS_WIN
+                if(i == 0) {
+                    SOCKET s = accept(fd_rs[i], NULL, NULL);
+                    if(s != INVALID_SOCKET) {
+                        if(maxfd < portNum) {
+                            qDebug() << "Accespting connection mxfd: " << maxfd << " (" << __func__ << ")";
+                            fd_rs[maxfd] = s;
+                            bufs[maxfd].fd = fd_rs[maxfd];
+                            FD_SET(fd_rs[maxfd], &readbufs);
+                            maxfd++;
+                            qDebug() << "connection accespted mxfd: " << maxfd << " (" << __func__ << ")";
+                            //fprintf(stderr1, "%s: connection accespted\n", __func__);
+                        }
+                        else {
+                            closesocket(s);
+                            qDebug() << "max socket number reached (" << __func__ << ")";
+                            //fprintf(stderr1, "%s: max socket number reached\n", __func__);
+                        }
+                    }
+                    else
+                    {
+                        qDebug() << "accept failed with error: " << WSAGetLastError() << " (" << __func__ << ")";
+                        //fprintf(stderr1, "%s: accept failed with error: %ld\n", __func__, WSAGetLastError());
+                    }
+                    continue;
+                }
+#endif // Q_OS_WIN
                 if (!bufs[i].isFull()) bufs[i].Act();
             }
         }
@@ -250,7 +359,7 @@ void NMEAProcessor::targetChanged(unsigned int mmsi)
     RadarTarget trg;
     Target * ptrg;
 
-	fprintf(stderr, "%s entered\n", __func__);
+    fprintf(stderr, "%s entered\n", __func__);
 
     ptrg = ptargs->FindMMSI(mmsi);
     if(!ptrg)
@@ -275,10 +384,31 @@ void NMEAProcessor::targetChanged(unsigned int mmsi)
 	//fprintf(stderr, "%s: updateTarget emitted\n", __func__);
 }
 
-void NMEAProcessor::hdgChanged(float hdg)
+void NMEAProcessor::hdgChanged(float hdg, HDG_t hdgt)
 {
-	//printf("Emit updateHeading\n");
-    emit updateHeading(hdg);
+    //printf("Emit updateHdgGyro\n");
+    if(_dbgflags & DBGFLG_MSGENA)
+        qDebug() << __func__ << ": HDG: " << hdg << ", HDGT: " << hdgt;
+    if(hdgt == HDGT_GYRO)
+        emit updateHdgGyro(hdg);
+    else if(hdgt == HDGT_MAG)
+        emit updateHdgMag(hdg);
+}
+
+void NMEAProcessor::spdChanged(float spd, SPD_t spdt)
+{
+    if(spdt == SPDT_LOG_MEC)
+        emit updateSpdW(spd);
+}
+
+void NMEAProcessor::dptChanged(float dpt)
+{
+    emit updateDepth(dpt);
+}
+
+void NMEAProcessor::posChanged(float lon, float lat)
+{
+    emit updatePosition(lon, lat);
 }
 
 void NMEAProcessor::transmit(void){
@@ -315,8 +445,8 @@ void printb(char *b){
     printf("\n");
 }
 
-AI_Parser::AI_Parser(){
-    Parser();
+AI_Parser::AI_Parser(NMEAProcessor *prc) : Parser(prc){
+    //Parser::Parser(prc);
     memset(tot_num_chan, 0, sizeof(tot_num_chan));
     type = AI;
 }
@@ -569,11 +699,15 @@ void RingBuf::getStr(){
                         parsers[t-1]->strBusy = false;
                         return;
                     }
+#ifndef Q_OS_WIN
                     if (clock_gettime(CLOCK_MONOTONIC, &timeStamp) != 0){
                         int err = errno;
                         Error("Failed to get time stamp.", err);
                         return;
                     }
+#else  // !Q_OS_WIN
+                    timeStamp = GetTickCount();
+#endif // !Q_OS_WIN
                     parsers[t-1]->timeStamp = &timeStamp;
                     parsers[t-1]->Pars();
 
@@ -596,11 +730,19 @@ void RingBuf::getStr(){
 
 void RingBuf::Act(){
 	ssize_t rd;
+#ifndef Q_OS_WIN
     int ba, res;
+#else  // !Q_OS_WIN
+    int res;
+    u_long ba;
+#endif // !Q_OS_WIN
 
 //	fprintf(stderr, "%s entered\n", __func__);
+    //qDebug() << __func__ << " entered";
     if (r < w){
 //		fprintf(stderr, "%s:1 reading %d bytes from serial (bufLen %d, w %d)\n", __func__, bufLen-w-1, bufLen, w);
+        //qDebug() << __func__ << ":1 reading " << bufLen-w-1 << " bytes from serial (bufLen " << bufLen
+        //         <<", w " << w;
 /*
 	for (int i = 0; i == buflen-w-1; i++){
             rd = read(fd, &b[w++], 1);
@@ -608,63 +750,116 @@ void RingBuf::Act(){
 	}	    
 	if (i == 1)    
 */
+#ifndef Q_OS_WIN
 		res = ioctl(fd, FIONREAD, &ba);
+#else  // !Q_OS_WIN
+        res = ioctlsocket(fd, FIONREAD, &ba);
+#endif // !Q_OS_WIN
 //		fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
-		if (ba == 0) return;
+        //qDebug() << __func__ << ": res " << res << ", ba " << ba;
+        if (ba == 0) return;
+#ifndef Q_OS_WIN
         rd = read(fd, &b[w], bufLen-w-1);
-		if(rd == -1)
+#else  // !Q_OS_WIN
+        rd = recv(fd, &b[w], bufLen-w-1, 0);
+#endif // !Q_OS_WIN
+        if(rd == -1)
 		{
 //			fprintf(stderr, "%s:2 read() error: %s\n", __func__, strerror(errno));
+            //qDebug() << __func__ << ":2 read() error: " << strerror(errno);
 			return;
 		}
 		w += rd;
 //		W += i;
 //		fprintf(stderr, "%s:3 bytes read. (w %d)\n", __func__, w);
+        //qDebug() << __func__ << ":3 bytes read. (w " << w;
 
         if (w == bufLen-1 && !isFull()){
 //			fprintf(stderr, "%s:4 reading 1 byte\n", __func__);
+            //qDebug() << __func__ << ":4 reading 1 byte";
+#ifndef Q_OS_WIN
 			res = ioctl(fd, FIONREAD, &ba);
+#else  // !Q_OS_WIN
+            res = ioctlsocket(fd, FIONREAD, &ba);
+#endif // !Q_OS_WIN
 //			fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
+            //qDebug() << __func__ << ": res " << res << " ba " << ba;
 			if (ba == 0) return;
+#ifndef Q_OS_WIN
             res = read(fd, &b[w], 1);
+#else  // !Q_OS_WIN
+            res = recv(fd, &b[w], 1, 0);
+#endif // !Q_OS_WIN
             if(res == -1)
 			{
 //				fprintf(stderr, "%s:5 1 byte read() error: %s\n", __func__, strerror(errno));
+                //qDebug() << __func__ << ":5 1 byte read() error: " << strerror(errno);
 				return;
             }
             w = res;
 //			fprintf(stderr, "%s:6 1 byte read\n", __func__);
+            //qDebug() << __func__ << ":6 1 byte read";
             w = 0;
             if (r != 1)
 			{
 //				fprintf(stderr, "%s:7 reading %d bytes (r %d)\n", __func__, r - 1, r);
+                //qDebug() << __func__ << ":7 reading " << r - 1 << " bytes (r " << r << ")";
+#ifndef Q_OS_WIN
 				res = ioctl(fd, FIONREAD, &ba);
+#else  // !Q_OS_WIN
+                res = ioctlsocket(fd, FIONREAD, &ba);
+#endif // !Q_OS_WIN
 //				fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
+                //qDebug() << __func__ << ": res " << res << ", ba " << ba;
 				if (ba == 0) return;
+#ifndef Q_OS_WIN
                 res = read(fd, &b[w], r-1);
+#else  // !Q_OS_WIN
+                res = recv(fd, &b[w], r-1, 0);
+#endif // !Q_OS_WIN
                 if(res == -1)
 				{
 //					fprintf(stderr, "%s:8 1 byte read() error: %s\n", __func__, strerror(errno));
+                    //qDebug() << __func__ << ":8 1 byte read() error: " << strerror(errno);
 					return;
 				}
                 w = res;
 //				fprintf(stderr, "%s:9 %d - 1 bytes read\n", __func__, r);
+                //qDebug() << __func__ << ":9 " << r << " - 1 bytes read";
 			}
         }
     }
     else{
 //		fprintf(stderr, "%s:10 reading %d bytes (r %d, w %d)\n", __func__, r-w-1, r, w);
+        //qDebug() << __func__ << ":10 reading " << r-w-1 << " bytes (r " << r << ", w " << w;
+#ifndef Q_OS_WIN
 		res = ioctl(fd, FIONREAD, &ba);
+#else  // !Q_OS_WIN
+        res = ioctlsocket(fd, FIONREAD, &ba);
+        if(res == SOCKET_ERROR)
+        {
+            //int err = WSAGetLastError();
+            //qDebug() << __func__ << ":10-1 ioctlsocket error : " << err;
+            return;
+        }
+        //qDebug() << __func__ << ": res " << res << ", ba " << ba;
+#endif // !Q_OS_WIN
 //		fprintf(stderr, "%s: res %d, ba %d\n", __func__, res, ba);
 		if (ba == 0) return;
+#ifndef Q_OS_WIN
         rd = read(fd, &b[w], r-w-1);
-		if(rd == -1)
+#else  // !Q_OS_WIN
+        rd = recv(fd, &b[w], r-w-1, 0);
+#endif // !Q_OS_WIN
+        if(rd == -1)
 		{
 //			fprintf(stderr, "%s:11 read() error: %s\n", __func__, strerror(errno));
+            //qDebug() << __func__ << ":11 read() error: " << strerror(errno);
 			return;
 		}
 		w += rd;
 //		fprintf(stderr, "%s:12 %d bytes read\n", __func__, r-w-1);
+        //qDebug() << __func__ << ":12 " << r-w-1 << " bytes read";
     }
 
 //    printf("!!!!!!!!!!!  ");
@@ -674,6 +869,7 @@ void RingBuf::Act(){
     string_ready.wakeOne();
 
 //	fprintf(stderr, "%s finished\n", __func__);
+    //qDebug() << __func__ << "finished";
 }
 
 bool RingBuf::isEmpty(){
@@ -702,7 +898,7 @@ void RingBuf::WriteStr(Parser *prs){
     }
     prs->str[prs->eos] = 0;
     strN++;
-    printf("%d %s\n", strN, prs->str);
+    //printf("%d %s\n", strN, prs->str);
 }
 
 
@@ -841,10 +1037,18 @@ int NMEAProcessor::getMaxFd(void)
 
     for(int i = 0; i < portNum; i++)
     {
+#ifndef Q_OS_WIN
         if(fd_rs[i] > mfd)
             mfd = fd_rs[i];
+#else  // !Q_OS_WIN
+        if(FD_ISSET(fd_rs[i], &readbufs))
+            continue;
+        mfd = i;
+        break;
+#endif // !Q_OS_WIN
     }
 
+    qDebug() << __func__ << " returns " << mfd;
     return mfd;
 }
 
@@ -854,6 +1058,17 @@ int NMEAProcessor::start(void)
 
     readPortsThread = QtConcurrent::run(this, &NMEAProcessor::readPorts);
     parsersThread = QtConcurrent::run(this, &NMEAProcessor::readPortBufs);
+
+    fprintf(stderr, "%s: readPortsThread: %d\n", __FUNCTION__, (int)readPortsThread.isStarted());
+    fprintf(stderr, "%s: parsersThread: %d\n", __FUNCTION__, (int)parsersThread.isStarted());
+    return 0;
+}
+
+int NMEAProcessor::startNMEAImit(QString nmeafn, int port)
+{
+    _nmeaImitFilename = nmeafn;
+    _nmeaTcpPort      = port;
+    nmeaImitThread = QtConcurrent::run(this, &NMEAProcessor::nmea_imit);
     return 0;
 }
 
@@ -866,15 +1081,15 @@ void analize(char s[msglen]){
 
 void NMEAProcessor::initParsers(){
 
-    parsers[GP-1] = new GP_Parser();
-    parsers[HE-1] = new HE_Parser();
-    parsers[HC-1] = new HC_Parser();
-    parsers[VW-1] = new VW_Parser();
-    parsers[SD-1] = new SD_Parser();
-    parsers[AI-1] = new AI_Parser();
+    parsers[GP-1] = new GP_Parser(this);
+    parsers[HE-1] = new HE_Parser(this);
+    parsers[HC-1] = new HC_Parser(this);
+    parsers[VW-1] = new VW_Parser(this);
+    parsers[SD-1] = new SD_Parser(this);
+    parsers[AI-1] = new AI_Parser(this);
 
-    parsers[HE-1]->_prc = this;
-    parsers[AI-1]->_prc = this;
+    //parsers[HE-1]->_prc = this;
+    //parsers[AI-1]->_prc = this;
 }
 
 int strfind(char c, char * str, int pos, int l){
@@ -892,7 +1107,7 @@ Parser::Parser(NMEAProcessor *prc){
 
 void Parser::Pars(){
 
-    printf("-------------------\n");
+    //printf("-------------------\n");
 
     predComaPos = -1; currComaPos = 5;
 
@@ -1067,12 +1282,14 @@ int Parser::GetF(unsigned int *field_F, void *field){
 
 }
 
-GP_Parser::GP_Parser(){
-    Parser();
+GP_Parser::GP_Parser(NMEAProcessor *prc) : Parser(prc) {
+    //Parser::Parser(prc);
     type = GP;
 }
 
 void GP_Parser::printRMB(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     printf("Status: "); if (rmb.Status_F) printf("%c\n", rmb.Status); else printf("\n");
     printf("Cross Track Error: "); if (rmb.CrossTrackErr_F) printf("%f\n", rmb.CrossTrackErr); else printf("\n");
     printf("Direction to Steer (L/R): "); if (rmb.DirSteer_LR_F) printf("%c\n", rmb.DirSteer_LR); else printf("\n");
@@ -1091,6 +1308,9 @@ void GP_Parser::printRMB(){
 
 void GP_Parser::printRMC(sTarget *currTarg){
     char Date[9], Time[12];
+
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
     printf("Time: ");
     if (currTarg->Time_F) {
@@ -1120,6 +1340,8 @@ void GP_Parser::Pars(){
     Parser::Pars();
 
 //	fprintf(stderr, "%s entered\n", __func__);
+
+    //qDebug() << __func__ << ": str: " << str;
 
     if (strncmp(&str[2], "RMB", 3) == 0){
 
@@ -1171,7 +1393,15 @@ void GP_Parser::Pars(){
         if (Flag){
             memcpy(ss_str, &TimeStr[7], 2);
             currTarg->ss = atoi(ss_str);
+#ifndef Q_OS_WIN
             strptime(TimeStr, "%H%M%S", &currTarg->DateTime);
+#else  // !Q_OS_WIN
+            TimeStr[6] = 0;
+            QTime tm = QTime::fromString(TimeStr, "hhmmss");
+            currTarg->DateTime.tm_hour = tm.hour();
+            currTarg->DateTime.tm_min  = tm.minute();
+            currTarg->DateTime.tm_sec  = tm.second();
+#endif // !Q_OS_WIN
         }
         if (GetC(&Flag, &currTarg->Status) == -1) return;
         else currTarg->Status_F = Flag;
@@ -1189,11 +1419,25 @@ void GP_Parser::Pars(){
         else currTarg->DegrTrue_F = Flag;
         if (GetS(&Flag, DateStr) == -1) return;
         else currTarg->Date_F = Flag;
+#ifndef Q_OS_WIN
         if (Flag) strptime(DateStr, "%d%m%y", &currTarg->DateTime);
+#else  // !Q_OS_WIN
+        //if (Flag) strftime(DateStr, sizeof(DateStr), "%d%m%y", &currTarg->DateTime);
+        if (Flag) {
+            DateStr[6] = 0;
+            QDate dt = QDate::fromString(DateStr, "ddMMyy");
+            currTarg->DateTime.tm_year = dt.year();
+            currTarg->DateTime.tm_mon  = dt.month();
+            currTarg->DateTime.tm_mday = dt.day();
+        }
+#endif // !Q_OS_WIN
         if (GetF(&Flag, &currTarg->MagnVar) == -1) return;
         else currTarg->MagnVar_F = Flag;
         if (GetC(&Flag, &currTarg->MV_EW) == -1) return;
         else currTarg->MV_EW_F = Flag;
+
+        if(_prc)
+            _prc->posChanged(currTarg->Longitude, currTarg->Latitude);
 
         printRMC(currTarg);
 
@@ -1212,8 +1456,8 @@ void GP_Parser::Pars(){
 
 }
 
-HE_Parser::HE_Parser(){
-    Parser();
+HE_Parser::HE_Parser(NMEAProcessor * prc) : Parser(prc){
+    //Parser::Parser(prc);
     type = HE;
 }
 
@@ -1228,23 +1472,26 @@ void HE_Parser::Pars(){
 
     if(_prc)
 	{
-        _prc->hdgChanged(hdt.HeadDegr);
+        _prc->hdgChanged(hdt.HeadDegr, NMEAProcessor::HDGT_GYRO);
 		//printf("_prc->hdgChanged finished\n");
-	}
+        //qDebug() << __func__ << ": \'hdgChanged\' called";
+    }
 
     printHDT();
 
 }
 
 void HE_Parser::printHDT(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
     printf("Heading Degrees: "); if (hdt.HeadDegr_F) printf("%f\n", hdt.HeadDegr); else printf("\n");
     printf("T: "); if (hdt.T_F) printf("%c\n", hdt.T); else printf("\n");
 
 }
 
-HC_Parser::HC_Parser(){
-    Parser();
+HC_Parser::HC_Parser(NMEAProcessor *prc) : Parser(prc) {
+    //Parser::Parser(prc);
     type = HC;
 }
 
@@ -1263,11 +1510,19 @@ void HC_Parser::Pars(){
     if (GetC(&Flag, &hdg.MagnVarDir) == -1) return;
     else hdg.MagnVarDir_F = Flag;
 
+    if(_prc)
+    {
+        _prc->hdgChanged(hdg.MagnSensor, NMEAProcessor::HDGT_MAG);
+        //printf("_prc->hdgChanged finished\n");
+    }
+
     printHDG();
 
 }
 
 void HC_Parser::printHDG(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
     printf("Magnetic Sensor heading: "); if (hdg.MagnSensor_F) printf("%f\n", hdg.MagnSensor); else printf("\n");
     printf("Magnetic Deviation: "); if (hdg.MagnDeviation_F) printf("%f\n", hdg.MagnDeviation); else printf("\n");
@@ -1277,8 +1532,8 @@ void HC_Parser::printHDG(){
 
 }
 
-SD_Parser::SD_Parser(){
-    Parser();
+SD_Parser::SD_Parser(NMEAProcessor *prc) : Parser(prc) {
+    //Parser::Parser(prc);
     type = SD;
 }
 
@@ -1291,11 +1546,16 @@ void SD_Parser::Pars(){
     if (GetF(&Flag, &dpt.OffsetFromTransducer) == -1) return;
     else dpt.OffsetFromTransducer_F = Flag;
 
+    if(_prc)
+        _prc->dptChanged(dpt.Depth);
+
     printDPT();
 
 }
 
 void SD_Parser::printDPT(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
     printf("Depth: "); if (dpt.Depth_F) printf("%f\n", dpt.Depth); else printf("\n");
     printf("Offset from transducer: "); if (dpt.OffsetFromTransducer_F) printf("%f\n", dpt.OffsetFromTransducer); else printf("\n");
@@ -1383,6 +1643,8 @@ void AI_Parser::sS_123(sTarget *strgt){
 }
 
 void AI_Parser::sprintVDM_123(sTarget *strgt){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
 //    if (vdm.AIS_Channel_F) printf("AIS channel: %c\n", vdm.AIS_Channel); else printf("\n");
 //    printf("Message ID: %d\n", trgt->Message_ID);
@@ -1433,6 +1695,8 @@ void AI_Parser::S_123(Target *targ){
     if (targ->Time_stamp != 60) targ->Time_stamp_F = 1;
 
 //    printVDM_123(targ);
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     targ->PrintOut();
 }
 
@@ -1456,6 +1720,8 @@ void AI_Parser::sS_411(){
 }
 
 void AI_Parser::sprintVDM_411(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
     printf("Message ID: %d\n", vdm.eS_common.Message_ID);
     printf("Repeat Indicator: %d\n", vdm.eS_common.Repeat_Indicator);
@@ -1500,8 +1766,9 @@ void AI_Parser::S_411(Target *targ){
     if (targ->Type_of_electronic_position_fixing_dev != 0)
         targ->Type_of_electronic_position_fixing_dev_F = 1;
 
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     targ->PrintOut();
-
 }
 
 
@@ -1526,6 +1793,9 @@ void AI_Parser::sS_5(sTarget *strgt){
 }
 
 void AI_Parser::sprintVDM_5(sTarget *strgt){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
+
 //    printf("Message ID: %d\n", vdm.eS_common.Message_ID);
 //    printf("Repeat Indicator: %d\n", vdm.eS_common.Repeat_Indicator);
     printf("User ID: %u\n", strgt->mmsi);
@@ -1599,8 +1869,9 @@ void AI_Parser::S_5(Target *targ){
     if (strcmp(targ->Destination, "@@@@@@@@@@@@@@@@@@@@") != 0)
         targ->Destination_F = 1;
 
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     targ->PrintOut();
-
 }
 
 void AI_Parser::S_6(){
@@ -1618,6 +1889,8 @@ void AI_Parser::S_6(){
 }
 
 void AI_Parser::printVDM_6(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     printf("Sequence_number: %d\n", vdm.eS6.Sequence_number);
     printf("Destination ID: %d\n", vdm.eS6.Destination_ID);
     printf("Retransmit flag: %d\n", vdm.eS6.Retransmit_flag);
@@ -1651,6 +1924,8 @@ void AI_Parser::S_17(){
 }
 
 void AI_Parser::printVDM_17(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     printf("Message ID: %d\n", vdm.eS_common.Message_ID);
     printf("Repeat Indicator: %d\n", vdm.eS_common.Repeat_Indicator);
     printf("User ID: %d\n", vdm.eS_common.User_ID);
@@ -1687,6 +1962,8 @@ void AI_Parser::sS_18(){
 }
 
 void AI_Parser::sprintVDM_18(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
     printf("Reserve for regional/local applications: %d\n", vdm.eS18.Reserve_for_reg_loc_apps);
     printf("SOG: %d\n", vdm.eS18.SOG);
@@ -1730,8 +2007,9 @@ void AI_Parser::S_18(Target *targ){
     if (targ->Time_stamp != 60) targ->Time_stamp_F = 1;
 
 
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     targ->PrintOut();
-
 }
 
 void AI_Parser::S_19(Target *targ){
@@ -1779,8 +2057,9 @@ void AI_Parser::S_19(Target *targ){
     if (targ->Type_of_electronic_position_fixing_dev != 0)
         targ->Type_of_electronic_position_fixing_dev_F = 1;
 
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     targ->PrintOut();
-
 }
 
 void AI_Parser::S_20(){
@@ -1821,6 +2100,8 @@ void AI_Parser::S_20(){
 }
 
 void AI_Parser::printVDM_20(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     printf("Message ID: %d\n", vdm.eS_common.Message_ID);
     printf("Repeat Indicator: %d\n", vdm.eS_common.Repeat_Indicator);
     printf("Source station ID: %d\n", vdm.eS_common.User_ID);
@@ -1877,6 +2158,8 @@ void AI_Parser::sS_21(){
 }
 
 void AI_Parser::sprintVDM_21(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
         printf("Types of aids to navigation: %d\n", vdm.eS21.Types_of_aids_to_navigation);
         printf("Name of aids to navigation: %s\n", vdm.eS21.Name_of_aids_to_navigation);
         printf("Position accuracy: %d\n", vdm.eS21.Position_accuracy);
@@ -1919,6 +2202,8 @@ void AI_Parser::S_21(Target *targ){
         targ->Type_of_electronic_position_fixing_dev_F = 1;
     if (targ->Time_stamp != 60) targ->Time_stamp_F = 1;
 
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
     targ->PrintOut();
 
 }
@@ -2182,8 +2467,7 @@ void Process_AI(){
 }
 
 
-VW_Parser::VW_Parser(){
-    Parser();
+VW_Parser::VW_Parser(NMEAProcessor *prc) : Parser(prc) {
     type = VW;
 }
 
@@ -2208,11 +2492,16 @@ void VW_Parser::Pars(){
     if (GetC(&Flag, &vhw.K) == -1) return;
     else vhw.K_F = Flag;
 
+    if(_prc)
+        _prc->spdChanged(vhw.Knots, NMEAProcessor::SPDT_LOG_MEC);
+
     printVHW();
 }
 
 
 void VW_Parser::printVHW(){
+    if(_prc && ((_prc->_dbgflags & NMEAProcessor::DBGFLG_MSGENA) == 0))
+        return;
 
     printf("Degrees True: "); if (vhw.DegrTrue_F) printf("%f\n", vhw.DegrTrue); else printf("\n");
     printf("T: "); if (vhw.T_F) printf("%c\n", vhw.T); else printf("\n");
@@ -2225,4 +2514,87 @@ void VW_Parser::printVHW(){
 
 }
 
-#endif // !Q_OS_WIN
+#define NMEAIMIT_STARTSLEEP 5000
+#define NMEAIMIT_SENTPAUSE  1000
+
+int NMEAProcessor::nmea_imit(void)
+{
+    int res = 0;
+    QFile imitf;
+    QTcpSocket nmeas;
+
+    try
+    {
+        imitf.setFileName(_nmeaImitFilename);
+        if(!imitf.open(QIODevice::ReadOnly))
+        {
+            QString err;
+            err += "failed to open file \'" + _nmeaImitFilename + "\' (error: " + imitf.errorString() + "). NMEA imitator won't start.";
+            throw err;
+        }
+
+        qSleep(NMEAIMIT_STARTSLEEP); // Pause before creating socket
+
+        qDebug() << __func__ << ": connecting to 127.0.0.1:"<<_nmeaTcpPort;
+        nmeas.connectToHost("127.0.0.1", _nmeaTcpPort, QIODevice::ReadWrite);
+        nmeas.waitForConnected(NMEAIMIT_STARTSLEEP);
+
+        if(nmeas.state() != QAbstractSocket::ConnectedState)
+        {
+            QString err;
+            err += "failed to connect to NMEAProcessor (error: " + nmeas.errorString() + "). NMEA imitator won't start.";
+            throw err;
+        }
+
+        qDebug() << __func__ << ": started";
+
+        QByteArray nmeasent;
+        while(!finish_flag)
+        {
+            nmeasent = imitf.readLine();
+            if(nmeasent.size() == 0)
+            {
+                if(!imitf.seek(0))
+                {
+                    QString err;
+                    err += "failed to restart reading NMEA sentences (error: " + imitf.errorString() + "). NMEA imitator stopped.";
+                    throw err;
+                }
+                continue;
+            }
+
+            if(nmeasent.at(nmeasent.size() - 1) != 0x0a)
+                nmeasent += 0x0a;
+
+            if((res = nmeas.write(nmeasent)) == -1)
+            {
+                QString err;
+                err += "failed to send NMEA sentence via TCP (error: " + nmeas.errorString() + "). NMEA imitator stopped.";
+                throw err;
+            }
+
+            if(!nmeas.waitForBytesWritten(NMEAIMIT_SENTPAUSE))
+            {
+                qDebug() << __func__ << ": bytes not written: " << nmeas.errorString();
+            }
+
+            //qDebug() << __func__ << ": sent (res = " << res << "): " << nmeasent;
+
+            qSleep(NMEAIMIT_SENTPAUSE);
+        }
+    }
+    catch(QString err)
+    {
+        QString serr("Error: ");
+        serr += err;
+        qDebug() << __func__ << ": " << serr;
+        res = -1;
+    }
+
+    nmeas.close();
+    imitf.close();
+
+    qDebug() << __func__ << ": finished";
+
+    return res;
+}
