@@ -77,12 +77,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   QStringList args = qApp->arguments();
   QRegExp     rx("--ampoff=[+|-]?[0-9]+$");
   int argpos = args.indexOf(rx);
-  if(argpos >= 0)
-  {
-      rx.setPattern("[+|-]?[0-9]+$");
-      int offpos = rx.indexIn(args.at(argpos));
-      if(offpos >= 0)
-          _radar_ds->setAmpsOffset(args.at(argpos).mid(offpos).toInt());
+  if(argpos >= 0) {
+    rx.setPattern("[+|-]?[0-9]+$");
+    int offpos = rx.indexIn(args.at(argpos));
+    if(offpos >= 0)
+        _radar_ds->setAmpsOffset(args.at(argpos).mid(offpos).toInt());
   }
 
   rx.setPattern("--radar-device");
@@ -99,13 +98,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
       _radar_ds->start();
   }
 
-#ifndef Q_OS_WIN
   rx.setPattern("--nmea-port");
   argpos = args.indexOf(rx);
 
   if((argpos >= 0) && (argpos < args.count() - 1))
       _nmeaPort = args.at(argpos + 1);
-#endif // !Q_OS_WIN
+
+  rx.setPattern("--nmea-imit-file");
+  argpos = args.indexOf(rx);
+  if ((argpos >= 0) && (argpos < args.count() - 1))
+     _nmeaImitfn = args.at(argpos + 1);
+
+  _nmeaprc = new NMEAProcessor(this);
+
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
@@ -165,12 +170,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 MainWindow::~MainWindow() {
-#ifndef Q_OS_WIN
-
   delete _nmeaprc;
   delete _pult_driver;
-
-#endif // !Q_OS_WIN
 
   delete ui;
 
@@ -362,13 +363,15 @@ void MainWindow::onRLIWidgetInitialized() {
   // Set zero distance for VRM
   ui->wgtRLIDisplay->onVdChanged(-1e6);
 
-#ifndef Q_OS_WIN
-  // Create and start NMEA processor
-  _nmeaprc = new NMEAProcessor(this);
+
+  // Start NMEA processor
   connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
-  connect(_nmeaprc, SIGNAL(updateHeading(float)), _crse_ctrl, SLOT(course_changed(float)));
-  connect(_nmeaprc, SIGNAL(updateHeading(float)), _radar_ds, SLOT(updateHeading(float)));
-  connect(_nmeaprc, SIGNAL(updateHeading(float)), ui->wgtRLIDisplay, SLOT(onHeadingChanged(float)));
+  connect(_nmeaprc, SIGNAL(updateHdgGyro(float)), _crse_ctrl, SLOT(course_changed(float)));
+  connect(_nmeaprc, SIGNAL(updateHdgGyro(float)), _radar_ds, SLOT(updateHeading(float)));
+  connect(_nmeaprc, SIGNAL(updateHdgGyro(float)), ui->wgtRLIDisplay, SLOT(onHeadingChanged(float)));
+
+  if (_nmeaImitfn.size())
+    _nmeaprc->startNMEAImit(_nmeaImitfn, _nmeaPort.toInt());
 
   if (_nmeaPort.size()) {
     QStringList ports;
@@ -376,7 +379,6 @@ void MainWindow::onRLIWidgetInitialized() {
     _nmeaprc->open_fds(ports);
     _nmeaprc->start();
   }
-#endif // !Q_OS_WIN
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {

@@ -97,13 +97,13 @@ private:
   Ui::MainWindow *ui;
 
   int pressedKey[4];
+  QString _nmeaImitfn;
+  NMEAProcessor* _nmeaprc;
+  QString _nmeaPort;
 
 #ifndef Q_OS_WIN
   static int sigintFd[2];
   QSocketNotifier* snInt;
-
-  NMEAProcessor* _nmeaprc;
-  QString _nmeaPort;
 #endif // !Q_OS_WIN
 };
 

@@ -85,6 +85,8 @@ void RLIDisplayWidget::onCoordsChanged(const QVector2D& new_coords) {
 }
 
 void RLIDisplayWidget::onHeadingChanged(float hdg) {
+  qDebug() << hdg;
+
   _controlsEngine->setVnP(hdg);
 }
 
