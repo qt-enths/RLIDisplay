@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rli-config>
+
+  <layout size="1024x768">
+
+    <rli-circle x="504" y="384" radius="470" />
+    <menu x="-241" y="149" width="236" height="262" font1="12x14" font2="8x14" />
+    <magnifier x="-235" y="155" width="224" height="224" />
+
+    <info-panels>
+
+      <gain x="5" y="5" width="120" height="23" font1="12x14" />
+      <water x="5" y="32" width="120" height="23" font1="12x14" />
+      <rain x="5" y="59" width="120" height="23" font1="12x14" />
+      <apch x="5" y="86" width="120" height="23" font1="12x14" />
+	  
+      <label5 x="5" y="113" width="104" height="23" font1="12x14" />
+      <band x="5" y="140" width="104" height="23" font1="12x14" />
+      
+      <emission x="166" y="5" width="120" height="23" font1="12x14" />
+	  
+      <cursor x="-241" y="-64" width="236" height="60" font1="12x14" font2="8x14" />
+
+      <clock x="-234" y="128" width="224" height="20" font1="12x14" />
+
+      <scale x="-482" y="5" width="236" height="40" font1="16x28" font2="14x14" />
+
+      <label1 x="-366" y="45" width="120" height="21" font1="12x14" />
+      <label2 x="-366" y="70" width="120" height="21" font1="12x14" />
+      <label3 x="-366" y="95" width="120" height="21" font1="12x14" />
+      <label4 x="-342" y="-100" width="96" height="33" font1="16x28" />
+
+      <course x="-241" y="5" width="236" height="38" font1="12x14" font2="8x14" />
+
+      <position x="-241" y="47" width="236" height="38" font1="12x14" font2="8x14" />
+
+      <blank x="-241" y="89" width="236" height="38" />
+
+      <danger x="-241" y="-355" width="236" height="20" font1="12x14" />
+
+      <tails x="-241" y="-328" width="236" height="21" font1="12x14" font2="8x14" />
+
+      <danger-details x="-241" y="-303" width="236" height="38" font1="12x14" font2="8x14" />
+
+      <vector x="-241" y="-261" width="236" height="21" font1="12x14" font2="8x14" />
+
+      <targers x="-241" y="-234" width="236" height="167" font1="12x14" font2="8x14" />
+
+      <vn x="5" y="-70" width="140" height="66" font1="12x14" />
+
+      <vd x="-386" y="-56" width="140" height="52" font1="12x14" font2="8x14" />
+
+    </info-panels>
+
+  </layout>
+
+</rli-config>

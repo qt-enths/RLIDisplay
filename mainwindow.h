@@ -68,12 +68,12 @@ private:
   CourseController* _crse_ctrl;
   DangerController* _dngr_ctrl;
 
-  LableController* _lbl1_ctrl;
-  LableController* _lbl2_ctrl;
-  LableController* _lbl3_ctrl;
-  LableController* _lbl4_ctrl;
-  LableController* _lbl5_ctrl;
-  LableController* _band_lbl_ctrl;
+  LabelController* _lbl1_ctrl;
+  LabelController* _lbl2_ctrl;
+  LabelController* _lbl3_ctrl;
+  LabelController* _lbl4_ctrl;
+  LabelController* _lbl5_ctrl;
+  LabelController* _band_lbl_ctrl;
 
   PositionController* _pstn_ctrl;
   BlankController* _blnk_ctrl;

@@ -127,8 +127,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(ui->wgtRLIControl, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
   _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(5, 5+3*(23+4)), 8, 0, this);
-  _lbl5_ctrl = new LableController(RLIStrings::nPP12p, QRect(5, 5+4*(23+4), 104, 23), "12x14", this);
-  _band_lbl_ctrl = new LableController(RLIStrings::nBandS, QRect(5, 5+5*(23+4), 104, 23), "12x14", this);
+  _lbl5_ctrl = new LabelController(RLIStrings::nPP12p, QRect(5, 5+4*(23+4), 104, 23), "12x14", this);
+  _band_lbl_ctrl = new LabelController(RLIStrings::nBandS, QRect(5, 5+5*(23+4), 104, 23), "12x14", this);
   _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
@@ -139,10 +139,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _scle_ctrl = new ScaleController(this);
 
-  _lbl1_ctrl = new LableController(RLIStrings::nNord, QRect(-246-120, 45, 120, 21), "12x14", this);
-  _lbl2_ctrl = new LableController(RLIStrings::nRm, QRect(-246-120, 70, 120, 21), "12x14", this);
-  _lbl3_ctrl = new LableController(RLIStrings::nWstab, QRect(-246-120, 95, 120, 21), "12x14", this);
-  _lbl4_ctrl = new LableController(RLIStrings::nLod, QRect(-246-96, -100, 96, 33), "16x28", this);
+  _lbl1_ctrl = new LabelController(RLIStrings::nNord, QRect(-246-120, 45, 120, 21), "12x14", this);
+  _lbl2_ctrl = new LabelController(RLIStrings::nRm, QRect(-246-120, 70, 120, 21), "12x14", this);
+  _lbl3_ctrl = new LabelController(RLIStrings::nWstab, QRect(-246-120, 95, 120, 21), "12x14", this);
+  _lbl4_ctrl = new LabelController(RLIStrings::nLod, QRect(-246-96, -100, 96, 33), "16x28", this);
 
   _crse_ctrl = new CourseController(this);
   _pstn_ctrl = new PositionController(this);

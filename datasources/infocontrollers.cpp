@@ -126,7 +126,7 @@ void ValueBarController::setMaxValue(int val)
 //------------------------------------------------------------------------------
 
 
-LableController::LableController(char** text, const QRect& geom, QString font_tag, QObject* parent)
+LabelController::LabelController(char** text, const QRect& geom, QString font_tag, QObject* parent)
   : InfoBlockController(parent) {
   _text_id = -1;
   _font_tag = font_tag;
@@ -134,12 +134,12 @@ LableController::LableController(char** text, const QRect& geom, QString font_ta
   _geom = geom;
 }
 
-void LableController::onTextChanged(char** text) {
-    for (int i = 0; i < RLI_LANG_COUNT; i++)
-      emit setText(_text_id, i, enc->fromUnicode(dec->toUnicode(text[i])));
+void LabelController::onTextChanged(char** text) {
+  for (int i = 0; i < RLI_LANG_COUNT; i++)
+    emit setText(_text_id, i, enc->fromUnicode(dec->toUnicode(text[i])));
 }
 
-void LableController::initBlock(const QSize& size) {
+void LabelController::initBlock(const QSize& size) {
   int x, y;
 
   if (_geom.x() < 0)
@@ -972,7 +972,7 @@ ClockController::ClockController(QObject* parent) : InfoBlockController(parent) 
 }
 
 void ClockController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() - 224 - 10, 128, 224, 20));
+  _block->setGeometry(QRect(size.width() -224 -10, 128, 224, 20));
   _block->setBackColor(INFO_TRANSPARENT_COLOR);
 
   InfoText t;

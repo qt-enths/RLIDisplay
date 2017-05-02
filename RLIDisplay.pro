@@ -47,7 +47,8 @@ SOURCES += main.cpp \
     datasources/targetdatasource.cpp \
     datasources/shipdatasource.cpp \
     datasources/boardpultcontroller.cpp \
-    layers/magnifierengine.cpp
+    layers/magnifierengine.cpp \
+    rliconfig.cpp
 
 HEADERS  += mainwindow.h \
     rlicontrolwidget.h \
@@ -80,7 +81,8 @@ HEADERS  += mainwindow.h \
     datasources/targetdatasource.h \
     datasources/shipdatasource.h \
     datasources/boardpultcontroller.h \
-    layers/magnifierengine.h
+    layers/magnifierengine.h \
+    rliconfig.h
 
 
 FORMS    += mainwindow.ui \
@@ -92,4 +94,5 @@ RESOURCES += \
     shaders.qrc \
     cursors.qrc
 
-OTHER_FILES +=
+OTHER_FILES += \
+    config.xml

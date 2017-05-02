@@ -67,10 +67,10 @@ private:
 
 
 
-class LableController : public InfoBlockController {
+class LabelController : public InfoBlockController {
   Q_OBJECT
 public:
-  explicit LableController(char** text, const QRect& r, QString font_tag, QObject* parent = 0);
+  explicit LabelController(char** text, const QRect& r, QString font_tag, QObject* parent = 0);
 
 public slots:
   void onTextChanged(char** text);
