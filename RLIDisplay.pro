@@ -11,6 +11,7 @@ unix:QMAKE_LIBDIR += /usr/local/lib/
 
 unix:QMAKE_CXXFLAGS += -Wno-write-strings
 unix:QMAKE_CXXFLAGS += -Wno-unused-variable
+unix:QMAKE_CXXFLAGS += -std=gnu++11
 
 win32:INCLUDEPATH += C:/GDAL/include
 unix:INCLUDEPATH += /usr/local/include/
