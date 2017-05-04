@@ -86,6 +86,11 @@ void RLIDisplayWidget::onCoordsChanged(const QVector2D& new_coords) {
 
 void RLIDisplayWidget::onHeadingChanged(float hdg) {
   _controlsEngine->setVnP(hdg);
+  _maskEngine->setAngleShift(hdg);
+
+  if (hdg >= 0 && hdg <= 360) {
+    _radarEngine->shiftNorth(static_cast<uint>((hdg*_radarEngine->pelengCount())/360.f));
+  }
 }
 
 
@@ -248,13 +253,6 @@ void RLIDisplayWidget::paintGL() {
   int curr_second = QTime::currentTime().second();
   if (curr_second != _last_second) {
     _last_second = curr_second;
-
-    _north += _north_inc;
-    if (_north > 1400)
-      _north_inc = -100;
-    if (_north < 600)
-      _north_inc = 100;
-    _radarEngine->shiftNorth(_north);
 
     emit per_second();
   }
