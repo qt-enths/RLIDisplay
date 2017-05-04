@@ -7,7 +7,7 @@
     <menu x="-241" y="149" width="236" height="262" font1="12x14" font2="8x14" />
     <magnifier x="-235" y="155" width="224" height="224" />
 
-    <info-panels>
+    <panels>
 
       <gain x="5" y="5" width="120" height="23" font1="12x14" />
       <water x="5" y="32" width="120" height="23" font1="12x14" />
@@ -50,7 +50,7 @@
 
       <vd x="-386" y="-56" width="140" height="52" font1="12x14" font2="8x14" />
 
-    </info-panels>
+    </panels>
 
   </layout>
 
