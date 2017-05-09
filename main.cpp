@@ -23,11 +23,13 @@ int main(int argc, char *argv[]) {
 
   RLIConfig config("config.xml");
 
+  /*
   for (QString size : config.getAvailableScreenSizes()) {
     qDebug() << size;
     const RLILayout* layout = config.getLayoutForSize(size);
     layout->print();
   }
+  */
 
   QRect rect = QApplication::desktop()->screenGeometry();
   qDebug() << "Screen rect: " << rect;

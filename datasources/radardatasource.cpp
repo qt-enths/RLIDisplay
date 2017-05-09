@@ -441,7 +441,7 @@ void RadarDataSource::start(const char * radarfn) {
     apctrl_regwr(APCTRL_E038_BASEADDR, 0x1000040);
 
     printf("Setup current scale\n");
-    MainWindow * mainWnd = dynamic_cast<MainWindow *>(parent());
+    /*MainWindow * mainWnd = dynamic_cast<MainWindow *>(parent());
     if(mainWnd)
     {
         const rli_scale_t * curscale = mainWnd->getRadarScale()->getCurScale();
@@ -452,7 +452,7 @@ void RadarDataSource::start(const char * radarfn) {
 	else
 	{
 		fprintf(stderr, "%s: mainWnd is NULL!!!\n", __func__);
-	}
+    }*/
 
     apctrl_regwr(APCTRL_GYROREG_BASEADDR, gyroReg);
 	printf("APCTRL_GYROREG_BASEADDR written with 0x%X\n", gyroReg);

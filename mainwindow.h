@@ -41,7 +41,7 @@ protected:
 
 public slots:
 #ifndef Q_OS_WIN
-  void +-();
+  void handleSigInt();
 #endif // !Q_OS_WIN
 
 private slots:
