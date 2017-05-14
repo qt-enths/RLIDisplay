@@ -2,10 +2,6 @@
 
 #include <QApplication>
 #include <QGLFormat>
-#include <QDebug>
-#include <QRect>
-
-#include "rliconfig.h"
 
 #define RLI_THREADS_NUM 6 // Required number of threads in global QThreadPool
 
@@ -21,22 +17,9 @@ int main(int argc, char *argv[]) {
   if (QThreadPool::globalInstance()->maxThreadCount() < RLI_THREADS_NUM)
     QThreadPool::globalInstance()->setMaxThreadCount(RLI_THREADS_NUM);
 
-  RLIConfig config("config.xml");
-
-  /*
-  for (QString size : config.getAvailableScreenSizes()) {
-    qDebug() << size;
-    const RLILayout* layout = config.getLayoutForSize(size);
-    layout->print();
-  }
-  */
-
-  QRect rect = QApplication::desktop()->screenGeometry();
-  qDebug() << "Screen rect: " << rect;
-
-
   MainWindow w;
-  w.show();
+  w.setGeometry(QApplication::desktop()->screenGeometry());
+  //w.show();
   //w.showMaximized();
   w.showFullScreen();
 

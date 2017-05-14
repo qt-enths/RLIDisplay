@@ -59,10 +59,10 @@ public:
   void shiftCenter    (QPoint center);
   void shiftNorth     (uint north);
 
-  inline const uint  getSize() const          { return 2*_radius + 1; }
-  inline const uint  getTextureId() const     { return _fbo->texture(); }
+  inline uint  getSize() const          { return 2*_radius + 1; }
+  inline uint  getTextureId() const     { return _fbo->texture(); }
 
-  inline const uint  pelengCount() const      { return _peleng_count; }
+  inline uint  pelengCount() const      { return _peleng_count; }
 
 public slots:
   void clearTexture();

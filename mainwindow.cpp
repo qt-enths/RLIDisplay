@@ -48,6 +48,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   ui->setupUi(this);
 
+
+
+  config = new RLIConfig("config.xml");
+
+  /*
+  for (QString size : config.getAvailableScreenSizes()) {
+    qDebug() << size;
+    const RLILayout* layout = config.getLayoutForSize(size);
+    layout->print();
+  }
+  */
+
+
+
   connect(ui->wgtRLIControl, SIGNAL(closeApp()), SLOT(onClose()));
   memset(pressedKey, 0, sizeof(pressedKey));
 
@@ -174,6 +188,8 @@ MainWindow::~MainWindow() {
   delete _pult_driver;
 
   delete ui;
+
+  delete config;
 
   delete _target_ds;
   delete _radar_ds;
@@ -391,24 +407,23 @@ void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
 }
 
 void MainWindow::resizeEvent(QResizeEvent* e) {
+  qDebug() << "Resize event: " << e->size();
+
   QSize s = e->size();
   if (float(s.height()) / float(s.width()) > 0.7)
     ui->wgtRLIControl->hide();
   else
     ui->wgtRLIControl->show();
 
+  ui->wgtRLIControl->setVisible(config->showButtonPanel());
+  QSize availableSize( config->showButtonPanel() ? geometry().width() - ui->wgtRLIControl->width()
+                                                 : geometry().width()
+                     , geometry().height());
+  QString bestSize = config->getSuitableLayoutSize(availableSize);
+  QStringList slbestSize = bestSize.split("x");
 
-  QRect rli_geom = ui->wgtRLIDisplay->geometry();
-
-  rli_geom.setWidth(4 * (rli_geom.width() / 4));
-  rli_geom.setHeight(3 * (rli_geom.height() / 3));
-
-  if (rli_geom.height() > 3 * (rli_geom.width() / 4))
-    rli_geom.setHeight(3 * (rli_geom.width() / 4));
-  else
-    rli_geom.setWidth(4 * (rli_geom.height() / 3));
-
-  ui->wgtRLIDisplay->setGeometry(rli_geom);
+  ui->spsMainCenter->changeSize(availableSize.width() - slbestSize[0].toInt(), 20);
+  ui->wgtRLIDisplay->setGeometry(QRect(0, 0, slbestSize[0].toInt(), slbestSize[1].toInt()));
 }
 
 void MainWindow::timerEvent(QTimerEvent*) {

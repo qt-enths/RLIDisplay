@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>918</width>
-    <height>629</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="cursor">
@@ -537,14 +537,14 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>288</width>
-          <height>492</height>
+          <width>292</width>
+          <height>576</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>288</width>
-          <height>492</height>
+          <width>292</width>
+          <height>576</height>
          </size>
         </property>
         <property name="contextMenuPolicy">
@@ -553,17 +553,17 @@
        </widget>
       </item>
       <item>
-       <spacer name="spsControl">
+       <spacer name="verticalSpacer">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
         <property name="sizeType">
-         <enum>QSizePolicy::MinimumExpanding</enum>
+         <enum>QSizePolicy::Expanding</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
           <width>0</width>
-          <height>40</height>
+          <height>0</height>
          </size>
         </property>
        </spacer>

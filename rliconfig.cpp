@@ -3,7 +3,10 @@
 #include <QFile>
 #include <QDebug>
 #include <QXmlStreamReader>
+#include <QStringList>
+#include <QRegExp>
 
+const QRegExp SIZE_RE = QRegExp("^\\d{3,4}x\\d{3,4}$");
 
 void RLILayout::print() const {
   qDebug() << "circle";
@@ -28,6 +31,8 @@ void RLILayout::print() const {
 
 
 RLIConfig::RLIConfig(const QString& filename) {
+  _showButtonPanel = false;
+
   QFile file(filename);
   file.open(QFile::ReadOnly);
   QXmlStreamReader* xml = new QXmlStreamReader(&file);
@@ -35,9 +40,14 @@ RLIConfig::RLIConfig(const QString& filename) {
   while (!xml->atEnd()) {
     switch (xml->readNext()) {
     case QXmlStreamReader::StartElement:
+      if (xml->name() == "use-button-pannel")
+        _showButtonPanel = (xml->readElementText() == "true");
+
       if (xml->name() == "layout") {
         QMap<QString, QString> attrs = readXMLAttributes(xml);
-        _layouts.insert(attrs["size"], readLayout(xml));
+
+        if (attrs.contains("size") && SIZE_RE.exactMatch(attrs["size"]))
+          _layouts.insert(attrs["size"], readLayout(xml));
       }
       break;
     default:
@@ -123,4 +133,25 @@ const RLILayout* RLIConfig::getLayoutForSize(const QString& size) const {
     return _layouts[size];
   else
     return NULL;
+}
+
+const QString RLIConfig::getSuitableLayoutSize(const QSize& screen_size) const {
+  QString best = "";
+  int max_area = 0;
+
+  for (QString ssize : _layouts.keys()) {
+    QStringList slsize = ssize.split("x");
+    QSize size(slsize[0].toInt(), slsize[1].toInt());
+
+    if (size.width() <= screen_size.width() && size.height() <= screen_size.height()) {
+      float area = size.width() * size.height();
+
+      if (area > max_area) {
+        max_area = area;
+        best = ssize;
+      }
+    }
+  }
+
+  return best;
 }

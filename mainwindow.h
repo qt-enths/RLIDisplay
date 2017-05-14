@@ -6,6 +6,8 @@
 #include <QTimerEvent>
 #include <QSocketNotifier>
 
+#include "rliconfig.h"
+
 #include "s52/chartmanager.h"
 #include "datasources/boardpultcontroller.h"
 #include "datasources/targetdatasource.h"
@@ -53,6 +55,8 @@ private slots:
 
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
+
+  RLIConfig* config;
 
   // Контроллеры инфоблоков
   ValueBarController* _gain_ctrl;
