@@ -423,6 +423,8 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
   QStringList slbestSize = bestSize.split("x");
 
   ui->spsMainCenter->changeSize(availableSize.width() - slbestSize[0].toInt(), 20);
+  ui->spsBottom->changeSize(20, availableSize.height() - slbestSize[1].toInt());
+
   ui->wgtRLIDisplay->setGeometry(QRect(0, 0, slbestSize[0].toInt(), slbestSize[1].toInt()));
 }
 

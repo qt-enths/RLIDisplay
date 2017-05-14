@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>616</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="cursor">
@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,0">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -33,19 +33,6 @@
     <property name="bottomMargin">
      <number>0</number>
     </property>
-    <item>
-     <spacer name="spsMainLeft">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>0</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
       <property name="sizeConstraint">
@@ -67,8 +54,8 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>1600</width>
-          <height>1200</height>
+          <width>2000</width>
+          <height>2000</height>
          </size>
         </property>
         <property name="palette">
@@ -495,7 +482,7 @@
        </widget>
       </item>
       <item>
-       <spacer name="spsDisplay">
+       <spacer name="spsBottom">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
