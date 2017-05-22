@@ -43,6 +43,9 @@ RLIConfig::RLIConfig(const QString& filename) {
       if (xml->name() == "use-button-pannel")
         _showButtonPanel = (xml->readElementText() == "true");
 
+      if (xml->name() == "default-layout")
+        _defaultSize = xml->readElementText();
+
       if (xml->name() == "layout") {
         QMap<QString, QString> attrs = readXMLAttributes(xml);
 
@@ -152,6 +155,9 @@ const QString RLIConfig::getSuitableLayoutSize(const QSize& screen_size) const {
       }
     }
   }
+
+  if (best == "")
+    return _defaultSize;
 
   return best;
 }

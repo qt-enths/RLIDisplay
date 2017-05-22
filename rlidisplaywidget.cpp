@@ -9,8 +9,6 @@
 
 #include "common/rlimath.h"
 
-
-
 RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _world_coords = QVector2D(12.5000f, -81.6000f);
   _fonts = new AsmFonts();
@@ -34,9 +32,6 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _initialized = false;
   _route_edition = false;
   _is_magnifier_visible = false;
-
-  _north = 1000;
-  _north_inc = 100;
 }
 
 RLIDisplayWidget::~RLIDisplayWidget() {
@@ -229,10 +224,10 @@ void RLIDisplayWidget::initializeGL() {
 }
 
 void RLIDisplayWidget::resizeGL(int w, int h) {
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "GL resize";
+
   if (!_initialized)
     return;
-
-  glViewport(0, 0, w, h);
 
   _maskEngine->resize(QSize(w, h));
 

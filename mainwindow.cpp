@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 
 #include <QDebug>
 #include <QDateTime>
@@ -43,38 +42,22 @@ void MainWindow::onClose() {
   close();
 }
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction start";
 
-  ui->setupUi(this);
+  wgtRLI = new RLIDisplayWidget(this);
+  wgtButtonPanel = new RLIControlWidget(this);
 
-
-
-  config = new RLIConfig("config.xml");
-
-  /*
-  for (QString size : config.getAvailableScreenSizes()) {
-    qDebug() << size;
-    const RLILayout* layout = config.getLayoutForSize(size);
-    layout->print();
-  }
-  */
-
-
-
-  connect(ui->wgtRLIControl, SIGNAL(closeApp()), SLOT(onClose()));
-  memset(pressedKey, 0, sizeof(pressedKey));
+  connect(wgtButtonPanel, SIGNAL(closeApp()), SLOT(onClose()));
 
 #ifndef Q_OS_WIN
   // Initializing SIGINT handling
-  if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigintFd) == 0)
-  {
+  if (::socketpair(AF_UNIX, SOCK_STREAM, 0, sigintFd) == 0) {
     snInt = new QSocketNotifier(sigintFd[1], QSocketNotifier::Read, this);
     connect(snInt, SIGNAL(activated(int)), this, SLOT(handleSigInt()));
     if(setup_unix_signal_handlers() != 0)
       qDebug() << "Failed to setup SIGINT handler. Ctrl+C will terminate the program without cleaning.";
-  }
-  else
+  } else
     qDebug() << "Couldn't create INT socketpair. Ctrl+C will terminate the program without cleaning.";
 #endif // !Q_OS_WIN
 
@@ -84,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   _ship_ds = new ShipDataSource();
   _chart_mngr = new ChartManager();
 
-  ui->wgtRLIDisplay->setChartManager(_chart_mngr);
+  wgtRLI->setChartManager(_chart_mngr);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init start";
 
@@ -130,15 +113,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   _gain_ctrl = new ValueBarController(RLIStrings::nGain, QPoint(5, 5), 8, 0, this);
   _gain_ctrl->setMaxValue(255);
-  connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onValueChanged(int)));
+  connect(wgtButtonPanel, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onValueChanged(int)));
 
   _water_ctrl = new ValueBarController(RLIStrings::nWave, QPoint(5, 5+23+4), 8, 0, this);
   _water_ctrl->setMaxValue(255);
-  connect(ui->wgtRLIControl, SIGNAL(waterChanged(int)), _water_ctrl, SLOT(onValueChanged(int)));
+  connect(wgtButtonPanel, SIGNAL(waterChanged(int)), _water_ctrl, SLOT(onValueChanged(int)));
 
   _rain_ctrl = new ValueBarController(RLIStrings::nRain, QPoint(5, 5+2*(23+4)), 8, 0, this);
   _rain_ctrl->setMaxValue(255);
-  connect(ui->wgtRLIControl, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
+  connect(wgtButtonPanel, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
   _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(5, 5+3*(23+4)), 8, 0, this);
   _lbl5_ctrl = new LabelController(RLIStrings::nPP12p, QRect(5, 5+4*(23+4), 104, 23), "12x14", this);
@@ -146,10 +129,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
 
   _curs_ctrl = new CursorController(this);
-  connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(float,float, const char *)), _curs_ctrl, SLOT(cursor_moved(float,float, const char *)));
+  connect(wgtRLI, SIGNAL(cursor_moved(float,float, const char *)), _curs_ctrl, SLOT(cursor_moved(float,float, const char *)));
 
   _clck_ctrl = new ClockController(this);
-  connect(ui->wgtRLIDisplay, SIGNAL(per_second()), _clck_ctrl, SLOT(second_changed()));
+  connect(wgtRLI, SIGNAL(per_second()), _clck_ctrl, SLOT(second_changed()));
 
   _scle_ctrl = new ScaleController(this);
 
@@ -175,9 +158,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   connect(_pult_driver, SIGNAL(rain_changed(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
   // gain_slot used only for simulated Control Panel Unit. Must be removed at finish build
-  connect(ui->wgtRLIControl, SIGNAL(gainChanged(int)), _radar_ds, SLOT(setGain(int)));
+  connect(wgtButtonPanel, SIGNAL(gainChanged(int)), _radar_ds, SLOT(setGain(int)));
 
-  connect(ui->wgtRLIDisplay, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
+  connect(wgtRLI, SIGNAL(initialized()), this, SLOT(onRLIWidgetInitialized()));
   startTimer(33);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "MainWindow construction finish";
@@ -186,10 +169,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow() {
   delete _nmeaprc;
   delete _pult_driver;
-
-  delete ui;
-
-  delete config;
 
   delete _target_ds;
   delete _radar_ds;
@@ -259,17 +238,17 @@ void MainWindow::onRLIWidgetInitialized() {
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
   connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
-        , ui->wgtRLIDisplay->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
+        , wgtRLI->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
 
   connect(_radar_ds, SIGNAL(scaleChanged(RadarScale))
         , _scle_ctrl, SLOT(onScaleChanged(RadarScale)));
 
   connect(_radar_ds, SIGNAL(scaleChanged(RadarScale))
-        , ui->wgtRLIDisplay, SLOT(onScaleChanged(RadarScale)));
-  ui->wgtRLIDisplay->onScaleChanged(_radar_ds->getCurrentScale());
+        , wgtRLI, SLOT(onScaleChanged(RadarScale)));
+  wgtRLI->onScaleChanged(_radar_ds->getCurrentScale());
 
-  connect(ui->wgtRLIDisplay, SIGNAL(displayVNDistance(float, const char *)), _vd_ctrl, SLOT(display_distance(float, const char *)));
-  connect(ui->wgtRLIDisplay, SIGNAL(displaydBRG(float, float)), _vn_ctrl, SLOT(display_brg(float, float)));
+  connect(wgtRLI, SIGNAL(displayVNDistance(float, const char *)), _vd_ctrl, SLOT(display_distance(float, const char *)));
+  connect(wgtRLI, SIGNAL(displaydBRG(float, float)), _vn_ctrl, SLOT(display_brg(float, float)));
 
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";
@@ -301,90 +280,90 @@ void MainWindow::onRLIWidgetInitialized() {
 
   qRegisterMetaType<RadarTarget>("RadarTarget");
 
-  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(targetCountChanged(int))
+  connect( wgtRLI->targetEngine(), SIGNAL(targetCountChanged(int))
          , _trgs_ctrl, SLOT(onTargetCountChanged(int)));
 
-  connect( ui->wgtRLIDisplay->targetEngine(), SIGNAL(selectedTargetUpdated(QString, RadarTarget))
+  connect( wgtRLI->targetEngine(), SIGNAL(selectedTargetUpdated(QString, RadarTarget))
          , _trgs_ctrl, SLOT(updateTarget(QString, RadarTarget)));
 
   connect(_target_ds, SIGNAL(updateTarget(QString, RadarTarget))
-         , ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+         , wgtRLI->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
 
 
   _target_ds->start();
 
 
   connect(_ship_ds, SIGNAL(coordsUpdated(QVector2D))
-         , ui->wgtRLIDisplay, SLOT(onCoordsChanged(QVector2D)));
+         , wgtRLI, SLOT(onCoordsChanged(QVector2D)));
 
   _ship_ds->start();
 
-  connect(ui->wgtRLIControl, SIGNAL(vdChanged(float)), ui->wgtRLIDisplay, SLOT(onVdChanged(float)));
-  connect(ui->wgtRLIControl, SIGNAL(vnChanged(float)), ui->wgtRLIDisplay, SLOT(onVnChanged(float)));
+  connect(wgtButtonPanel, SIGNAL(vdChanged(float)), wgtRLI, SLOT(onVdChanged(float)));
+  connect(wgtButtonPanel, SIGNAL(vnChanged(float)), wgtRLI, SLOT(onVnChanged(float)));
 
 
-  connect(_chart_mngr, SIGNAL(new_chart_available(QString)), ui->wgtRLIDisplay, SLOT(new_chart(QString)));
+  connect(_chart_mngr, SIGNAL(new_chart_available(QString)), wgtRLI, SLOT(new_chart(QString)));
   _chart_mngr->loadCharts();
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup menu signals";
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         , ui->wgtRLIDisplay->infoEngine(), SLOT(onLanguageChanged(QByteArray)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         , wgtRLI->infoEngine(), SLOT(onLanguageChanged(QByteArray)) );
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         , ui->wgtRLIDisplay->menuEngine(), SLOT(onLanguageChanged(QByteArray)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(languageChanged(QByteArray))
+         , wgtRLI->menuEngine(), SLOT(onLanguageChanged(QByteArray)) );
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(radarBrightnessChanged(int))
-         , ui->wgtRLIDisplay->radarEngine(), SLOT(onBrightnessChanged(int)) );
-
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(startRouteEdit())
-         , ui->wgtRLIDisplay, SLOT(onStartRouteEdit()) );
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(finishRouteEdit())
-         , ui->wgtRLIDisplay, SLOT(onFinishRouteEdit()) );
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(loadRoute(int))
-         , ui->wgtRLIDisplay->routeEngine(), SLOT(loadFrom(int)) );
-
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(saveRoute(int))
-         , ui->wgtRLIDisplay->routeEngine(), SLOT(saveTo(int)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(radarBrightnessChanged(int))
+         , wgtRLI->radarEngine(), SLOT(onBrightnessChanged(int)) );
 
 
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(simulationChanged(QByteArray))
+  connect( wgtRLI->menuEngine(), SIGNAL(startRouteEdit())
+         , wgtRLI, SLOT(onStartRouteEdit()) );
+
+  connect( wgtRLI->menuEngine(), SIGNAL(finishRouteEdit())
+         , wgtRLI, SLOT(onFinishRouteEdit()) );
+
+  connect( wgtRLI->menuEngine(), SIGNAL(loadRoute(int))
+         , wgtRLI->routeEngine(), SLOT(loadFrom(int)) );
+
+  connect( wgtRLI->menuEngine(), SIGNAL(saveRoute(int))
+         , wgtRLI->routeEngine(), SLOT(saveTo(int)) );
+
+
+  connect(wgtRLI->menuEngine(), SIGNAL(simulationChanged(QByteArray))
         , _radar_ds, SLOT(onSimulationChanged(QByteArray)));
 
 
-  connect(ui->wgtRLIDisplay, SIGNAL(cursor_moved(QVector2D)), _pstn_ctrl, SLOT(pos_changed(QVector2D)));
+  connect(wgtRLI, SIGNAL(cursor_moved(QVector2D)), _pstn_ctrl, SLOT(pos_changed(QVector2D)));
 
 
-  ui->wgtRLIDisplay->menuEngine()->onAnalogZeroChanged(_radar_ds->getAmpsOffset());
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(analogZeroChanged(int)), _radar_ds, SLOT(setAmpsOffset(int)));
+  wgtRLI->menuEngine()->onAnalogZeroChanged(_radar_ds->getAmpsOffset());
+  connect( wgtRLI->menuEngine(), SIGNAL(analogZeroChanged(int)), _radar_ds, SLOT(setAmpsOffset(int)));
 
-  connect( ui->wgtRLIDisplay->menuEngine(), SIGNAL(tailsModeChanged(QByteArray))
+  connect( wgtRLI->menuEngine(), SIGNAL(tailsModeChanged(QByteArray))
          , _target_ds, SLOT(onTailsModeChanged(const QByteArray)));
 
   connect(_target_ds, SIGNAL(tailsModeChanged(int, int)), _tals_ctrl, SLOT(onTailsModeChanged(int,int)));
   connect(_target_ds, SIGNAL(tailsModeChanged(int, int))
-        , ui->wgtRLIDisplay->targetEngine(), SLOT(onTailsModeChanged(int, int)));
+        , wgtRLI->targetEngine(), SLOT(onTailsModeChanged(int, int)));
 
 
 
-  connect(ui->wgtRLIDisplay->menuEngine(), SIGNAL(bandModeChanged(QByteArray)), ui->wgtRLIDisplay, SLOT(onBandMenu(const QByteArray)));
+  connect(wgtRLI->menuEngine(), SIGNAL(bandModeChanged(QByteArray)), wgtRLI, SLOT(onBandMenu(const QByteArray)));
 
-  connect(ui->wgtRLIDisplay, SIGNAL(band_changed(char **)), _band_lbl_ctrl, SLOT(onTextChanged(char**)));
+  connect(wgtRLI, SIGNAL(band_changed(char **)), _band_lbl_ctrl, SLOT(onTextChanged(char**)));
 
   this->setFocus();
 
   // Set zero distance for VRM
-  ui->wgtRLIDisplay->onVdChanged(-1e6);
+  wgtRLI->onVdChanged(-1e6);
 
 
   // Start NMEA processor
-  connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), ui->wgtRLIDisplay->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
+  connect(_nmeaprc, SIGNAL(updateTarget(QString, RadarTarget)), wgtRLI->targetEngine(), SLOT(updateTarget(QString, RadarTarget)));
   connect(_nmeaprc, SIGNAL(updateHdgGyro(float)), _crse_ctrl, SLOT(course_changed(float)));
   connect(_nmeaprc, SIGNAL(updateHdgGyro(float)), _radar_ds, SLOT(updateHeading(float)));
-  connect(_nmeaprc, SIGNAL(updateHdgGyro(float)), ui->wgtRLIDisplay, SLOT(onHeadingChanged(float)));
+  connect(_nmeaprc, SIGNAL(updateHdgGyro(float)), wgtRLI, SLOT(onHeadingChanged(float)));
 
   if (_nmeaImitfn.size())
     _nmeaprc->startNMEAImit(_nmeaImitfn, _nmeaPort.toInt());
@@ -398,81 +377,37 @@ void MainWindow::onRLIWidgetInitialized() {
 }
 
 void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
-  InfoBlock* blck = ui->wgtRLIDisplay->infoEngine()->addInfoBlock();
-  ctrl->setupBlock(blck, ui->wgtRLIDisplay->size());
+  InfoBlock* blck = wgtRLI->infoEngine()->addInfoBlock();
+  ctrl->setupBlock(blck, wgtRLI->size());
 
   connect(ctrl, SIGNAL(setRect(int, QRect)), blck, SLOT(setRect(int, QRect)));
   connect(ctrl, SIGNAL(setText(int, int, QByteArray)), blck, SLOT(setText(int, int, QByteArray)));
-  connect(ui->wgtRLIDisplay, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
+  connect(wgtRLI, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
 }
 
 void MainWindow::resizeEvent(QResizeEvent* e) {
   qDebug() << "Resize event: " << e->size();
 
   QSize s = e->size();
-  if (float(s.height()) / float(s.width()) > 0.7)
-    ui->wgtRLIControl->hide();
-  else
-    ui->wgtRLIControl->show();
 
-  ui->wgtRLIControl->setVisible(config->showButtonPanel());
-  QSize availableSize( config->showButtonPanel() ? geometry().width() - ui->wgtRLIControl->width()
-                                                 : geometry().width()
-                     , geometry().height());
-  QString bestSize = config->getSuitableLayoutSize(availableSize);
+  bool showButtonPanel = RLIConfig::Instance().showButtonPanel();
+  wgtButtonPanel->setVisible(showButtonPanel);
+  wgtButtonPanel->move( width() - wgtButtonPanel->width(), 0 );
+
+  QSize availableSize(showButtonPanel ? s.width() - wgtButtonPanel->width() : s.width(), s.height());
+  QString bestSize = RLIConfig::Instance().getSuitableLayoutSize(availableSize);
   QStringList slbestSize = bestSize.split("x");
 
-  ui->spsMainCenter->changeSize(availableSize.width() - slbestSize[0].toInt(), 20);
-  ui->wgtRLIDisplay->setGeometry(QRect(0, 0, slbestSize[0].toInt(), slbestSize[1].toInt()));
+  wgtRLI->setGeometry(QRect(0, 0, slbestSize[0].toInt(), slbestSize[1].toInt()));
 }
 
 void MainWindow::timerEvent(QTimerEvent*) {
-  ui->wgtRLIDisplay->update();
+  wgtRLI->update();
 }
 
-
-
-
-
-
-
-int MainWindow::findPressedKey(int key) {
-  for (int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
-    if (pressedKey[i] == key)
-      return i;
-
-  return -1;
-}
-
-int MainWindow::savePressedKey(int key) {
-  int zeroIdx = -1;
-  for (int i = sizeof(pressedKey) / sizeof(pressedKey[0]); i--; ) {
-    if (pressedKey[i] == 0)
-      zeroIdx = i;
-    if (pressedKey[i] == key)
-      return i;
-  }
-
-  if (zeroIdx == -1)
-    zeroIdx = sizeof(pressedKey) / sizeof(pressedKey[0]) - 1;
-  pressedKey[zeroIdx] = key;
-  return zeroIdx;
-}
-
-int MainWindow::countPressedKeys(void) {
-  int cnt = 0;
-
-  for (int i = 0; (unsigned int)i < sizeof(pressedKey) / sizeof(pressedKey[0]); i++)
-    if(pressedKey != 0)
-      cnt++;
-
-  return cnt;
-}
 
 void MainWindow::keyReleaseEvent(QKeyEvent *event) {
-  int idx = findPressedKey(event->key());
-  if (idx != -1)
-    pressedKey[idx] = 0;
+  pressedKeys.remove(event->key());
 }
 
 
@@ -485,34 +420,34 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     break;
   //Меню
   case Qt::Key_W:
-    if(findPressedKey(Qt::Key_B) != -1)
-      ui->wgtRLIDisplay->onConfigMenuToggled();
+    if(pressedKeys.contains(Qt::Key_B))
+      wgtRLI->onConfigMenuToggled();
     else
-      ui->wgtRLIDisplay->onMenuToggled();
+      wgtRLI->onMenuToggled();
     break;
   //Шкала +
   case Qt::Key_Plus:
     _radar_ds->nextScale();
-    ui->wgtRLIDisplay->onVdChanged(0);
+    wgtRLI->onVdChanged(0);
     break;
   //Шкала -
   case Qt::Key_Minus:
     _radar_ds->prevScale();
-    ui->wgtRLIDisplay->onVdChanged(0);
+    wgtRLI->onVdChanged(0);
     break;
   //Вынос центра
   case Qt::Key_C: {
       QPoint p = mapFromGlobal(QCursor::pos());
       QMouseEvent * evt = new QMouseEvent(QEvent::MouseButtonPress, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-      qApp->postEvent(ui->wgtRLIDisplay, evt);
+      qApp->postEvent(wgtRLI, evt);
       evt = new QMouseEvent(QEvent::MouseButtonRelease, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-      qApp->postEvent(ui->wgtRLIDisplay, evt);
-      ui->wgtRLIDisplay->onCenterShiftToggled();
+      qApp->postEvent(wgtRLI, evt);
+      wgtRLI->onCenterShiftToggled();
       break;
   }
   //Скрытое меню
   case Qt::Key_U:
-    ui->wgtRLIDisplay->onConfigMenuToggled();
+    wgtRLI->onConfigMenuToggled();
     break;
   //Следы точки
   case Qt::Key_T:
@@ -520,31 +455,31 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     break;
   //Выбор цели
   case Qt::Key_Up:
-    ui->wgtRLIDisplay->onUpToggled();
+    wgtRLI->onUpToggled();
     break;
   //ЛИД / ЛОД
   case Qt::Key_Down:
-    ui->wgtRLIDisplay->onDownToggled();
+    wgtRLI->onDownToggled();
     break;
   //Захват
   case Qt::Key_Enter:
-    ui->wgtRLIDisplay->onEnterToggled();
+    wgtRLI->onEnterToggled();
     break;
   //Захват
   case Qt::Key_Return:
-    ui->wgtRLIDisplay->onEnterToggled();
+    wgtRLI->onEnterToggled();
     break;
   //Сброс
   case Qt::Key_Escape:
-    ui->wgtRLIDisplay->onBackToggled();
+    wgtRLI->onBackToggled();
     break;
   //Парал. Линии
   case Qt::Key_Backslash:
-    ui->wgtRLIDisplay->onParallelLinesToggled();
+    wgtRLI->onParallelLinesToggled();
     break;
   //Электронная лупа
   case Qt::Key_L:
-    ui->wgtRLIDisplay->onMagnifierToggled();
+    wgtRLI->onMagnifierToggled();
     break;
   //Обзор
   case Qt::Key_X:
@@ -590,6 +525,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     break;
   }
 
-  QMainWindow::keyPressEvent(event);
-  savePressedKey(event->key());
+  QWidget::keyPressEvent(event);
+  pressedKeys.insert(event->key());
 }

@@ -6,6 +6,9 @@
 #include <QTimerEvent>
 #include <QSocketNotifier>
 
+#include "rlidisplaywidget.h"
+#include "rlicontrolwidget.h"
+
 #include "rliconfig.h"
 
 #include "s52/chartmanager.h"
@@ -17,11 +20,8 @@
 #include "datasources//radarscale.h"
 #include "datasources/nmeaprocessor.h"
 
-namespace Ui {
-  class MainWindow;
-}
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
   Q_OBJECT
 
@@ -34,10 +34,6 @@ public:
 #endif // !Q_OS_WIN
 
 protected:
-  int findPressedKey(int key);
-  int savePressedKey(int key);
-  int countPressedKeys(void);
-
   void keyReleaseEvent(QKeyEvent *event);
   void keyPressEvent(QKeyEvent * event);
 
@@ -56,7 +52,8 @@ private slots:
 private:
   void setupInfoBlock(InfoBlockController* ctrl);
 
-  RLIConfig* config;
+  RLIDisplayWidget* wgtRLI;
+  RLIControlWidget* wgtButtonPanel;
 
   // Контроллеры инфоблоков
   ValueBarController* _gain_ctrl;
@@ -98,9 +95,7 @@ private:
   RadarDataSource* _radar_ds;
   ShipDataSource* _ship_ds;
 
-  Ui::MainWindow *ui;
-
-  int pressedKey[4];
+  QSet<int> pressedKeys;
   QString _nmeaImitfn;
   NMEAProcessor* _nmeaprc;
   QString _nmeaPort;

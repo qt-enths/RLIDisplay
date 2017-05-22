@@ -86,7 +86,7 @@ HEADERS  += mainwindow.h \
     rliconfig.h
 
 
-FORMS    += mainwindow.ui \
+FORMS    += \
     rlicontrolwidget.ui
 
 RESOURCES += \
