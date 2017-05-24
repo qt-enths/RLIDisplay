@@ -13,6 +13,9 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _world_coords = QVector2D(12.5000f, -81.6000f);
   _fonts = new AsmFonts();
 
+  const RLILayout* layout = RLIConfig::instance().currentLayout();
+  qDebug() << layout->circle;
+
   _chartEngine = new ChartEngine();
   _radarEngine = new RadarEngine(8192, 800);
   _maskEngine = new MaskEngine(size());

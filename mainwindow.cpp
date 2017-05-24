@@ -390,15 +390,14 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
 
   QSize s = e->size();
 
-  bool showButtonPanel = RLIConfig::Instance().showButtonPanel();
+  bool showButtonPanel = RLIConfig::instance().showButtonPanel();
   wgtButtonPanel->setVisible(showButtonPanel);
   wgtButtonPanel->move( width() - wgtButtonPanel->width(), 0 );
 
   QSize availableSize(showButtonPanel ? s.width() - wgtButtonPanel->width() : s.width(), s.height());
-  QString bestSize = RLIConfig::Instance().getSuitableLayoutSize(availableSize);
-  QStringList slbestSize = bestSize.split("x");
-
-  wgtRLI->setGeometry(QRect(0, 0, slbestSize[0].toInt(), slbestSize[1].toInt()));
+  RLIConfig::instance().updateCurrentSize(availableSize);
+  QSize curSize = RLIConfig::instance().currentSize();
+  wgtRLI->setGeometry(QRect(QPoint(0, 0), curSize));
 }
 
 void MainWindow::timerEvent(QTimerEvent*) {

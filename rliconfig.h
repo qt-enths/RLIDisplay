@@ -18,18 +18,22 @@ struct RLILayout {
 };
 
 
+#include <QDebug>
+
 class RLIConfig {
 public:
-  static RLIConfig& Instance() {
-      static RLIConfig config("config.xml");
-      return config;
+  static RLIConfig& instance() {
+    qDebug() << "instatiate RLIConfig";
+
+    static RLIConfig config("config.xml");
+    return config;
   }
 
   inline bool showButtonPanel() const { return _showButtonPanel; }
 
-  const QList<QString> getAvailableScreenSizes(void) const;
-  const RLILayout* getLayoutForSize(const QString& sz) const;
-  const QString getSuitableLayoutSize(const QSize& sz) const;
+  inline const RLILayout* currentLayout() const { return _layouts[_currentSize]; }
+  const QSize currentSize(void) const;
+  void updateCurrentSize(const QSize& screen_size);
 
 private:
   RLIConfig(const QString& filename);
@@ -44,6 +48,7 @@ private:
   QMap<QString, QMap<QString, QString>> readPanelLayouts(QXmlStreamReader* xml);
 
   QMap<QString, RLILayout*> _layouts;
+  QString _currentSize;
   QString _defaultSize;
   bool _showButtonPanel;
 };

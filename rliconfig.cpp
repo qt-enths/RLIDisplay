@@ -43,8 +43,10 @@ RLIConfig::RLIConfig(const QString& filename) {
       if (xml->name() == "use-button-pannel")
         _showButtonPanel = (xml->readElementText() == "true");
 
-      if (xml->name() == "default-layout")
+      if (xml->name() == "default-layout") {
         _defaultSize = xml->readElementText();
+        _currentSize = _defaultSize;
+      }
 
       if (xml->name() == "layout") {
         QMap<QString, QString> attrs = readXMLAttributes(xml);
@@ -127,18 +129,14 @@ QMap<QString, QString> RLIConfig::readXMLAttributes(QXmlStreamReader* xml) {
   return attributes;
 }
 
-const QList<QString> RLIConfig::getAvailableScreenSizes() const {
-  return _layouts.keys();
+
+const QSize RLIConfig::currentSize() const {
+  QStringList slsize = _currentSize.split("x");
+  return QSize(slsize[0].toInt(), slsize[1].toInt());
 }
 
-const RLILayout* RLIConfig::getLayoutForSize(const QString& size) const {
-  if (_layouts.contains(size))
-    return _layouts[size];
-  else
-    return NULL;
-}
 
-const QString RLIConfig::getSuitableLayoutSize(const QSize& screen_size) const {
+void RLIConfig::updateCurrentSize(const QSize& screen_size) {
   QString best = "";
   int max_area = 0;
 
@@ -157,7 +155,7 @@ const QString RLIConfig::getSuitableLayoutSize(const QSize& screen_size) const {
   }
 
   if (best == "")
-    return _defaultSize;
-
-  return best;
+    _currentSize = _defaultSize;
+  else
+    _currentSize = best;
 }
