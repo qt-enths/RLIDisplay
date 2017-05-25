@@ -5,12 +5,12 @@
 
 static double const PI = acos(-1);
 
-MaskEngine::MaskEngine(const QSize& sz) {
+MaskEngine::MaskEngine(const QSize& sz, const QMap<QString, QString>& params) {
   _initialized = false;
 
   _prog = new QGLShaderProgram();
 
-  resize(sz);
+  resize(sz, params);
 
   _angle_shift = 0;
   _text_point_count = 0;
@@ -26,7 +26,6 @@ MaskEngine::~MaskEngine() {
   glDeleteBuffers(MARK_ATTR_COUNT, vbo_ids_hole);
 
   delete _fbo;
-
   delete _prog;
 }
 
@@ -52,10 +51,10 @@ bool MaskEngine::init(const QGLContext* context) {
 }
 
 
-void MaskEngine::resize(const QSize& sz) {
+void MaskEngine::resize(const QSize& sz, const QMap<QString, QString>& params) {
   _size = sz;
-  _hole_radius = 470.f / 1024.f * _size.height();
-  _hole_center = QPoint(470.f / 1024.f * _size.height() + 34.0, _size.height() / 2.f);
+  _hole_radius = params["radius"].toInt();
+  _hole_center = QPoint(params["x"].toInt(), params["y"].toInt());
   _cursor_pos = _hole_center;
 
   if (_initialized) {

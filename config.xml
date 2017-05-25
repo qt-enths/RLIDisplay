@@ -5,7 +5,7 @@
 
   <layouts>
     <layout size="1366x768">
-      <rli-circle x="604" y="384" radius="470" />
+      <rli-circle x="604" y="384" radius="360" />
       <menu x="-241" y="149" width="236" height="262" font1="12x14" font2="8x14" />
       <magnifier x="-235" y="155" width="224" height="224" />
 
@@ -42,7 +42,7 @@
     </layout>
 
     <layout size="1024x768">
-      <rli-circle x="504" y="384" radius="470" />
+      <rli-circle x="404" y="384" radius="360" />
       <menu x="-241" y="149" width="236" height="262" font1="12x14" font2="8x14" />
       <magnifier x="-235" y="155" width="224" height="224" />
 

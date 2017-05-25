@@ -14,12 +14,11 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _fonts = new AsmFonts();
 
   const RLILayout* layout = RLIConfig::instance().currentLayout();
-  qDebug() << layout->circle;
+
+  _maskEngine = new MaskEngine(size(), layout->circle);
 
   _chartEngine = new ChartEngine();
   _radarEngine = new RadarEngine(8192, 800);
-  _maskEngine = new MaskEngine(size());
-  _maskEngine->setCursorPos(_maskEngine->getCenter());
   _infoEngine = new InfoEngine();
   _menuEngine = new MenuEngine(QSize(12, 14));
   _targetEngine = new TargetEngine();
@@ -232,9 +231,11 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
   if (!_initialized)
     return;
 
-  _maskEngine->resize(QSize(w, h));
+  const RLILayout* layout = RLIConfig::instance().currentLayout();
 
-  _maskEngine->setCursorPos(_maskEngine->getCenter());
+  _maskEngine->resize(QSize(w, h), layout->circle);
+  _maskEngine->update();
+
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
   _controlsEngine->setCenterPos(_maskEngine->getCenter());
 
@@ -276,34 +277,10 @@ void RLIDisplayWidget::paintGL() {
 
   float radar_rad = _radarEngine->getSize() / 2.f;
 
+  QRectF radarRect(-radar_rad, -radar_rad, 2*radar_rad, 2*radar_rad);
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _chartEngine->getTextureId());
-
-  glBegin(GL_QUADS);
-  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-  glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
-  glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
-  glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
-  glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
-  glEnd();
-
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _radarEngine->getTextureId());
-
-  glBegin(GL_QUADS);
-  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-  glTexCoord2f(0.0f, 0.0f); glVertex3f(-radar_rad, radar_rad, 0.0f);
-  glTexCoord2f(1.0f, 0.0f); glVertex3f( radar_rad, radar_rad, 0.0f);
-  glTexCoord2f(1.0f, 1.0f); glVertex3f( radar_rad,-radar_rad, 0.0f);
-  glTexCoord2f(0.0f, 1.0f); glVertex3f(-radar_rad,-radar_rad, 0.0f);
-  glEnd();
-
-
-  glBindTexture(GL_TEXTURE_2D, 0);
+  fillRectWithTexture(radarRect, _chartEngine->getTextureId());
+  fillRectWithTexture(radarRect, _radarEngine->getTextureId());
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();
@@ -320,7 +297,6 @@ void RLIDisplayWidget::paintGL() {
   // scale в update - метров/пиксель
   float scale = (_rli_scale.len*1852.f) / _maskEngine->getRadius();
 
-
   if (_route_edition) {
     QVector2D _route_last = _routeEngine->getLastPoint();
     QPointF v_pos = RLIMath::coords_to_pos(_world_coords, _route_last, QPoint(0, 0), scale);
@@ -331,76 +307,35 @@ void RLIDisplayWidget::paintGL() {
 
   _controlsEngine->draw();
 
-
-
-
   _targetEngine->draw(_world_coords, scale);
   _routeEngine->draw(_world_coords, scale);
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();
 
-
   fillWithTexture(_maskEngine->getTextureId());
 
 
-  for (int i = 0; i < _infoEngine->getBlockCount(); i++) {
-    QRectF blockRect = _infoEngine->getBlockGeometry(i);
+  for (int i = 0; i < _infoEngine->getBlockCount(); i++)
+    fillRectWithTexture(_infoEngine->getBlockGeometry(i), _infoEngine->getBlockTextId(i));
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _infoEngine->getBlockTextId(i));
-
-    glBegin(GL_QUADS);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(blockRect.left(),  blockRect.bottom(), 0.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(blockRect.right(), blockRect.bottom(), 0.0f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(blockRect.right(), blockRect.top(), 0.0f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(blockRect.left(),  blockRect.top(), 0.0f);
-    glEnd();
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-  }
-
-
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _menuEngine->getTextureId());
 
   QSize menuSize = _menuEngine->size();
-
-  glBegin(GL_QUADS);
-  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-  glTexCoord2f(0.0f, 0.0f); glVertex3f(width() - menuSize.width() - 5, 149 + menuSize.height(), 0.0f);
-  glTexCoord2f(1.0f, 0.0f); glVertex3f(width() - 5, 149 + menuSize.height(), 0.0f);
-  glTexCoord2f(1.0f, 1.0f); glVertex3f(width() - 5, 149, 0.0f);
-  glTexCoord2f(0.0f, 1.0f); glVertex3f(width() - menuSize.width() - 5, 149, 0.0f);
-  glEnd();
-
-  glBindTexture(GL_TEXTURE_2D, 0);
+  QRectF menuRect(QPointF(width() - menuSize.width() - 5, 149), menuSize);
+  fillRectWithTexture(menuRect, _menuEngine->getTextureId());
 
 
   if (_is_magnifier_visible) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _magnifierEngine->getTextureId());
-
     QSize magSize = _magnifierEngine->size();
-
-    glBegin(GL_QUADS);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(width() - magSize.width() - 11, 155 + magSize.height(), 0.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(width() - 11, 155 + magSize.height(), 0.0f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(width() - 11, 155, 0.0f);
-    glTexCoord2f(0.0f, 1.0f); glVertex3f(width() - magSize.width() - 11, 155, 0.0f);
-    glEnd();
-
-    glBindTexture(GL_TEXTURE_2D, 0);
+    QRectF magRect(QPointF(width() - magSize.width() - 11, 155), magSize);
+    fillRectWithTexture(magRect, _magnifierEngine->getTextureId());
   }
+
 
   glMatrixMode( GL_PROJECTION );
   glPopMatrix();
 
   glFlush();
-
 
   glDisable(GL_BLEND);
   glEnable(GL_DEPTH);
@@ -419,23 +354,26 @@ void RLIDisplayWidget::paintGL() {
   _chartEngine->update(_world_coords, scale, 0.f, center-hole_center);
 }
 
-
-
-void RLIDisplayWidget::fillWithTexture(GLuint texId) {
+void RLIDisplayWidget::fillRectWithTexture(const QRectF& rect, GLuint texId) {
   glShadeModel( GL_FLAT );
+
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texId);
 
   // Draw The Quad
   glBegin(GL_QUADS);
   glColor3f(1.f, 1.f, 1.f);
-  glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, float(height()), 0.0f);
-  glTexCoord2f(1.0f, 0.0f); glVertex3f( float(width()), float(height()), 0.0f);
-  glTexCoord2f(1.0f, 1.0f); glVertex3f( float(width()), 0.0f, 0.0f);
-  glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f);
+  glTexCoord2f(0.0f, 0.0f); glVertex3f(rect.left(), rect.bottom(), 0.0f);
+  glTexCoord2f(1.0f, 0.0f); glVertex3f(rect.right(), rect.bottom(), 0.0f);
+  glTexCoord2f(1.0f, 1.0f); glVertex3f(rect.right(), rect.top(), 0.0f);
+  glTexCoord2f(0.0f, 1.0f); glVertex3f(rect.left(), rect.top(), 0.0f);
   glEnd();
 
   glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void RLIDisplayWidget::fillWithTexture(GLuint texId) {
+  fillRectWithTexture(geometry(), texId);
 }
 
 void RLIDisplayWidget::mousePressEvent(QMouseEvent* e) {

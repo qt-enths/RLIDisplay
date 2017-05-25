@@ -95,6 +95,7 @@ protected slots:
   void onFinishRouteEdit();
 
 private:
+  void fillRectWithTexture(const QRectF& rect, GLuint texId);
   void fillWithTexture(GLuint texId);
 
   void moveCoursor(const QPoint &pos, bool repaint = true, RadarScale* curscale = NULL);

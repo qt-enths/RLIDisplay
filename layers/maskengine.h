@@ -5,6 +5,7 @@
 #define MARK_RAY_COUNT 36
 
 #include <QVector>
+#include <QMap>
 
 #include <QtOpenGL/QGLFunctions>
 #include <QtOpenGL/QGLFramebufferObject>
@@ -16,11 +17,11 @@
 class MaskEngine : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
-  explicit MaskEngine (const QSize& sz);
+  explicit MaskEngine (const QSize& sz, const QMap<QString, QString>& params);
   virtual ~MaskEngine ();
 
   bool init(const QGLContext* context);
-  void resize(const QSize& sz);
+  void resize(const QSize& sz, const QMap<QString, QString>& params);
 
   inline void setAngleShift (float s)           { _angle_shift = s; }
   inline void setCursorPos  (const QPoint& p)   { _cursor_pos = p; }
@@ -35,7 +36,7 @@ public slots:
   void update();
 
 private:
-  bool   _initialized;
+  bool _initialized;
 
   void initBuffers();
   bool initShaders();

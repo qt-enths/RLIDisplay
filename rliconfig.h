@@ -23,8 +23,6 @@ struct RLILayout {
 class RLIConfig {
 public:
   static RLIConfig& instance() {
-    qDebug() << "instatiate RLIConfig";
-
     static RLIConfig config("config.xml");
     return config;
   }
