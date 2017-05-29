@@ -52,6 +52,11 @@ bool MaskEngine::init(const QGLContext* context) {
 
 
 void MaskEngine::resize(const QSize& sz, const QMap<QString, QString>& params) {
+  qDebug() << "Resize mask: " << sz;
+
+  if (_size == sz)
+    return;
+
   _size = sz;
   _hole_radius = params["radius"].toInt();
   _hole_center = QPoint(params["x"].toInt(), params["y"].toInt());
@@ -60,6 +65,7 @@ void MaskEngine::resize(const QSize& sz, const QMap<QString, QString>& params) {
   if (_initialized) {
     delete _fbo;
     _fbo = new QGLFramebufferObject(_size.width(), _size.height());
+    initBuffers();
   }
 }
 
@@ -85,9 +91,12 @@ void MaskEngine::update() {
   if (!_initialized)
     return;
 
+  _fbo->bind();
+
   glViewport(0, 0, _size.width(), _size.height());
 
-  _fbo->bind();
+  //glClearColor(1,1,1,0);
+  //glClear(GL_COLOR_BUFFER_BIT);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -159,8 +168,6 @@ void MaskEngine::update() {
 
   glMatrixMode( GL_PROJECTION );
   glPopMatrix();
-
-  glFlush();
 
   _fbo->release();
 }
@@ -258,16 +265,16 @@ void MaskEngine::initHoleBuffers() {
 
 void MaskEngine::setBuffers(GLuint* vbo_ids, int count, GLfloat* angles, GLfloat* chars, GLfloat* orders, GLfloat* shifts) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_ANGLE]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), angles, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), angles, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_CHAR_VAL]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), chars, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), chars, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_ORDER]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), orders, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), orders, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_ids[MARK_ATTR_SHIFT]);
-  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), shifts, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, count*sizeof(GLfloat), shifts, GL_DYNAMIC_DRAW);
 }
 
 

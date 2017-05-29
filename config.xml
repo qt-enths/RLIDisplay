@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rli-config>
-  <use-button-pannel>true</use-button-pannel>
+  <use-button-pannel>false</use-button-pannel>
   <default-layout>1024x768</default-layout>
 
   <layouts>

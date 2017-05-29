@@ -233,7 +233,7 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
 
   const RLILayout* layout = RLIConfig::instance().currentLayout();
 
-  _maskEngine->resize(QSize(w, h), layout->circle);
+  _maskEngine->resize(RLIConfig::instance().currentSize(), layout->circle);
   _maskEngine->update();
 
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
@@ -305,6 +305,8 @@ void RLIDisplayWidget::paintGL() {
     _controlsEngine->setVisorShift(QPoint(0, 0));
   }
 
+  glEnable(GL_BLEND);
+
   _controlsEngine->draw();
 
   _targetEngine->draw(_world_coords, scale);
@@ -335,7 +337,6 @@ void RLIDisplayWidget::paintGL() {
   glMatrixMode( GL_PROJECTION );
   glPopMatrix();
 
-  glFlush();
 
   glDisable(GL_BLEND);
   glEnable(GL_DEPTH);
@@ -352,6 +353,9 @@ void RLIDisplayWidget::paintGL() {
 
   glEnable(GL_BLEND);
   _chartEngine->update(_world_coords, scale, 0.f, center-hole_center);
+
+
+  glFlush();
 }
 
 void RLIDisplayWidget::fillRectWithTexture(const QRectF& rect, GLuint texId) {

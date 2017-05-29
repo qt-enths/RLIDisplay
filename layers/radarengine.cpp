@@ -378,8 +378,6 @@ void RadarEngine::updateTexture() {
   glMatrixMode( GL_PROJECTION );
   glPopMatrix();
 
-  glFlush();
-
   _fbo->release();
 
   _last_drawn_peleng = last_peleng_to_draw;
