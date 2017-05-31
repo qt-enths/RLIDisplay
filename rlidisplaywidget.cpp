@@ -13,17 +13,19 @@ RLIDisplayWidget::RLIDisplayWidget(QWidget *parent) : QGLWidget(parent) {
   _world_coords = QVector2D(12.5000f, -81.6000f);
   _fonts = new AsmFonts();
 
+  QSize screen_size = RLIConfig::instance().currentSize();
   const RLILayout* layout = RLIConfig::instance().currentLayout();
 
-  _maskEngine = new MaskEngine(size(), layout->circle);
-
+  _maskEngine = new MaskEngine(size(), layout->circle, this);
   _chartEngine = new ChartEngine();
   _radarEngine = new RadarEngine(8192, 800);
   _infoEngine = new InfoEngine();
-  _menuEngine = new MenuEngine(QSize(12, 14));
+
+  _menuEngine = new MenuEngine(screen_size, layout->menu, this);
+  _magnifierEngine = new MagnifierEngine(screen_size, layout->magnifier, this);
+
   _targetEngine = new TargetEngine();
   _routeEngine = new RouteEngine();
-  _magnifierEngine = new MagnifierEngine();
 
   _menuEngine->setRouteEngine(_routeEngine);
 
@@ -231,10 +233,14 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
   if (!_initialized)
     return;
 
+  QSize screen_size = RLIConfig::instance().currentSize();
   const RLILayout* layout = RLIConfig::instance().currentLayout();
 
   _maskEngine->resize(RLIConfig::instance().currentSize(), layout->circle);
   _maskEngine->update();
+
+  _menuEngine->resize(screen_size, layout->menu);
+  _magnifierEngine->resize(screen_size, layout->magnifier);
 
   _controlsEngine->setCursorPos(_maskEngine->getCenter());
   _controlsEngine->setCenterPos(_maskEngine->getCenter());
@@ -322,34 +328,26 @@ void RLIDisplayWidget::paintGL() {
     fillRectWithTexture(_infoEngine->getBlockGeometry(i), _infoEngine->getBlockTextId(i));
 
 
-  QSize menuSize = _menuEngine->size();
-  QRectF menuRect(QPointF(width() - menuSize.width() - 5, 149), menuSize);
+  QRectF menuRect(_menuEngine->position(), _menuEngine->size());
   fillRectWithTexture(menuRect, _menuEngine->getTextureId());
 
-
   if (_is_magnifier_visible) {
-    QSize magSize = _magnifierEngine->size();
-    QRectF magRect(QPointF(width() - magSize.width() - 11, 155), magSize);
+    QRectF magRect(_magnifierEngine->position(), _magnifierEngine->size());
     fillRectWithTexture(magRect, _magnifierEngine->getTextureId());
   }
-
 
   glMatrixMode( GL_PROJECTION );
   glPopMatrix();
 
 
-  glDisable(GL_BLEND);
-  glEnable(GL_DEPTH);
-  glEnable(GL_DEPTH_TEST);
   _radarEngine->updateTexture();
-  glDisable(GL_DEPTH);
-  glDisable(GL_DEPTH_TEST);
 
   _maskEngine->update();
-  _menuEngine->update();
-  _infoEngine->update();
 
+  _menuEngine->update();
   _magnifierEngine->update();
+
+  _infoEngine->update();
 
   glEnable(GL_BLEND);
   _chartEngine->update(_world_coords, scale, 0.f, center-hole_center);

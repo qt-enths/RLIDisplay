@@ -386,8 +386,6 @@ void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
 }
 
 void MainWindow::resizeEvent(QResizeEvent* e) {
-  qDebug() << "Resize event: " << e->size();
-
   QSize s = e->size();
 
   bool showButtonPanel = RLIConfig::instance().showButtonPanel();

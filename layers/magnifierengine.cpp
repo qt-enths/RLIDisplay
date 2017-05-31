@@ -1,13 +1,27 @@
 #include "magnifierengine.h"
 
-MagnifierEngine::MagnifierEngine(QObject* parent) : QObject(parent), QGLFunctions() {
+MagnifierEngine::MagnifierEngine(const QSize& screen_size, const QMap<QString, QString>& params, QObject* parent) : QObject(parent), QGLFunctions() {
   _initialized = false;
-  _size = QSize(224, 224);
+  resize(screen_size, params);
 }
 
 MagnifierEngine::~MagnifierEngine() {
   if (_initialized)
     delete _fbo;
+}
+
+void MagnifierEngine::resize(const QSize& screen_size, const QMap<QString, QString>& params) {
+  _position = QPointF(params["x"].toFloat(), params["y"].toFloat());
+
+  if (_position.x() < 0) _position.setX(_position.x() + screen_size.width());
+  if (_position.y() < 0) _position.setX(_position.y() + screen_size.height());
+
+  _size = QSize(params["width"].toInt(), params["height"].toInt());
+
+  if (_initialized) {
+    delete _fbo;
+    _fbo = new QGLFramebufferObject(_size);
+  }
 }
 
 bool MagnifierEngine::init(const QGLContext* context) {

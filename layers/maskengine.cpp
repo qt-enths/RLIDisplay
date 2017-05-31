@@ -5,7 +5,7 @@
 
 static double const PI = acos(-1);
 
-MaskEngine::MaskEngine(const QSize& sz, const QMap<QString, QString>& params) {
+MaskEngine::MaskEngine(const QSize& sz, const QMap<QString, QString>& params, QObject* parent) : QObject(parent) {
   _initialized = false;
 
   _prog = new QGLShaderProgram();
@@ -52,8 +52,6 @@ bool MaskEngine::init(const QGLContext* context) {
 
 
 void MaskEngine::resize(const QSize& sz, const QMap<QString, QString>& params) {
-  qDebug() << "Resize mask: " << sz;
-
   if (_size == sz)
     return;
 

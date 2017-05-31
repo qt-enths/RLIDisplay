@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rli-config>
-  <use-button-pannel>false</use-button-pannel>
+  <use-button-pannel>true</use-button-pannel>
   <default-layout>1024x768</default-layout>
 
   <layouts>
     <layout size="1366x768">
-      <rli-circle x="604" y="384" radius="360" />
-      <menu x="-241" y="149" width="236" height="262" font1="12x14" font2="8x14" />
+      <rli-circle x="660" y="384" radius="360" />
+      <menu x="5" y="256" width="236" height="262" font="12x14" />
       <magnifier x="-235" y="155" width="224" height="224" />
 
       <panels>
@@ -43,7 +43,7 @@
 
     <layout size="1024x768">
       <rli-circle x="404" y="384" radius="360" />
-      <menu x="-241" y="149" width="236" height="262" font1="12x14" font2="8x14" />
+      <menu x="-241" y="149" width="236" height="262" font="12x14" />
       <magnifier x="-235" y="155" width="224" height="224" />
 
       <panels>

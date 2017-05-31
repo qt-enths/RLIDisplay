@@ -17,7 +17,7 @@
 class MaskEngine : public QObject, protected QGLFunctions {
   Q_OBJECT
 public:
-  explicit MaskEngine (const QSize& sz, const QMap<QString, QString>& params);
+  explicit MaskEngine (const QSize& sz, const QMap<QString, QString>& params, QObject* parent = 0);
   virtual ~MaskEngine ();
 
   bool init(const QGLContext* context);

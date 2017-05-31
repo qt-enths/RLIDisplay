@@ -31,8 +31,6 @@ void RLILayout::print() const {
 
 
 RLIConfig::RLIConfig(const QString& filename) {
-  qDebug() << "instatiate RLIConfig";
-
   _showButtonPanel = false;
 
   QFile file(filename);

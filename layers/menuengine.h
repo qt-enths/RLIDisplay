@@ -164,9 +164,10 @@ class MenuEngine : public QObject, protected QGLFunctions {
 public:
   enum MenuState { DISABLED, MAIN, CONFIG };
 
-  explicit MenuEngine  (const QSize& font_size, QObject* parent = 0);
+  explicit MenuEngine  (const QSize& screen_size, const QMap<QString, QString>& params, QObject* parent = 0);
   virtual ~MenuEngine  ();
 
+  inline QPointF position() { return _position; }
   inline QSize size() { return _size; }
   inline GLuint getTextureId() { return _fbo->texture(); }
 
@@ -175,7 +176,7 @@ public:
   inline void setFonts(AsmFonts* fonts) { _fonts = fonts; }
 
   bool init     (const QGLContext* context);
-  void resize   (const QSize& font_size);
+  void resize   (const QSize& screen_size, const QMap<QString, QString>& params);
 
   inline MenuState state() { return _state; }
   inline bool visible() { return _state != DISABLED; }
@@ -224,7 +225,9 @@ private:
 
   MenuState _state;
 
+  QPointF _position;
   QSize _size;
+
   QString _font_tag;
   QDateTime _last_action_time;
 

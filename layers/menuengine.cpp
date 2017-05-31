@@ -172,7 +172,7 @@ RLIMenuItemFloat::RLIMenuItemFloat(char** name, float min, float max, float def)
 
 
 
-MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent), QGLFunctions() {
+MenuEngine::MenuEngine(const QSize& screen_size, const QMap<QString, QString>& params, QObject* parent) : QObject(parent), QGLFunctions() {
   _prog = new QGLShaderProgram();
 
   _lang = RLI_LANG_RUSSIAN;
@@ -181,7 +181,7 @@ MenuEngine::MenuEngine(const QSize& font_size, QObject* parent) : QObject(parent
   _dec = QTextCodec::codecForName("UTF8")->makeDecoder();
   _dec1 = QTextCodec::codecForName("cp866")->makeDecoder();
 
-  resize(font_size);
+  resize(screen_size, params);
 
   _initialized = false;
   _selected_line = 1;
@@ -744,11 +744,20 @@ bool MenuEngine::init(const QGLContext* context) {
   return _initialized;
 }
 
-void MenuEngine::resize(const QSize& font_size) {
-  // 13 lines + 14 spaces between lines
-  // 19 symbols per line + 2 paddings
-  _size = QSize(19*font_size.width()+4*2, 13*(6+font_size.height()) + 4*2 - 6.f);
-  _font_tag = QString::number(font_size.width()) + "x" + QString::number(font_size.height());
+void MenuEngine::resize(const QSize& screen_size, const QMap<QString, QString>& params) {
+  _position = QPointF(params["x"].toFloat(), params["y"].toFloat());
+
+  if (_position.x() < 0) _position.setX(_position.x() + screen_size.width());
+  if (_position.y() < 0) _position.setX(_position.y() + screen_size.height());
+
+  _size = QSize(params["width"].toInt(), params["height"].toInt());
+  _font_tag = params["font"];
+
+  if (_initialized) {
+    delete _fbo;
+    _fbo = new QGLFramebufferObject(_size);
+  }
+
   _need_update = true;
 }
 

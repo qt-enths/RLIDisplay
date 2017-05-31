@@ -337,6 +337,10 @@ void RadarEngine::updateTexture() {
   if (!_initialized)
     return;
 
+  glDisable(GL_BLEND);
+  glEnable(GL_DEPTH);
+  glEnable(GL_DEPTH_TEST);
+
   glViewport(0, 0, getSize(), getSize());
 
   if (_last_added_peleng == _last_drawn_peleng && !_draw_circle)
@@ -379,6 +383,10 @@ void RadarEngine::updateTexture() {
   glPopMatrix();
 
   _fbo->release();
+
+  glEnable(GL_BLEND);
+  glDisable(GL_DEPTH);
+  glDisable(GL_DEPTH_TEST);
 
   _last_drawn_peleng = last_peleng_to_draw;
   _draw_circle = false;
