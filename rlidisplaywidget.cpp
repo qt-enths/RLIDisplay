@@ -228,7 +228,8 @@ void RLIDisplayWidget::initializeGL() {
 }
 
 void RLIDisplayWidget::resizeGL(int w, int h) {
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "GL resize";
+  Q_UNUSED(w);
+  Q_UNUSED(h);
 
   if (!_initialized)
     return;
@@ -247,8 +248,6 @@ void RLIDisplayWidget::resizeGL(int w, int h) {
 
   _radarEngine->resizeTexture(_maskEngine->getRadius());
   _chartEngine->resize(_maskEngine->getRadius());
-
-  emit resized(QSize(w, h));
 }
 
 void RLIDisplayWidget::paintGL() {

@@ -50,8 +50,6 @@ signals:
 
   void per_second();
 
-  void resized(const QSize& s);
-
   void displayVNDistance(float dist, const char * fmt);
   void displaydBRG(float brg, float crsangle);
 

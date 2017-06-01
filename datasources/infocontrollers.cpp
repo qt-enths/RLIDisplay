@@ -34,21 +34,30 @@ InfoBlockController::InfoBlockController(QObject* parent) : QObject(parent) {
   dec = QTextCodec::codecForName("UTF8")->makeDecoder();
 }
 
-void InfoBlockController::onResize(const QSize& size) {
+void InfoBlockController::resize(const QSize& size, const QMap<QString, QString>& params) {
   if (_block == NULL)
     return;
 
   _block->clear();
-  initBlock(size);
+  setupBlock(_block, size, params);
 }
 
 void InfoBlockController::onLanguageChanged(int lang_id) {
   Q_UNUSED(lang_id);
 }
 
-void InfoBlockController::setupBlock(InfoBlock* b, const QSize& size) {
+void InfoBlockController::setupBlock(InfoBlock* b, const QSize& screen_size, const QMap<QString, QString>& params) {
   _block = b;
-  initBlock(size);
+
+  QPoint leftTop(params["x"].toInt(), params["y"].toInt());
+  QSize size(params["width"].toInt(), params["height"].toInt());
+
+  if (leftTop.x() < 0) leftTop.setX(leftTop.x() + screen_size.width());
+  if (leftTop.y() < 0) leftTop.setY(leftTop.y() + screen_size.height());
+
+  _block->setGeometry(QRect(leftTop, size));
+
+  initBlock(params);
 }
 
 void InfoBlockController::setInfoTextStr(InfoText& t, char** str) {
@@ -72,10 +81,7 @@ ValueBarController::ValueBarController(char** name, const QPoint& left_top, int 
   _left_top = left_top;
 }
 
-void ValueBarController::initBlock(const QSize& size) {
-  Q_UNUSED(size);
-
-  _block->setGeometry(QRect(_left_top.x(), _left_top.y(), 12*_title_width + 60, 23));
+void ValueBarController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -139,20 +145,7 @@ void LabelController::onTextChanged(char** text) {
     emit setText(_text_id, i, enc->fromUnicode(dec->toUnicode(text[i])));
 }
 
-void LabelController::initBlock(const QSize& size) {
-  int x, y;
-
-  if (_geom.x() < 0)
-    x = size.width() + _geom.x();
-  else
-    x = _geom.x();
-
-  if (_geom.y() < 0)
-    y = size.height() + _geom.y();
-  else
-    y = _geom.y();
-
-  _block->setGeometry(QRect(x, y, _geom.width(), _geom.height()));
+void LabelController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -185,8 +178,7 @@ void ScaleController::onScaleChanged(RadarScale scale) {
   emit setText(2, 1, s.second);
 }
 
-void ScaleController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect( size.width() - 19*12-4*2 - 5 - 5 - 236, 5, 236, 4+28+4));
+void ScaleController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -199,9 +191,9 @@ void ScaleController::initBlock(const QSize& size) {
 
   t.rect = QRect(6, 5, 5*16, 28);
   if(s.first.size())
-      setInfoTextBts(t, s.first);
+    setInfoTextBts(t, s.first);
   else
-      setInfoTextBts(t, QByteArray("0.125"));
+    setInfoTextBts(t, QByteArray("0.125"));
   _block->addText(t);
 
   t.allign = INFOTEXT_ALLIGN_LEFT;
@@ -214,9 +206,9 @@ void ScaleController::initBlock(const QSize& size) {
 
   t.rect = QRect(6+6*16, 5+12, 5*14, 14);
   if(s.second.size())
-      setInfoTextBts(t, s.second);
+    setInfoTextBts(t, s.second);
   else
-      setInfoTextBts(t, QByteArray("0.025"));
+    setInfoTextBts(t, QByteArray("0.025"));
   _block->addText(t);
 
   InfoRect r;
@@ -254,10 +246,9 @@ void CourseController::speed_changed(float speed) {
   Q_UNUSED(speed);
 }
 
-void CourseController::initBlock(const QSize& size) {
+void CourseController::initBlock(const QMap<QString, QString>& params) {
   QSize font_size(12, 14);
 
-  _block->setGeometry(QRect( size.width() - 236 - 5, 5, 236, 38));
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -320,10 +311,7 @@ void PositionController::pos_changed(QVector2D coords) {
   emit setText(_lon_text_id, RLI_LANG_RUSSIAN, lon);
 }
 
-void PositionController::initBlock(const QSize& size) {
-  QSize font_size(12, 14);
-
-  _block->setGeometry(QRect( size.width() - 236 - 5, 5+38+4, 236, 38));
+void PositionController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -358,10 +346,7 @@ void PositionController::initBlock(const QSize& size) {
 BlankController::BlankController(QObject* parent) : InfoBlockController(parent) {
 }
 
-void BlankController::initBlock(const QSize& size) {
-  QSize font_size(12, 14);
-
-  _block->setGeometry(QRect( size.width() - 236 - 5, 5+38+4+38+4, 236, 38));
+void BlankController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 }
@@ -371,8 +356,7 @@ void BlankController::initBlock(const QSize& size) {
 DangerController::DangerController(QObject* parent) : InfoBlockController(parent) {
 }
 
-void DangerController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() - 236 - 5, size.height() - 350 - 5, 236, 20));
+void DangerController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_TEXT_DYNAMIC_COLOR);
 
   InfoText t;
@@ -414,10 +398,9 @@ void TailsController::onTailsModeChanged(int mode, int minutes) {
   }
 }
 
-void TailsController::initBlock(const QSize& size) {
+void TailsController::initBlock(const QMap<QString, QString>& params) {
   char * minsarray[2];
 
-  _block->setGeometry(QRect( size.width() - 236 - 5, size.height() - 323 - 5, 236, 21));
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -464,8 +447,7 @@ DangerDetailsController::DangerDetailsController(QObject* parent) : InfoBlockCon
   _vks_text_id = -1;
 }
 
-void DangerDetailsController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() - 236 - 5, size.height() - 298 - 5, 236, 38));
+void DangerDetailsController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -516,8 +498,7 @@ VectorController::VectorController(QObject* parent) : InfoBlockController(parent
 
 }
 
-void VectorController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect( size.width() - 236 - 5, size.height() - 256 - 5, 236, 21));
+void VectorController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -587,8 +568,7 @@ void TargetsController::updateTarget(const QString& tag, const RadarTarget& trgt
   emit setText(_sog_text_id, RLI_LANG_RUSSIAN, soga);
 }
 
-void TargetsController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect( size.width() - 236 - 5, size.height() - 229 - 5, 236, 167));
+void TargetsController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -740,8 +720,7 @@ CursorController::CursorController(QObject* parent) : InfoBlockController(parent
   _dis_text_id = -1;
 }
 
-void CursorController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() - 236 - 5, size.height() - 64, 236, 60));
+void CursorController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -865,8 +844,7 @@ void VnController::display_brg(float brg, float crsangle)
   }
 }
 
-void VnController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(5, size.height() - 70, 140, 66));
+void VnController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -932,8 +910,7 @@ void VdController::display_distance(float dist, const char * fmt)
     emit setText(_vd_text_id, 1, s.toLocal8Bit());
 }
 
-void VdController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() - 5 - 236 - 5 - 140, size.height() - 56, 140, 52));
+void VdController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -971,8 +948,7 @@ ClockController::ClockController(QObject* parent) : InfoBlockController(parent) 
   _text_id = -1;
 }
 
-void ClockController::initBlock(const QSize& size) {
-  _block->setGeometry(QRect(size.width() -224 -10, 128, 224, 20));
+void ClockController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_TRANSPARENT_COLOR);
 
   InfoText t;

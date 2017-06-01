@@ -14,10 +14,10 @@ class InfoBlockController : public QObject {
   Q_OBJECT
 public:
   explicit InfoBlockController(QObject* parent = 0);
-  virtual void setupBlock(InfoBlock* b, const QSize& size);
+  virtual void setupBlock(InfoBlock* b, const QSize& size, const QMap<QString, QString>& params);
 
 public slots:
-  virtual void onResize(const QSize& size);
+  virtual void resize(const QSize& size, const QMap<QString, QString>& params);
   virtual void onLanguageChanged(int lang_id);
 
 signals:
@@ -25,7 +25,9 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 protected:
-  virtual void initBlock(const QSize& size) = 0;
+  void geometrySetup();
+
+  virtual void initBlock(const QMap<QString, QString>& params) = 0;
   void setInfoTextStr(InfoText& t, char** str);
   void setInfoTextBts(InfoText& t, QByteArray str);
 
@@ -51,7 +53,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _val;
   int _maxval;
@@ -80,7 +82,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   QString _font_tag;
   QRect _geom;
@@ -105,7 +107,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _scl1_text_id;
   int _scl2_text_id;
@@ -127,7 +129,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _crs_text_id;
   int _spd_text_id;
@@ -148,7 +150,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _lat_text_id;
   int _lon_text_id;
@@ -168,7 +170,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 };
 
 
@@ -185,7 +187,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 };
 
 
@@ -203,7 +205,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _mode_text_id;
   int _min_text_id;
@@ -224,7 +226,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _dks_text_id;
   int _vks_text_id;
@@ -244,7 +246,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 };
 
 
@@ -263,7 +265,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _count;
   RadarTarget _target;
@@ -289,7 +291,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _pel_text_id;
   int _dis_text_id;
@@ -310,7 +312,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
   int _text_id;
 };
 
@@ -329,7 +331,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _p_text_id;
   int _cu_text_id;
@@ -351,7 +353,7 @@ signals:
   void setText(int textId, int lang_id, const QByteArray& str);
 
 private:
-  void initBlock(const QSize& size);
+  void initBlock(const QMap<QString, QString>& params);
 
   int _vd_text_id;
 };

@@ -101,9 +101,10 @@ bool InfoEngine::init(const QGLContext* context) {
 }
 
 InfoBlock* InfoEngine::addInfoBlock() {
-  _blocks.push_back(new InfoBlock(this));
-  _blocks[_blocks.size() - 1]->init(_context);
-  return _blocks[_blocks.size() - 1];
+  InfoBlock* block = new InfoBlock(this);
+  block->init(_context);
+  _blocks.push_back(block);
+  return block;
 }
 
 

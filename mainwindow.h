@@ -50,7 +50,7 @@ private slots:
   void onRLIWidgetInitialized();
 
 private:
-  void setupInfoBlock(InfoBlockController* ctrl);
+  void setupInfoBlock(InfoBlockController* ctrl, const QMap<QString, QString>& params);
 
   RLIDisplayWidget* wgtRLI;
   RLIControlWidget* wgtButtonPanel;

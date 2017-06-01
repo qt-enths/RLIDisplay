@@ -237,14 +237,9 @@ void MainWindow::onRLIWidgetInitialized() {
   setCursor(QCursor(QPixmap("://res/cursors/cross_72dpi_12px_r0_g128_b255.png")));
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Connect radar to datasource";
-  connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*))
-        , wgtRLI->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
-
-  connect(_radar_ds, SIGNAL(scaleChanged(RadarScale))
-        , _scle_ctrl, SLOT(onScaleChanged(RadarScale)));
-
-  connect(_radar_ds, SIGNAL(scaleChanged(RadarScale))
-        , wgtRLI, SLOT(onScaleChanged(RadarScale)));
+  connect(_radar_ds, SIGNAL(updateData(uint, uint, GLfloat*)), wgtRLI->radarEngine(), SLOT(updateData(uint, uint, GLfloat*)));
+  connect(_radar_ds, SIGNAL(scaleChanged(RadarScale)), _scle_ctrl, SLOT(onScaleChanged(RadarScale)));
+  connect(_radar_ds, SIGNAL(scaleChanged(RadarScale)), wgtRLI, SLOT(onScaleChanged(RadarScale)));
   wgtRLI->onScaleChanged(_radar_ds->getCurrentScale());
 
   connect(wgtRLI, SIGNAL(displayVNDistance(float, const char *)), _vd_ctrl, SLOT(display_distance(float, const char *)));
@@ -253,30 +248,37 @@ void MainWindow::onRLIWidgetInitialized() {
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup InfoBlocks";
 
-  setupInfoBlock(_gain_ctrl);
-  setupInfoBlock(_water_ctrl);
-  setupInfoBlock(_rain_ctrl);
-  setupInfoBlock(_apch_ctrl);
-  setupInfoBlock(_rdtn_ctrl);
-  setupInfoBlock(_curs_ctrl);
-  setupInfoBlock(_clck_ctrl);
-  setupInfoBlock(_pstn_ctrl);
-  setupInfoBlock(_blnk_ctrl);
-  setupInfoBlock(_crse_ctrl);
-  setupInfoBlock(_scle_ctrl);
-  setupInfoBlock(_lbl1_ctrl);
-  setupInfoBlock(_lbl2_ctrl);
-  setupInfoBlock(_lbl3_ctrl);
-  setupInfoBlock(_lbl4_ctrl);
-  setupInfoBlock(_lbl5_ctrl);
-  setupInfoBlock(_band_lbl_ctrl);
-  setupInfoBlock(_dngr_ctrl);
-  setupInfoBlock(_tals_ctrl);
-  setupInfoBlock(_dgdt_ctrl);
-  setupInfoBlock(_vctr_ctrl);
-  setupInfoBlock(_trgs_ctrl);
-  setupInfoBlock(_vn_ctrl);
-  setupInfoBlock(_vd_ctrl);
+  const RLILayout* layout = RLIConfig::instance().currentLayout();
+
+  setupInfoBlock(_gain_ctrl, layout->panels["gain"]);
+  setupInfoBlock(_water_ctrl, layout->panels["water"]);
+  setupInfoBlock(_rain_ctrl, layout->panels["rain"]);
+  setupInfoBlock(_apch_ctrl, layout->panels["apch"]);
+
+  setupInfoBlock(_rdtn_ctrl, layout->panels["emission"]);
+  setupInfoBlock(_curs_ctrl, layout->panels["cursor"]);
+  setupInfoBlock(_clck_ctrl, layout->panels["clock"]);
+  setupInfoBlock(_pstn_ctrl, layout->panels["position"]);
+  setupInfoBlock(_blnk_ctrl, layout->panels["blank"]);
+  setupInfoBlock(_crse_ctrl, layout->panels["course"]);
+  setupInfoBlock(_scle_ctrl, layout->panels["scale"]);
+
+  setupInfoBlock(_lbl1_ctrl, layout->panels["label1"]);
+  setupInfoBlock(_lbl2_ctrl, layout->panels["label2"]);
+  setupInfoBlock(_lbl3_ctrl, layout->panels["label3"]);
+  setupInfoBlock(_lbl4_ctrl, layout->panels["label4"]);
+  setupInfoBlock(_lbl5_ctrl, layout->panels["label5"]);
+
+  setupInfoBlock(_band_lbl_ctrl, layout->panels["band"]);
+  setupInfoBlock(_dngr_ctrl, layout->panels["danger"]);
+
+  setupInfoBlock(_tals_ctrl, layout->panels["tails"]);
+  setupInfoBlock(_dgdt_ctrl, layout->panels["danger-details"]);
+  setupInfoBlock(_vctr_ctrl, layout->panels["vector"]);
+  setupInfoBlock(_trgs_ctrl, layout->panels["targers"]);
+
+  setupInfoBlock(_vn_ctrl, layout->panels["vn"]);
+  setupInfoBlock(_vd_ctrl, layout->panels["vd"]);
 
   qRegisterMetaType<RadarTarget>("RadarTarget");
 
@@ -307,32 +309,18 @@ void MainWindow::onRLIWidgetInitialized() {
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Setup menu signals";
 
-  connect( wgtRLI->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         , wgtRLI->infoEngine(), SLOT(onLanguageChanged(QByteArray)) );
-
-  connect( wgtRLI->menuEngine(), SIGNAL(languageChanged(QByteArray))
-         , wgtRLI->menuEngine(), SLOT(onLanguageChanged(QByteArray)) );
-
-  connect( wgtRLI->menuEngine(), SIGNAL(radarBrightnessChanged(int))
-         , wgtRLI->radarEngine(), SLOT(onBrightnessChanged(int)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(languageChanged(QByteArray)), wgtRLI->infoEngine(), SLOT(onLanguageChanged(QByteArray)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(languageChanged(QByteArray)), wgtRLI->menuEngine(), SLOT(onLanguageChanged(QByteArray)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(radarBrightnessChanged(int)), wgtRLI->radarEngine(), SLOT(onBrightnessChanged(int)) );
 
 
-  connect( wgtRLI->menuEngine(), SIGNAL(startRouteEdit())
-         , wgtRLI, SLOT(onStartRouteEdit()) );
-
-  connect( wgtRLI->menuEngine(), SIGNAL(finishRouteEdit())
-         , wgtRLI, SLOT(onFinishRouteEdit()) );
-
-  connect( wgtRLI->menuEngine(), SIGNAL(loadRoute(int))
-         , wgtRLI->routeEngine(), SLOT(loadFrom(int)) );
-
-  connect( wgtRLI->menuEngine(), SIGNAL(saveRoute(int))
-         , wgtRLI->routeEngine(), SLOT(saveTo(int)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(startRouteEdit()), wgtRLI, SLOT(onStartRouteEdit()) );
+  connect( wgtRLI->menuEngine(), SIGNAL(finishRouteEdit()), wgtRLI, SLOT(onFinishRouteEdit()) );
+  connect( wgtRLI->menuEngine(), SIGNAL(loadRoute(int)), wgtRLI->routeEngine(), SLOT(loadFrom(int)) );
+  connect( wgtRLI->menuEngine(), SIGNAL(saveRoute(int)), wgtRLI->routeEngine(), SLOT(saveTo(int)) );
 
 
-  connect(wgtRLI->menuEngine(), SIGNAL(simulationChanged(QByteArray))
-        , _radar_ds, SLOT(onSimulationChanged(QByteArray)));
-
+  connect(wgtRLI->menuEngine(), SIGNAL(simulationChanged(QByteArray)), _radar_ds, SLOT(onSimulationChanged(QByteArray)));
 
   connect(wgtRLI, SIGNAL(cursor_moved(QVector2D)), _pstn_ctrl, SLOT(pos_changed(QVector2D)));
 
@@ -340,12 +328,10 @@ void MainWindow::onRLIWidgetInitialized() {
   wgtRLI->menuEngine()->onAnalogZeroChanged(_radar_ds->getAmpsOffset());
   connect( wgtRLI->menuEngine(), SIGNAL(analogZeroChanged(int)), _radar_ds, SLOT(setAmpsOffset(int)));
 
-  connect( wgtRLI->menuEngine(), SIGNAL(tailsModeChanged(QByteArray))
-         , _target_ds, SLOT(onTailsModeChanged(const QByteArray)));
+  connect( wgtRLI->menuEngine(), SIGNAL(tailsModeChanged(QByteArray)), _target_ds, SLOT(onTailsModeChanged(const QByteArray)));
 
   connect(_target_ds, SIGNAL(tailsModeChanged(int, int)), _tals_ctrl, SLOT(onTailsModeChanged(int,int)));
-  connect(_target_ds, SIGNAL(tailsModeChanged(int, int))
-        , wgtRLI->targetEngine(), SLOT(onTailsModeChanged(int, int)));
+  connect(_target_ds, SIGNAL(tailsModeChanged(int, int)), wgtRLI->targetEngine(), SLOT(onTailsModeChanged(int, int)));
 
 
 
@@ -376,13 +362,12 @@ void MainWindow::onRLIWidgetInitialized() {
   }
 }
 
-void MainWindow::setupInfoBlock(InfoBlockController* ctrl) {
+void MainWindow::setupInfoBlock(InfoBlockController* ctrl, const QMap<QString, QString>& params) {
   InfoBlock* blck = wgtRLI->infoEngine()->addInfoBlock();
-  ctrl->setupBlock(blck, wgtRLI->size());
+  ctrl->setupBlock(blck, RLIConfig::instance().currentSize(), params);
 
   connect(ctrl, SIGNAL(setRect(int, QRect)), blck, SLOT(setRect(int, QRect)));
-  connect(ctrl, SIGNAL(setText(int, int, QByteArray)), blck, SLOT(setText(int, int, QByteArray)));
-  connect(wgtRLI, SIGNAL(resized(QSize)), ctrl, SLOT(onResize(QSize)));
+  connect(ctrl, SIGNAL(setText(int, int, QByteArray)), blck, SLOT(setText(int, int, QByteArray)));  
 }
 
 void MainWindow::resizeEvent(QResizeEvent* e) {
@@ -396,6 +381,38 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
   RLIConfig::instance().updateCurrentSize(availableSize);
   QSize curSize = RLIConfig::instance().currentSize();
   wgtRLI->setGeometry(QRect(QPoint(0, 0), curSize));
+
+  const RLILayout* layout = RLIConfig::instance().currentLayout();
+
+  _gain_ctrl->resize(curSize, layout->panels["gain"]);
+  _water_ctrl->resize(curSize, layout->panels["water"]);
+  _rain_ctrl->resize(curSize, layout->panels["rain"]);
+  _apch_ctrl->resize(curSize, layout->panels["apch"]);
+
+  _rdtn_ctrl->resize(curSize, layout->panels["emission"]);
+  _curs_ctrl->resize(curSize, layout->panels["cursor"]);
+  _clck_ctrl->resize(curSize, layout->panels["clock"]);
+  _pstn_ctrl->resize(curSize, layout->panels["position"]);
+  _blnk_ctrl->resize(curSize, layout->panels["blank"]);
+  _crse_ctrl->resize(curSize, layout->panels["course"]);
+  _scle_ctrl->resize(curSize, layout->panels["scale"]);
+
+  _lbl1_ctrl->resize(curSize, layout->panels["label1"]);
+  _lbl2_ctrl->resize(curSize, layout->panels["label2"]);
+  _lbl3_ctrl->resize(curSize, layout->panels["label3"]);
+  _lbl4_ctrl->resize(curSize, layout->panels["label4"]);
+  _lbl5_ctrl->resize(curSize, layout->panels["label5"]);
+
+  _band_lbl_ctrl->resize(curSize, layout->panels["band"]);
+  _dngr_ctrl->resize(curSize, layout->panels["danger"]);
+
+  _tals_ctrl->resize(curSize, layout->panels["tails"]);
+  _dgdt_ctrl->resize(curSize, layout->panels["danger-details"]);
+  _vctr_ctrl->resize(curSize, layout->panels["vector"]);
+  _trgs_ctrl->resize(curSize, layout->panels["targers"]);
+
+  _vn_ctrl->resize(curSize, layout->panels["vn"]);
+  _vd_ctrl->resize(curSize, layout->panels["vd"]);
 }
 
 void MainWindow::timerEvent(QTimerEvent*) {
