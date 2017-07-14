@@ -8,17 +8,7 @@
 #include <QDebug>
 #include <QApplication>
 
-//#define cGROUND 20      // общий фон /*14*/{0x38,0x38,0x38}
-//#define cRULER 47       // линейка   /*2F*/{0x40,0xFC,0x00}
-//#define cINFORMATION 14 // данные    /*0E*/{0xFC,0xFC,0x54}
-//#define cNOT 12         // отрицание /*0C*/{0xFC,0x54,0x54}
-//#define cOCIFR 48       // оцифровка /*30*/{0x00,0xFC,0x00}
 
-//#define cHEAD 52       // надписи	 /*34*/{0x00,0xFC,0xFC}
-//#define cINFGROUND 0	 // фон вывода данных /*00*/{0x00,0x00,0x00}
-//#define cBLINKTEXT 39  // цвет мигающего текста /*27*/{0xFC,0x00,0x40}
-//#define cMSGERR 44	 // фон сообщения         /*2C*/{0xFC,0xFC,0x00}
-//#define cBLANKITEM 28	 // пропускаемый пункт меню /*1C*/{0xB4,0xB4,0xB4}
 
 static const QColor INFO_TEXT_STATIC_COLOR(0x00,0xFC,0xFC);
 static const QColor INFO_TEXT_DYNAMIC_COLOR(0xFC,0xFC,0x54);
@@ -72,37 +62,42 @@ void InfoBlockController::setInfoTextBts(InfoText& t, QByteArray str) {
 
 //------------------------------------------------------------------------------
 
-ValueBarController::ValueBarController(char** name, const QPoint& left_top, int title_width, int def_val, QObject* parent) : InfoBlockController(parent) {
+ValueBarController::ValueBarController(char** name, int max_val, QObject* parent) : InfoBlockController(parent) {
   _val_rect_id = -1;
-  _val = def_val;
-  _maxval = title_width * 12 + 2;
-  _title_width = title_width;
+  _val = 0;
+
+  _maxval = max_val;
   _name = name;
-  _left_top = left_top;
 }
 
 void ValueBarController::initBlock(const QMap<QString, QString>& params) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
+  int border_width = _block->getBorderWidth();
+  int block_width = _block->getGeometry().width();
+  int block_height = _block->getGeometry().height();
+  _bar_width = params["bar_width"].toInt();
+  QString font1 = params["font"];
+
   InfoRect r;
   r.col = INFO_BORDER_COLOR;
-  r.rect = QRect(4+12*_title_width+2, 0, 2, 23);
+  r.rect = QRect(block_width - _bar_width - 2*border_width, 0, 1, block_height);
   _block->addRect(r);
 
-  r.rect = QRect(4+12*_title_width+2, 14, 0, 15);
+  r.rect = QRect(block_width - _bar_width - border_width, 3, 0, block_height - 2*3);
   _val_rect_id = _block->addRect(r);
 
   InfoText t;
-  t.font_tag = "12x14";
+  t.font_tag = font1;
   setInfoTextStr(t, _name);
-  t.rect = QRect(4, 6, 12*_title_width+2, 14);
+  t.rect = QRect(0, 0, block_width - _bar_width - border_width, block_height);
   t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = INFO_TEXT_STATIC_COLOR;
   _ttl_text_id = _block->addText(t);
 
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-  t.rect = QRect(4+12*_title_width+4+2, 6, 12*4, 14);
+  t.rect = QRect(block_width - _bar_width - 1, 0, _bar_width, block_height);
   setInfoTextBts(t, QByteArray());
   _val_text_id = _block->addText(t);
 
@@ -112,11 +107,15 @@ void ValueBarController::initBlock(const QMap<QString, QString>& params) {
 void ValueBarController::onValueChanged(int val) {
   _val = val;
 
+  int border_width = _block->getBorderWidth();
+  int block_width = _block->getGeometry().width();
+  int block_height = _block->getGeometry().height();
+
   if (_val_rect_id != -1) {
     if (_val >= 0)
-      emit setRect(_val_rect_id, QRect(12*_title_width + 8, 4, val * 50 / _maxval, 15));
+      emit setRect(_val_rect_id, QRect(block_width - _bar_width - border_width, 3, (_val*_bar_width) / _maxval, block_height - 2*3));
     else {
-      emit setRect(_val_rect_id, QRect(12*_title_width + 8, 4, 0, 15));
+      emit setRect(_val_rect_id, QRect(block_width - _bar_width - border_width, 3, 0, block_height - 2*3));
 
       for (int i = 0; i < RLI_LANG_COUNT; i++)
         emit setText(_val_text_id, i, enc->fromUnicode(dec->toUnicode(RLIStrings::nOff[i])));
@@ -124,20 +123,13 @@ void ValueBarController::onValueChanged(int val) {
   }
 }
 
-void ValueBarController::setMaxValue(int val)
-{
-    _maxval = val;
-}
-
 //------------------------------------------------------------------------------
 
 
-LabelController::LabelController(char** text, const QRect& geom, QString font_tag, QObject* parent)
+LabelController::LabelController(char** text, QObject* parent)
   : InfoBlockController(parent) {
   _text_id = -1;
-  _font_tag = font_tag;
   _text = text;
-  _geom = geom;
 }
 
 void LabelController::onTextChanged(char** text) {
@@ -150,12 +142,13 @@ void LabelController::initBlock(const QMap<QString, QString>& params) {
   _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
+  QRect geom = _block->getGeometry();
 
-  t.font_tag = _font_tag;
+  t.font_tag = params["font"];
   t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
-  t.rect = QRect(1, 1, _geom.width(), _geom.height());
+  t.rect = QRect(0, 0, geom.width(), geom.height());
   setInfoTextStr(t, _text);
   _text_id = _block->addText(t);
 }

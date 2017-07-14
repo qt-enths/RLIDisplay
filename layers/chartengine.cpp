@@ -297,7 +297,7 @@ ChartEngine::ChartEngine() {
   _center = QVector2D(0, 0);
   _scale = 10;
   _angle = 0;
-  back_color = QColor(127, 127, 127);
+  back_color = QColor(0, 0, 0);
 
   //_fbo_format.setAttachment(QGLFramebufferObject::NoAttachment);
   _fbo_format.setMipmap(true);

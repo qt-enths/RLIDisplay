@@ -95,6 +95,8 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
       _radar_ds->start();
   }
 
+  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
+
   rx.setPattern("--nmea-port");
   argpos = args.indexOf(rx);
 
@@ -109,24 +111,27 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   _nmeaprc = new NMEAProcessor(this);
 
 
-  qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "RadarDS init finish";
 
-  _gain_ctrl = new ValueBarController(RLIStrings::nGain, QPoint(5, 5), 8, 0, this);
-  _gain_ctrl->setMaxValue(255);
+  _gain_ctrl = new ValueBarController(RLIStrings::nGain, 255, this);
   connect(wgtButtonPanel, SIGNAL(gainChanged(int)), _gain_ctrl, SLOT(onValueChanged(int)));
 
-  _water_ctrl = new ValueBarController(RLIStrings::nWave, QPoint(5, 5+23+4), 8, 0, this);
-  _water_ctrl->setMaxValue(255);
+  _water_ctrl = new ValueBarController(RLIStrings::nWave, 255, this);
   connect(wgtButtonPanel, SIGNAL(waterChanged(int)), _water_ctrl, SLOT(onValueChanged(int)));
 
-  _rain_ctrl = new ValueBarController(RLIStrings::nRain, QPoint(5, 5+2*(23+4)), 8, 0, this);
-  _rain_ctrl->setMaxValue(255);
+  _rain_ctrl = new ValueBarController(RLIStrings::nRain, 255, this);
   connect(wgtButtonPanel, SIGNAL(rainChanged(int)), _rain_ctrl, SLOT(onValueChanged(int)));
 
-  _apch_ctrl = new ValueBarController(RLIStrings::nAfc, QPoint(5, 5+3*(23+4)), 8, 0, this);
-  _lbl5_ctrl = new LabelController(RLIStrings::nPP12p, QRect(5, 5+4*(23+4), 104, 23), "12x14", this);
-  _band_lbl_ctrl = new LabelController(RLIStrings::nBandS, QRect(5, 5+5*(23+4), 104, 23), "12x14", this);
-  _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, QPoint(5+12*8+60+5, 5), 9, -1, this);
+  _apch_ctrl = new ValueBarController(RLIStrings::nAfc, 255, this);
+  _rdtn_ctrl = new ValueBarController(RLIStrings::nEmsn, 255, this);
+
+
+  _lbl5_ctrl = new LabelController(RLIStrings::nPP12p, this);
+  _band_lbl_ctrl = new LabelController(RLIStrings::nBandS, this);
+
+  _lbl1_ctrl = new LabelController(RLIStrings::nNord, this);
+  _lbl2_ctrl = new LabelController(RLIStrings::nRm, this);
+  _lbl3_ctrl = new LabelController(RLIStrings::nWstab, this);
+  _lbl4_ctrl = new LabelController(RLIStrings::nLod, this);
 
   _curs_ctrl = new CursorController(this);
   connect(wgtRLI, SIGNAL(cursor_moved(float,float, const char *)), _curs_ctrl, SLOT(cursor_moved(float,float, const char *)));
@@ -135,11 +140,6 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   connect(wgtRLI, SIGNAL(per_second()), _clck_ctrl, SLOT(second_changed()));
 
   _scle_ctrl = new ScaleController(this);
-
-  _lbl1_ctrl = new LabelController(RLIStrings::nNord, QRect(-246-120, 45, 120, 21), "12x14", this);
-  _lbl2_ctrl = new LabelController(RLIStrings::nRm, QRect(-246-120, 70, 120, 21), "12x14", this);
-  _lbl3_ctrl = new LabelController(RLIStrings::nWstab, QRect(-246-120, 95, 120, 21), "12x14", this);
-  _lbl4_ctrl = new LabelController(RLIStrings::nLod, QRect(-246-96, -100, 96, 33), "16x28", this);
 
   _crse_ctrl = new CourseController(this);
   _pstn_ctrl = new PositionController(this);

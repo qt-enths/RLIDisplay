@@ -163,11 +163,11 @@ void RLIDisplayWidget::initializeGL() {
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
   // Enable smooth geometry
-  glEnable(GL_LINE_SMOOTH);
-  glEnable(GL_POLYGON_SMOOTH);
+  //glEnable(GL_LINE_SMOOTH);
+  //glEnable(GL_POLYGON_SMOOTH);
 
-  glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-  glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+  //glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+  //glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Chart engine init start";
   if (!_chartEngine->init(_chrt_mngr->refs(), context()))

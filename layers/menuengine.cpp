@@ -173,6 +173,11 @@ RLIMenuItemFloat::RLIMenuItemFloat(char** name, float min, float max, float def)
 
 
 MenuEngine::MenuEngine(const QSize& screen_size, const QMap<QString, QString>& params, QObject* parent) : QObject(parent), QGLFunctions() {
+  _initialized = false;
+  _selected_line = 1;
+  _selection_active = false;
+  _state = DISABLED;
+
   _prog = new QGLShaderProgram();
 
   _lang = RLI_LANG_RUSSIAN;
@@ -182,11 +187,6 @@ MenuEngine::MenuEngine(const QSize& screen_size, const QMap<QString, QString>& p
   _dec1 = QTextCodec::codecForName("cp866")->makeDecoder();
 
   resize(screen_size, params);
-
-  _initialized = false;
-  _selected_line = 1;
-  _selection_active = false;
-  _state = DISABLED;
 
   initMainMenuTree();
   initCnfgMenuTree();

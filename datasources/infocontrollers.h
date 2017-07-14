@@ -41,9 +41,7 @@ protected:
 class ValueBarController : public InfoBlockController {
   Q_OBJECT
 public:
-  explicit ValueBarController(char** name, const QPoint& left_top, int title_width, int def_val, QObject* parent = 0);
-
-  void setMaxValue(int val);
+  explicit ValueBarController(char** name, int max_val, QObject* parent = 0);
 
 public slots:
   void onValueChanged(int val);
@@ -57,10 +55,8 @@ private:
 
   int _val;
   int _maxval;
-
+  int _bar_width;
   char** _name;
-  int _title_width;
-  QPoint _left_top;
 
   int _ttl_text_id;
   int _val_rect_id;
@@ -72,7 +68,7 @@ private:
 class LabelController : public InfoBlockController {
   Q_OBJECT
 public:
-  explicit LabelController(char** text, const QRect& r, QString font_tag, QObject* parent = 0);
+  explicit LabelController(char** text, QObject* parent = 0);
 
 public slots:
   void onTextChanged(char** text);
@@ -84,8 +80,6 @@ signals:
 private:
   void initBlock(const QMap<QString, QString>& params);
 
-  QString _font_tag;
-  QRect _geom;
   char** _text;
   int _text_id;
 };

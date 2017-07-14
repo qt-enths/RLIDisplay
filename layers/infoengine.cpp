@@ -210,7 +210,7 @@ void InfoEngine::drawText(const InfoText& text) {
       anchor = text.rect.topRight() - QPoint(font_size.width()*text.str[_lang].size(), 0);
       break;
     case INFOTEXT_ALLIGN_CENTER:
-      anchor = text.rect.center() - QPoint((font_size.width()*text.str[_lang].size()) / 2, font_size.height() / 2);
+      anchor = text.rect.center() - QPoint((font_size.width()*text.str[_lang].size()) / 2 - 1, font_size.height() / 2 - 1);
       break;
     default:
       anchor = text.rect.topLeft();
