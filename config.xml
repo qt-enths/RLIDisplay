@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rli-config>
   <use-button-pannel>false</use-button-pannel>
-  <default-layout>1024x768</default-layout>
+  <default-layout>1366x768</default-layout>
 
   <layouts>
     <layout size="1024x768">
       <rli-circle x="404" y="384" radius="360" />
-      <menu x="-241" y="149" width="236" height="262" font="12x14" />
-      <magnifier x="-235" y="155" width="224" height="224" />
+      <menu x="-4" y="152" width="236" height="262" font="12x14" />
+      <magnifier x="-10" y="155" width="224" height="224" />
 
       <panels>
         <gain x="4" y="4" width="143" height="21" bar_width="40" font="12x14" />
@@ -16,35 +16,38 @@
         <apch x="4" y="79" width="143" height="21" bar_width="40" font="12x14" />
         <emission x="151" y="4" width="155" height="21" bar_width="40" font="12x14" />
 
-        <label5 x="4" y="104" width="102" height="21" font="12x14" />
-        <band x="4" y="129" width="102" height="21" font="12x14" />
+        <label5 x="4" y="104" width="102" height="20" font="12x14" />
+        <band x="4" y="128" width="102" height="20" font="12x14" />
 
-        <cursor x="-241" y="-64" width="236" height="60" font1="12x14" font2="8x14" />
-        <clock x="-234" y="128" width="224" height="20" font1="12x14" />
-        <scale x="-482" y="4" width="236" height="40" font1="16x28" font2="14x14" />
+        <label1 x="-244" y="48" width="112" height="20" font="12x14" />
+        <label2 x="-244" y="72" width="112" height="20" font="12x14" />
+        <label3 x="-244" y="96" width="112" height="20" font="12x14" />
+        <label4 x="-244" y="-68" width="96" height="32" font="16x28" />
 
-        <label1 x="-366" y="45" width="120" height="21" font="12x14" />
-        <label2 x="-366" y="70" width="120" height="21" font="12x14" />
-        <label3 x="-366" y="95" width="120" height="21" font="12x14" />
-        <label4 x="-342" y="-100" width="96" height="33" font="16x28" />
+        <scale x="-244" y="4" width="236" height="40" font1="16x28" font2="14x14" />
 
-        <course x="-241" y="5" width="236" height="38" font1="12x14" font2="8x14" />
-        <position x="-241" y="47" width="236" height="38" font1="12x14" font2="8x14" />
-        <blank x="-241" y="89" width="236" height="38" />
-        <danger x="-241" y="-355" width="236" height="20" font1="12x14" />
-        <tails x="-241" y="-328" width="236" height="21" font1="12x14" font2="8x14" />
-        <danger-details x="-241" y="-303" width="236" height="38" font1="12x14" font2="8x14" />
-        <vector x="-241" y="-261" width="236" height="21" font1="12x14" font2="8x14" />
-        <targers x="-241" y="-234" width="236" height="167" font1="12x14" font2="8x14" />
-        <vn x="5" y="-70" width="140" height="66" font1="12x14" />
-        <vd x="-386" y="-56" width="140" height="52" font1="12x14" font2="8x14" />
+        <vn x="4" y="-4" width="140" height="66" font1="12x14" />
+        <vd x="-244" y="-4" width="140" height="52" font1="12x14" font2="8x14" />
+
+        <cursor x="-4" y="-4" width="236" height="60" font1="12x14" font2="8x14" />
+
+        <course x="-4" y="4" width="236" height="38" font1="12x14" font2="8x14" />
+        <position x="-4" y="46" width="236" height="38" font1="12x14" font2="8x14" />
+        <blank x="-4" y="88" width="236" height="38" />
+        <clock x="-4" y="130" width="236" height="18" font1="12x14" />
+
+        <danger x="-4" y="-330" width="236" height="20" font1="12x14" />
+        <tails x="-4" y="-306" width="236" height="20" font1="12x14" font2="8x14" />
+        <danger-details x="-4" y="-264" width="236" height="38" font1="12x14" font2="8x14" />
+        <vector x="-4" y="-240" width="236" height="20" font1="12x14" font2="8x14" />
+        <targers x="-4" y="-68" width="236" height="168" font1="12x14" font2="8x14" />
       </panels>
     </layout>
 
     <layout size="1366x768">
       <rli-circle x="586" y="384" radius="360" />
-      <menu x="-241" y="149" width="236" height="262" font="12x14" />
-      <magnifier x="-235" y="153" width="224" height="224" />
+      <menu x="-4" y="152" width="236" height="262" font="12x14" />
+      <magnifier x="-10" y="155" width="224" height="224" />
 
       <panels>
         <gain x="4" y="4" width="143" height="21" bar_width="40" font="12x14" />
@@ -53,28 +56,31 @@
         <apch x="4" y="79" width="143" height="21" bar_width="40" font="12x14" />
         <emission x="151" y="4" width="155" height="21" bar_width="40" font="12x14" />
 
-        <label5 x="4" y="104" width="102" height="21" font="12x14" />
-        <band x="4" y="129" width="102" height="21" font="12x14" />
+        <label5 x="4" y="104" width="102" height="20" font="12x14" />
+        <band x="4" y="128" width="102" height="20" font="12x14" />
 
-        <cursor x="-241" y="-64" width="236" height="60" font1="12x14" font2="8x14" />
-        <clock x="-234" y="128" width="224" height="20" font1="12x14" />
-        <scale x="-482" y="4" width="236" height="40" font1="16x28" font2="14x14" />
+        <label1 x="-244" y="48" width="112" height="20" font="12x14" />
+        <label2 x="-244" y="72" width="112" height="20" font="12x14" />
+        <label3 x="-244" y="96" width="112" height="20" font="12x14" />
+        <label4 x="-244" y="-68" width="96" height="32" font="16x28" />
 
-        <label1 x="-366" y="45" width="120" height="21" font="12x14" />
-        <label2 x="-366" y="70" width="120" height="21" font="12x14" />
-        <label3 x="-366" y="95" width="120" height="21" font="12x14" />
-        <label4 x="-342" y="-100" width="96" height="33" font="16x28" />
+        <scale x="-244" y="4" width="236" height="40" font1="16x28" font2="14x14" />
 
-        <course x="-241" y="5" width="236" height="38" font1="12x14" font2="8x14" />
-        <position x="-241" y="47" width="236" height="38" font1="12x14" font2="8x14" />
-        <blank x="-241" y="89" width="236" height="38" />
-        <danger x="-241" y="-355" width="236" height="20" font1="12x14" />
-        <tails x="-241" y="-328" width="236" height="21" font1="12x14" font2="8x14" />
-        <danger-details x="-241" y="-303" width="236" height="38" font1="12x14" font2="8x14" />
-        <vector x="-241" y="-261" width="236" height="21" font1="12x14" font2="8x14" />
-        <targers x="-241" y="-234" width="236" height="167" font1="12x14" font2="8x14" />
-        <vn x="5" y="-70" width="140" height="66" font1="12x14" />
-        <vd x="-386" y="-56" width="140" height="52" font1="12x14" font2="8x14" />
+        <vn x="4" y="-4" width="140" height="66" font1="12x14" />
+        <vd x="-244" y="-4" width="140" height="52" font1="12x14" font2="8x14" />
+
+        <cursor x="-4" y="-4" width="236" height="60" font1="12x14" font2="8x14" />
+
+        <course x="-4" y="4" width="236" height="38" font1="12x14" font2="8x14" />
+        <position x="-4" y="46" width="236" height="38" font1="12x14" font2="8x14" />
+        <blank x="-4" y="88" width="236" height="38" />
+        <clock x="-4" y="130" width="236" height="18" font1="12x14" />
+
+        <danger x="-4" y="-330" width="236" height="20" font1="12x14" />
+        <tails x="-4" y="-306" width="236" height="20" font1="12x14" font2="8x14" />
+        <danger-details x="-4" y="-264" width="236" height="38" font1="12x14" font2="8x14" />
+        <vector x="-4" y="-240" width="236" height="20" font1="12x14" font2="8x14" />
+        <targers x="-4" y="-68" width="236" height="168" font1="12x14" font2="8x14" />
       </panels>
     </layout>
   </layouts>

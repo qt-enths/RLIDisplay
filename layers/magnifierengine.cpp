@@ -11,12 +11,11 @@ MagnifierEngine::~MagnifierEngine() {
 }
 
 void MagnifierEngine::resize(const QSize& screen_size, const QMap<QString, QString>& params) {
+  _size = QSize(params["width"].toInt(), params["height"].toInt());
   _position = QPointF(params["x"].toFloat(), params["y"].toFloat());
 
-  if (_position.x() < 0) _position.setX(_position.x() + screen_size.width());
-  if (_position.y() < 0) _position.setX(_position.y() + screen_size.height());
-
-  _size = QSize(params["width"].toInt(), params["height"].toInt());
+  if (_position.x() < 0) _position.setX(_position.x() + screen_size.width() - _size.width());
+  if (_position.y() < 0) _position.setX(_position.y() + screen_size.height() - _size.height());
 
   if (_initialized) {
     delete _fbo;

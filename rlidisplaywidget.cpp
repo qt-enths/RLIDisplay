@@ -338,6 +338,7 @@ void RLIDisplayWidget::paintGL() {
   glMatrixMode( GL_PROJECTION );
   glPopMatrix();
 
+  glFlush();
 
   _radarEngine->updateTexture();
 
@@ -350,7 +351,6 @@ void RLIDisplayWidget::paintGL() {
 
   glEnable(GL_BLEND);
   _chartEngine->update(_world_coords, scale, 0.f, center-hole_center);
-
 
   glFlush();
 }

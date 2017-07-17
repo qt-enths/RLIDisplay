@@ -42,8 +42,11 @@ void InfoBlockController::setupBlock(InfoBlock* b, const QSize& screen_size, con
   QPoint leftTop(params["x"].toInt(), params["y"].toInt());
   QSize size(params["width"].toInt(), params["height"].toInt());
 
-  if (leftTop.x() < 0) leftTop.setX(leftTop.x() + screen_size.width());
-  if (leftTop.y() < 0) leftTop.setY(leftTop.y() + screen_size.height());
+  if (leftTop.x() < 0) leftTop.setX(leftTop.x() + screen_size.width() - size.width());
+  if (leftTop.y() < 0) leftTop.setY(leftTop.y() + screen_size.height() - size.height());
+
+  //if (leftTop.x() < 0) leftTop.setX(leftTop.x() + screen_size.width());
+  //if (leftTop.y() < 0) leftTop.setY(leftTop.y() + screen_size.height());
 
   _block->setGeometry(QRect(leftTop, size));
 
