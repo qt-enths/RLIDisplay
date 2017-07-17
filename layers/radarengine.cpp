@@ -98,12 +98,13 @@ void RadarPalette::updatePalette() {
 
 RadarEngine::RadarEngine(uint pel_count, uint pel_len) {
   _initialized = false;
+  _has_data = false;
 
   resizeTexture(256);
   resizeData(pel_count, pel_len);
 
   _center = QPoint(0, 0);
-  _north = 700;
+  _north = 0;
 
   _fbo_format.setAttachment(QGLFramebufferObject::Depth);
   _fbo_format.setMipmap(false);
@@ -179,7 +180,9 @@ void RadarEngine::fillCoordTable() {
       int y = round(-static_cast<double>(radius) * cos(angle));
       */
 
-      int x, y;
+      int x = 0;
+      int y = 0;
+
       if (index < _peleng_count / 4) {
         x = quarter[index*_peleng_len+radius].x();
         y = -quarter[index*_peleng_len+radius].y();
@@ -253,10 +256,9 @@ bool RadarEngine::init(const QGLContext* context) {
 
   initShader();
   clearData();
-
-  _initialized = true;
   clearTexture();
 
+  _initialized = true;
   return _initialized;
 }
 
@@ -311,7 +313,8 @@ void RadarEngine::clearData() {
   glBindBuffer(GL_ARRAY_BUFFER, _vbo_ids[ATTR_AMP]);
   glBufferData(GL_ARRAY_BUFFER, _peleng_count*_peleng_len*sizeof(GLfloat), amps.data(), GL_DYNAMIC_DRAW);
 
-  _draw_circle       = true;
+  _draw_circle       = false;
+  _has_data          = false;
   _last_drawn_peleng = _peleng_count - 1;
   _last_added_peleng = _peleng_count - 1;
 }
@@ -330,12 +333,23 @@ void RadarEngine::updateData(uint offset, uint count, GLfloat* amps) {
   // If we recieved full circle after last draw
   _draw_circle = (_last_added_peleng < _last_drawn_peleng && nlap >= _last_drawn_peleng) || count == _peleng_len;
   _last_added_peleng = nlap;
+
+  if (!_has_data) {
+    _draw_circle = false;
+    _last_added_peleng = offset % _peleng_count;
+    _has_data = true;
+  }
 }
 
 
 void RadarEngine::updateTexture() {
   if (!_initialized)
     return;
+
+  if (!_has_data) {
+    clearTexture();
+    return;
+  }
 
   glDisable(GL_BLEND);
   glEnable(GL_DEPTH);

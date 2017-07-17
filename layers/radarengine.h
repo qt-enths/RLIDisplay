@@ -80,6 +80,7 @@ private:
   void fillCoordTable();
 
   bool _initialized;
+  bool _has_data;
 
   // Radar parameters
   QPoint  _center;
