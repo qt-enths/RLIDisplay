@@ -7,11 +7,21 @@
 
 class QXmlStreamReader;
 
+struct RLIPanelTableInfo {
+  QMap<QString, QString> params;
+  QMap<QString, QMap<QString, QString>> columns;
+
+  inline void clear() {
+    params.clear();
+    columns.clear();
+  }
+};
+
 struct RLIPanelInfo {
   QMap<QString, QString> params;
   QMap<QString, QMap<QString, QString>> texts;
   QMap<QString, QMap<QString, QString>> rects;
-  QMap<QString, QMap<QString, QString>> tables;
+  QMap<QString, RLIPanelTableInfo> tables;
 
   inline void clear() {
     params.clear();
@@ -56,6 +66,7 @@ private:
 
   QMap<QString, QString> readXMLAttributes(QXmlStreamReader* xml);
   RLILayout* readLayout(QXmlStreamReader* xml);
+  RLIPanelTableInfo readTableInfo(QXmlStreamReader* xml);
   QMap<QString, RLIPanelInfo> readPanelLayouts(QXmlStreamReader* xml);
 
   QMap<QString, RLILayout*> _layouts;

@@ -99,6 +99,32 @@ RLILayout* RLIConfig::readLayout(QXmlStreamReader* xml) {
   return layout;
 }
 
+RLIPanelTableInfo RLIConfig::readTableInfo(QXmlStreamReader* xml) {
+  RLIPanelTableInfo tableInfo;
+  tableInfo.params = readXMLAttributes(xml);
+
+  while (!xml->atEnd()) {
+    switch (xml->readNext()) {
+    case QXmlStreamReader::StartElement:
+      if (xml->name() == "column") {
+        auto attrs = readXMLAttributes(xml);
+        tableInfo.columns.insert(attrs["name"], attrs);
+      }
+
+      break;
+    case QXmlStreamReader::EndElement:
+      if (xml->name() == "table")
+        return tableInfo;
+
+      break;
+    default:
+      break;
+    }
+  }
+
+  return tableInfo;
+}
+
 QMap<QString, RLIPanelInfo> RLIConfig::readPanelLayouts(QXmlStreamReader* xml) {
   QMap<QString, RLIPanelInfo> panels;
   RLIPanelInfo current_panel;
@@ -122,8 +148,8 @@ QMap<QString, RLIPanelInfo> RLIConfig::readPanelLayouts(QXmlStreamReader* xml) {
       }
 
       if (xml->name() == "table") {
-        auto attrs = readXMLAttributes(xml);
-        current_panel.tables.insert(attrs["name"], attrs);
+        auto tblInfo = readTableInfo(xml);
+        current_panel.tables.insert(tblInfo.params["name"], tblInfo);
       }
 
       break;

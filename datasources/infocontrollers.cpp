@@ -806,47 +806,45 @@ VnController::VnController(QObject* parent) : InfoBlockController(parent) {
   _board_ptr_id  = -1;
 }
 
-void VnController::display_brg(float brg, float crsangle)
-{
+void VnController::display_brg(float brg, float crsangle) {
   //QByteArray str;
   QString s;
-  if (_p_text_id != -1)
-  {
-    for (int i = 0; i < RLI_LANG_COUNT; i++)
-    {
-        s.sprintf("%.1f", brg);
-        //str = s.toStdString().c_str();
-
-        emit setText(_p_text_id, i, s.toStdString().c_str());
+  if (_p_text_id != -1) {
+    for (int i = 0; i < RLI_LANG_COUNT; i++) {
+      s.sprintf("%.1f", brg);
+      //str = s.toStdString().c_str();
+      emit setText(_p_text_id, i, s.toStdString().c_str());
     }
   }
 
-  if (_cu_text_id != -1)
-  {
+  if (_cu_text_id != -1) {
     bool starboard = true;
     bool oncourse  = false;
-    if(crsangle < 0)
-    {
+
+    if(crsangle < 0) {
         crsangle *= -1;
         starboard = false; // portside
-    }
-    else if((crsangle == 0) || (crsangle == 180))
-        oncourse = true;
+    } else if((crsangle == 0) || (crsangle == 180))
+      oncourse = true;
+
     s.sprintf("%.1f", crsangle);
     //str = s.toStdString().c_str();
-    for (int i = 0; i < RLI_LANG_COUNT; i++)
-    {
-        emit setText(_cu_text_id, i, s.toStdString().c_str());
-        if(_board_ptr_id == -1)
-            continue;
-        QByteArray brdptr;
-        if(oncourse)
-            brdptr = " ";
-        else if(starboard)
-            brdptr = enc->fromUnicode(dec->toUnicode(RLIStrings::nGradRb[i]));
-        else
-            brdptr = enc->fromUnicode(dec->toUnicode(RLIStrings::nGradLb[i]));
-        emit setText(_board_ptr_id, i, brdptr);
+    for (int i = 0; i < RLI_LANG_COUNT; i++) {
+      emit setText(_cu_text_id, i, s.toStdString().c_str());
+
+      if(_board_ptr_id == -1)
+        continue;
+
+      QByteArray brdptr;
+
+      if(oncourse)
+        brdptr = " ";
+      else if(starboard)
+        brdptr = enc->fromUnicode(dec->toUnicode(RLIStrings::nGradRb[i]));
+      else
+        brdptr = enc->fromUnicode(dec->toUnicode(RLIStrings::nGradLb[i]));
+
+      emit setText(_board_ptr_id, i, brdptr);
     }
   }
 }
@@ -854,6 +852,13 @@ void VnController::display_brg(float brg, float crsangle)
 void VnController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
+
+  qDebug() << "vn";
+  qDebug() << panelInfo.tables["table"].params;
+  qDebug() << panelInfo.tables["table"].columns["col1"];
+  qDebug() << panelInfo.tables["table"].columns["col2"];
+  qDebug() << panelInfo.tables["table"].columns["col3"];
+
 
   InfoText t;
 

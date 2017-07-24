@@ -36,9 +36,9 @@
         <panel name="vn" x="4" y="-4" width="140" height="66" font1="12x14">
           <text name="header" rect="" allign="center" font="12x14" />
           <table name="table" top="" rows="" row_height="">
-            <column name="col1" left="" width="" />
-            <column name="col2" left="" width="" />
-            <column name="col3" left="" width="" />
+            <column name="col1" left="" width="" allign="left" />
+            <column name="col2" left="" width="" allign="right" />
+            <column name="col3" left="" width="" allign="center" />
           </table>
         </panel>
 
