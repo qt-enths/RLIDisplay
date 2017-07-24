@@ -24,8 +24,8 @@ void RLILayout::print() const {
   qDebug() << "panels";
   for (QString panel_name : panels.keys()) {
     qDebug() << "\t" << panel_name;
-    for (QString attr : panels[panel_name].keys())
-      qDebug() << "\t\t" << attr << ": " << panels[panel_name][attr];
+    for (QString attr : panels[panel_name].params.keys())
+      qDebug() << "\t\t" << attr << ": " << panels[panel_name].params[attr];
   }
 }
 
@@ -99,15 +99,38 @@ RLILayout* RLIConfig::readLayout(QXmlStreamReader* xml) {
   return layout;
 }
 
-QMap<QString, QMap<QString, QString>> RLIConfig::readPanelLayouts(QXmlStreamReader* xml) {
-  QMap<QString, QMap<QString, QString>> panels;
+QMap<QString, RLIPanelInfo> RLIConfig::readPanelLayouts(QXmlStreamReader* xml) {
+  QMap<QString, RLIPanelInfo> panels;
+  RLIPanelInfo current_panel;
 
   while (!xml->atEnd()) {
     switch (xml->readNext()) {
     case QXmlStreamReader::StartElement:
-      panels.insert(xml->name().toString(), readXMLAttributes(xml));
+      if (xml->name() == "panel") {
+        current_panel.clear();
+        current_panel.params = readXMLAttributes(xml);
+      }
 
+      if (xml->name() == "text") {
+        auto attrs = readXMLAttributes(xml);
+        current_panel.texts.insert(attrs["name"], attrs);
+      }
+
+      if (xml->name() == "rect") {
+        auto attrs = readXMLAttributes(xml);
+        current_panel.rects.insert(attrs["name"], attrs);
+      }
+
+      if (xml->name() == "table") {
+        auto attrs = readXMLAttributes(xml);
+        current_panel.tables.insert(attrs["name"], attrs);
+      }
+
+      break;
     case QXmlStreamReader::EndElement:
+      if (xml->name() == "panel")
+        panels.insert(current_panel.params["name"], current_panel);
+
       if (xml->name() == "panels")
         return panels;
 

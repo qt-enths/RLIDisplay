@@ -24,23 +24,23 @@ InfoBlockController::InfoBlockController(QObject* parent) : QObject(parent) {
   dec = QTextCodec::codecForName("UTF8")->makeDecoder();
 }
 
-void InfoBlockController::resize(const QSize& size, const QMap<QString, QString>& params) {
+void InfoBlockController::resize(const QSize& size, const RLIPanelInfo& panelInfo) {
   if (_block == NULL)
     return;
 
   _block->clear();
-  setupBlock(_block, size, params);
+  setupBlock(_block, size, panelInfo);
 }
 
 void InfoBlockController::onLanguageChanged(int lang_id) {
   Q_UNUSED(lang_id);
 }
 
-void InfoBlockController::setupBlock(InfoBlock* b, const QSize& screen_size, const QMap<QString, QString>& params) {
+void InfoBlockController::setupBlock(InfoBlock* b, const QSize& screen_size, const RLIPanelInfo& panelInfo) {
   _block = b;
 
-  QPoint leftTop(params["x"].toInt(), params["y"].toInt());
-  QSize size(params["width"].toInt(), params["height"].toInt());
+  QPoint leftTop(panelInfo.params["x"].toInt(), panelInfo.params["y"].toInt());
+  QSize size(panelInfo.params["width"].toInt(), panelInfo.params["height"].toInt());
 
   if (leftTop.x() < 0) leftTop.setX(leftTop.x() + screen_size.width() - size.width());
   if (leftTop.y() < 0) leftTop.setY(leftTop.y() + screen_size.height() - size.height());
@@ -50,7 +50,7 @@ void InfoBlockController::setupBlock(InfoBlock* b, const QSize& screen_size, con
 
   _block->setGeometry(QRect(leftTop, size));
 
-  initBlock(params);
+  initBlock(panelInfo);
 }
 
 void InfoBlockController::setInfoTextStr(InfoText& t, char** str) {
@@ -63,6 +63,24 @@ void InfoBlockController::setInfoTextBts(InfoText& t, QByteArray str) {
     t.str[i] = str;
 }
 
+TextAllign InfoBlockController::allignFromString(const QString& s) {
+  if (s == "center")
+    return INFOTEXT_ALLIGN_CENTER;
+
+  if (s == "left")
+    return INFOTEXT_ALLIGN_LEFT;
+
+  if (s == "right")
+    return INFOTEXT_ALLIGN_RIGHT;
+
+  return INFOTEXT_ALLIGN_CENTER;
+}
+
+QRect InfoBlockController::rectFromString(const QString& s) {
+  QStringList l = s.split("x");
+  return QRect(l[0].toInt(), l[1].toInt(), l[2].toInt(), l[3].toInt());
+}
+
 //------------------------------------------------------------------------------
 
 ValueBarController::ValueBarController(char** name, int max_val, QObject* parent) : InfoBlockController(parent) {
@@ -73,15 +91,15 @@ ValueBarController::ValueBarController(char** name, int max_val, QObject* parent
   _name = name;
 }
 
-void ValueBarController::initBlock(const QMap<QString, QString>& params) {
+void ValueBarController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
   int border_width = _block->getBorderWidth();
   int block_width = _block->getGeometry().width();
   int block_height = _block->getGeometry().height();
-  _bar_width = params["bar_width"].toInt();
-  QString font1 = params["font"];
+  _bar_width = panelInfo.params["bar_width"].toInt();
+  QString font = panelInfo.params["font"];
 
   InfoRect r;
   r.col = INFO_BORDER_COLOR;
@@ -92,7 +110,7 @@ void ValueBarController::initBlock(const QMap<QString, QString>& params) {
   _val_rect_id = _block->addRect(r);
 
   InfoText t;
-  t.font_tag = font1;
+  t.font_tag = font;
   setInfoTextStr(t, _name);
   t.rect = QRect(0, 0, block_width - _bar_width - border_width, block_height);
   t.allign = INFOTEXT_ALLIGN_CENTER;
@@ -140,14 +158,14 @@ void LabelController::onTextChanged(char** text) {
     emit setText(_text_id, i, enc->fromUnicode(dec->toUnicode(text[i])));
 }
 
-void LabelController::initBlock(const QMap<QString, QString>& params) {
+void LabelController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
   QRect geom = _block->getGeometry();
 
-  t.font_tag = params["font"];
+  t.font_tag = panelInfo.params["font"];
   t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
@@ -174,48 +192,41 @@ void ScaleController::onScaleChanged(RadarScale scale) {
   emit setText(2, 1, s.second);
 }
 
-void ScaleController::initBlock(const QMap<QString, QString>& params) {
+void ScaleController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
   InfoText t;
-  std::pair<QByteArray, QByteArray> s("0.125", "0.125");
-
-  t.font_tag = "16x28";
-  t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
-  t.rect = QRect(6, 5, 5*16, 28);
-  if(s.first.size())
-    setInfoTextBts(t, s.first);
-  else
-    setInfoTextBts(t, QByteArray("0.125"));
+  t.font_tag = panelInfo.texts["scale1"]["font"];
+  t.allign = allignFromString(panelInfo.texts["scale1"]["allign"]);
+  t.rect = rectFromString(panelInfo.texts["scale1"]["rect"]);
+  setInfoTextBts(t, QByteArray("0.125"));
   _block->addText(t);
 
-  t.allign = INFOTEXT_ALLIGN_LEFT;
-
-  t.rect = QRect(6+5*16, 5, 16, 28);
+  t.font_tag = panelInfo.texts["slash"]["font"];
+  t.allign = allignFromString(panelInfo.texts["slash"]["allign"]);
+  t.rect = rectFromString(panelInfo.texts["slash"]["rect"]);
   setInfoTextBts(t, QByteArray("/"));
   _block->addText(t);
 
-  t.font_tag = "14x14";
-
-  t.rect = QRect(6+6*16, 5+12, 5*14, 14);
-  if(s.second.size())
-    setInfoTextBts(t, s.second);
-  else
-    setInfoTextBts(t, QByteArray("0.025"));
+  t.font_tag = panelInfo.texts["scale2"]["font"];
+  t.allign = allignFromString(panelInfo.texts["scale2"]["allign"]);
+  t.rect = rectFromString(panelInfo.texts["scale2"]["rect"]);
+  setInfoTextBts(t, QByteArray("0.025"));
   _block->addText(t);
 
   InfoRect r;
   r.col = INFO_BORDER_COLOR;
-  r.rect = QRect(6+6*16+5*14+2, 0, 2, 4+28+4);
+  r.rect = rectFromString(panelInfo.rects["splitter"]["rect"]);
   _block->addRect(r);
 
-  t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = INFO_TEXT_STATIC_COLOR;
 
-  t.rect = QRect(6+6*16+5*14+2+2+2, 5+7, 4*14, 14);
+  t.font_tag = panelInfo.texts["units"]["font"];
+  t.allign = allignFromString(panelInfo.texts["units"]["allign"]);
+  t.rect = rectFromString(panelInfo.texts["units"]["rect"]);
   setInfoTextStr(t, RLIStrings::nNM);
   _block->addText(t);
 }
@@ -242,7 +253,7 @@ void CourseController::speed_changed(float speed) {
   Q_UNUSED(speed);
 }
 
-void CourseController::initBlock(const QMap<QString, QString>& params) {
+void CourseController::initBlock(const RLIPanelInfo& panelInfo) {
   QSize font_size(12, 14);
 
   _block->setBackColor(INFO_BACKGRD_COLOR);
@@ -307,7 +318,7 @@ void PositionController::pos_changed(QVector2D coords) {
   emit setText(_lon_text_id, RLI_LANG_RUSSIAN, lon);
 }
 
-void PositionController::initBlock(const QMap<QString, QString>& params) {
+void PositionController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -342,7 +353,7 @@ void PositionController::initBlock(const QMap<QString, QString>& params) {
 BlankController::BlankController(QObject* parent) : InfoBlockController(parent) {
 }
 
-void BlankController::initBlock(const QMap<QString, QString>& params) {
+void BlankController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 }
@@ -352,7 +363,7 @@ void BlankController::initBlock(const QMap<QString, QString>& params) {
 DangerController::DangerController(QObject* parent) : InfoBlockController(parent) {
 }
 
-void DangerController::initBlock(const QMap<QString, QString>& params) {
+void DangerController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_TEXT_DYNAMIC_COLOR);
 
   InfoText t;
@@ -394,7 +405,7 @@ void TailsController::onTailsModeChanged(int mode, int minutes) {
   }
 }
 
-void TailsController::initBlock(const QMap<QString, QString>& params) {
+void TailsController::initBlock(const RLIPanelInfo& panelInfo) {
   char * minsarray[2];
 
   _block->setBackColor(INFO_BACKGRD_COLOR);
@@ -443,7 +454,7 @@ DangerDetailsController::DangerDetailsController(QObject* parent) : InfoBlockCon
   _vks_text_id = -1;
 }
 
-void DangerDetailsController::initBlock(const QMap<QString, QString>& params) {
+void DangerDetailsController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -494,7 +505,7 @@ VectorController::VectorController(QObject* parent) : InfoBlockController(parent
 
 }
 
-void VectorController::initBlock(const QMap<QString, QString>& params) {
+void VectorController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -564,7 +575,7 @@ void TargetsController::updateTarget(const QString& tag, const RadarTarget& trgt
   emit setText(_sog_text_id, RLI_LANG_RUSSIAN, soga);
 }
 
-void TargetsController::initBlock(const QMap<QString, QString>& params) {
+void TargetsController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -716,7 +727,7 @@ CursorController::CursorController(QObject* parent) : InfoBlockController(parent
   _dis_text_id = -1;
 }
 
-void CursorController::initBlock(const QMap<QString, QString>& params) {
+void CursorController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -840,7 +851,7 @@ void VnController::display_brg(float brg, float crsangle)
   }
 }
 
-void VnController::initBlock(const QMap<QString, QString>& params) {
+void VnController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -906,7 +917,7 @@ void VdController::display_distance(float dist, const char * fmt)
     emit setText(_vd_text_id, 1, s.toLocal8Bit());
 }
 
-void VdController::initBlock(const QMap<QString, QString>& params) {
+void VdController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
@@ -944,7 +955,7 @@ ClockController::ClockController(QObject* parent) : InfoBlockController(parent) 
   _text_id = -1;
 }
 
-void ClockController::initBlock(const QMap<QString, QString>& params) {
+void ClockController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_TRANSPARENT_COLOR);
 
   InfoText t;

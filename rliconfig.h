@@ -7,12 +7,25 @@
 
 class QXmlStreamReader;
 
+struct RLIPanelInfo {
+  QMap<QString, QString> params;
+  QMap<QString, QMap<QString, QString>> texts;
+  QMap<QString, QMap<QString, QString>> rects;
+  QMap<QString, QMap<QString, QString>> tables;
+
+  inline void clear() {
+    params.clear();
+    texts.clear();
+    rects.clear();
+    tables.clear();
+  }
+};
+
 struct RLILayout {
   QMap<QString, QString> circle;
   QMap<QString, QString> menu;
   QMap<QString, QString> magnifier;
-
-  QMap<QString, QMap<QString, QString>> panels;
+  QMap<QString, RLIPanelInfo> panels;
 
   void print() const;
 };
@@ -23,7 +36,7 @@ struct RLILayout {
 class RLIConfig {
 public:
   static RLIConfig& instance() {
-    static RLIConfig config("config.xml");
+    static RLIConfig config("config.xml");    
     return config;
   }
 
@@ -43,7 +56,7 @@ private:
 
   QMap<QString, QString> readXMLAttributes(QXmlStreamReader* xml);
   RLILayout* readLayout(QXmlStreamReader* xml);
-  QMap<QString, QMap<QString, QString>> readPanelLayouts(QXmlStreamReader* xml);
+  QMap<QString, RLIPanelInfo> readPanelLayouts(QXmlStreamReader* xml);
 
   QMap<QString, RLILayout*> _layouts;
   QString _currentSize;

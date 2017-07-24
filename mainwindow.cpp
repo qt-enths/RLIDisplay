@@ -362,9 +362,9 @@ void MainWindow::onRLIWidgetInitialized() {
   }
 }
 
-void MainWindow::setupInfoBlock(InfoBlockController* ctrl, const QMap<QString, QString>& params) {
+void MainWindow::setupInfoBlock(InfoBlockController* ctrl, const RLIPanelInfo& panelInfo) {
   InfoBlock* blck = wgtRLI->infoEngine()->addInfoBlock();
-  ctrl->setupBlock(blck, RLIConfig::instance().currentSize(), params);
+  ctrl->setupBlock(blck, RLIConfig::instance().currentSize(), panelInfo);
 
   connect(ctrl, SIGNAL(setRect(int, QRect)), blck, SLOT(setRect(int, QRect)));
   connect(ctrl, SIGNAL(setText(int, int, QByteArray)), blck, SLOT(setText(int, int, QByteArray)));  
