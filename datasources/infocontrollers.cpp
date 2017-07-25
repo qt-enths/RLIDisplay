@@ -853,54 +853,61 @@ void VnController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
-  qDebug() << "vn";
-  qDebug() << panelInfo.tables["table"].params;
-  qDebug() << panelInfo.tables["table"].columns["col1"];
-  qDebug() << panelInfo.tables["table"].columns["col2"];
-  qDebug() << panelInfo.tables["table"].columns["col3"];
-
-
   InfoText t;
-
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(0, 6, 136, 14);
+  t.font_tag = panelInfo.texts["header"]["font"];
+  t.allign = allignFromString(panelInfo.texts["header"]["allign"]);
+  t.rect = rectFromString(panelInfo.texts["header"]["rect"]);
   setInfoTextStr(t, RLIStrings::nEbl);
   _block->addText(t);
 
-  t.rect = QRect(4, 28, 132, 14);
-  t.allign = INFOTEXT_ALLIGN_LEFT;
+  int top = panelInfo.tables["table"].params["top"].toInt();
+  int height = panelInfo.tables["table"].params["row_height"].toInt();
+
+  // Column 1
+  int left = panelInfo.tables["table"].columns["col1"]["left"].toInt();
+  int width = panelInfo.tables["table"].columns["col1"]["width"].toInt();
+
+  t.font_tag = panelInfo.tables["table"].columns["col1"]["font"];
+  t.allign = allignFromString(panelInfo.tables["table"].columns["col1"]["allign"]);
+
+  t.rect = QRect(left, top+0*height, width, height);
   setInfoTextStr(t, RLIStrings::nVN);
   _block->addText(t);
 
-  t.rect = QRect(4, 46, 132, 14);
+  t.rect = QRect(left, top+1*height, width, height);
   setInfoTextStr(t, RLIStrings::nCu);
   _block->addText(t);
 
-  //
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_RIGHT;
+  // Column 2
+  left = panelInfo.tables["table"].columns["col2"]["left"].toInt();
+  width = panelInfo.tables["table"].columns["col2"]["width"].toInt();
+
+  t.font_tag = panelInfo.tables["table"].columns["col2"]["font"];
+  t.allign = allignFromString(panelInfo.tables["table"].columns["col2"]["allign"]);
   t.color = INFO_TEXT_DYNAMIC_COLOR;
 
-  t.rect = QRect(4+2*12+5*12+6, 28, 0, 14);
+  t.rect = QRect(left, top+0*height, width, height);
   setInfoTextBts(t, QByteArray("0.0"));
   _p_text_id = _block->addText(t);
 
-  t.rect = QRect(4+2*12+5*12+6, 46, 0, 14);
+  t.rect = QRect(left, top+1*height, width, height);
   setInfoTextBts(t, QByteArray("0.0"));
   _cu_text_id = _block->addText(t);
 
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
+  // Column 3
+  left = panelInfo.tables["table"].columns["col3"]["left"].toInt();
+  width = panelInfo.tables["table"].columns["col3"]["width"].toInt();
+
+  t.font_tag = panelInfo.tables["table"].columns["col3"]["font"];
+  t.allign = allignFromString(panelInfo.tables["table"].columns["col3"]["allign"]);
   t.color = INFO_TEXT_STATIC_COLOR;
 
-  t.rect = QRect(4+2*12+5*12+2+2, 28, 0, 14);
+  t.rect = QRect(left, top+0*height, width, height);
   setInfoTextStr(t, RLIStrings::nGrad);
   _block->addText(t);
 
-  t.rect = QRect(4+2*12+5*12+2+2, 46, 0, 14);
+  t.rect = QRect(left, top+1*height, width, height);
   setInfoTextStr(t, RLIStrings::nGradLb);
   _board_ptr_id = _block->addText(t);
 }

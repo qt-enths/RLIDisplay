@@ -33,12 +33,12 @@
           <rect name="splitter" rect="174x0x1x36" />
         </panel>
 
-        <panel name="vn" x="4" y="-4" width="140" height="66" font1="12x14">
-          <text name="header" rect="" allign="center" font="12x14" />
-          <table name="table" top="" rows="" row_height="">
-            <column name="col1" left="" width="" allign="left" />
-            <column name="col2" left="" width="" allign="right" />
-            <column name="col3" left="" width="" allign="center" />
+        <panel name="vn" x="4" y="-4" width="140" height="66">
+          <text name="header" rect="0x6x132x14" allign="center" font="12x14" />
+          <table name="table" top="28" row_height="18">
+            <column name="col1" left="4" width="36" allign="left" font="12x14" />
+            <column name="col2" left="40" width="60" allign="right" font="12x14" />
+            <column name="col3" left="100" width="36" allign="left" font="12x14" />
           </table>
         </panel>
 
