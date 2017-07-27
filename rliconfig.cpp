@@ -132,7 +132,7 @@ QMap<QString, RLIPanelInfo> RLIConfig::readPanelLayouts(QXmlStreamReader* xml) {
   while (!xml->atEnd()) {
     switch (xml->readNext()) {
     case QXmlStreamReader::StartElement:
-      if (xml->name() == "panel") {
+      if (xml->name() == "panel" || xml->name() == "value-bar" || xml->name() == "label") {
         current_panel.clear();
         current_panel.params = readXMLAttributes(xml);
       }
@@ -154,7 +154,7 @@ QMap<QString, RLIPanelInfo> RLIConfig::readPanelLayouts(QXmlStreamReader* xml) {
 
       break;
     case QXmlStreamReader::EndElement:
-      if (xml->name() == "panel")
+      if (xml->name() == "panel" || xml->name() == "value-bar" || xml->name() == "label")
         panels.insert(current_panel.params["name"], current_panel);
 
       if (xml->name() == "panels")
