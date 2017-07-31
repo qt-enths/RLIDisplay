@@ -3,13 +3,14 @@
 
 #include <QString>
 #include <QSize>
+#include <QVector>
 #include <QMap>
 
 class QXmlStreamReader;
 
 struct RLIPanelTableInfo {
   QMap<QString, QString> params;
-  QMap<QString, QMap<QString, QString>> columns;
+  QVector<QMap<QString, QString>> columns;
 
   inline void clear() {
     params.clear();

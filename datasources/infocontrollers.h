@@ -32,7 +32,7 @@ protected:
   virtual void initBlock(const RLIPanelInfo& panelInfo) = 0;
 
   void setInfoTextParams(InfoText& t, QMap<QString, QString> params);
-  void setInfoTextParams(InfoText& t, const RLIPanelTableInfo& tblInfo, int row, const QString& col);
+  void setInfoTextParams(InfoText& t, const RLIPanelTableInfo& tblInfo, int row, int col);
 
   void setInfoTextStr(InfoText& t, char** str);
   void setInfoTextBts(InfoText& t, QByteArray str);

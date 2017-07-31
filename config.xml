@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rli-config>
-  <use-button-pannel>true</use-button-pannel>
+  <use-button-pannel>false</use-button-pannel>
   <default-layout>1024x768</default-layout>
 
   <layouts>
@@ -23,8 +23,6 @@
         <label name="label3" x="-244" y="92" width="112" height="20" font="12x14" />
         <label name="label4" x="-244" y="-68" width="96" height="32" font="16x28" />
 
-        <label name="danger" x="-4" y="-330" width="236" height="20" font="12x14" />
-
         <!-- rect="left_x_top_x_width_x_height" -->
         <panel name="scale" x="-244" y="4" width="236" height="36">
           <text name="scale1" rect="5x5x80x28" allign="center" font="16x28" />
@@ -37,32 +35,32 @@
         <panel name="vn" x="4" y="-4" width="140" height="66">
           <text name="header" rect="0x6x132x14" allign="center" font="12x14" />
           <table name="table" top="28" row_height="18">
-            <column name="col1" left="4" width="36" allign="left" font="12x14" />
-            <column name="col2" left="40" width="60" allign="right" font="12x14" />
-            <column name="col3" left="100" width="36" allign="left" font="8x14" />
+            <column left="4" width="36" allign="left" font="12x14" />
+            <column left="40" width="60" allign="right" font="12x14" />
+            <column left="100" width="36" allign="left" font="8x14" />
           </table>
         </panel>
 
         <panel name="vd" x="-244" y="-4" width="140" height="52">
           <text name="header" rect="0x6x132x14" allign="center" font="12x14" />
           <table name="table" top="28" row_height="18">
-            <column name="col1" left="4" width="90" allign="right" font="12x14" />
-            <column name="col2" left="100" width="40" allign="left" font="8x14" />
+            <column left="4" width="90" allign="right" font="12x14" />
+            <column left="100" width="40" allign="left" font="8x14" />
           </table>
         </panel>
 
         <panel name="course" x="-4" y="4" width="236" height="38">
           <table name="table" top="4" row_height="18">
-            <column name="col1" left="4" width="116" allign="left" font="12x14" />
-            <column name="col2" left="120" width="60" allign="right" font="12x14" />
-            <column name="col3" left="186" width="36" allign="left" font="8x14" />
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
           </table>
         </panel>
 
         <panel name="position" x="-4" y="46" width="236" height="38">
           <table name="table" top="4" row_height="18">
-            <column name="col1" left="4" width="116" allign="left" font="12x14" />
-            <column name="col2" left="120" width="112" allign="right" font="12x14" />
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="112" allign="right" font="12x14" />
           </table>
         </panel>
 
@@ -74,31 +72,62 @@
           <text name="time" rect="120x4x96x14" allign="center" font="12x14" />
         </panel>
 
+        <panel name="danger" x="-4" y="-330" width="236" height="20">
+          <text name="label" rect="0x0x236x20" allign="center" font="12x14" />
+        </panel>
+
         <panel name="tails" x="-4" y="-306" width="236" height="20">
+          <table name="table" top="3" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
         <panel name="danger-details" x="-4" y="-264" width="236" height="38">
+          <table name="table" top="3" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
         <panel name="vector" x="-4" y="-240" width="236" height="20">
+          <table name="table" top="3" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
-        <panel name="targers" x="-4" y="-68" width="236" height="168">
+        <panel name="targets" x="-4" y="-68" width="236" height="168">
+          <rect name="header-middle" rect="118x0x1x20" />
+          <rect name="header-bottom" rect="0x20x236x1" />
+
+          <text name="header" rect="4x4x228x14" allign="left" font="12x14" />
+          <text name="current-target" rect="4x4x110x14" allign="right" font="12x14" />
+          <text name="target-count" rect="4x4x228x14" allign="right" font="12x14" />
+
+          <table name="table" top="24" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
         <panel name="cursor" x="-4" y="-4" width="236" height="60">
           <text name="header" rect="0x4x236x14" allign="center" font="12x14" />
           <table name="table" top="24" row_height="18">
-            <column name="col1" left="4" width="116" allign="left" font="12x14" />
-            <column name="col2" left="120" width="60" allign="right" font="12x14" />
-            <column name="col3" left="186" width="36" allign="left" font="8x14" />
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
           </table>
         </panel>
       </panels>
     </layout>
 
     <layout size="1366x768">
-      <rli-circle x="404" y="384" radius="360" />
+      <rli-circle x="536" y="384" radius="360" />
       <menu x="-4" y="152" width="236" height="262" font="12x14" />
       <magnifier x="-10" y="155" width="224" height="224" />
 
@@ -128,48 +157,93 @@
         <panel name="vn" x="4" y="-4" width="140" height="66">
           <text name="header" rect="0x6x132x14" allign="center" font="12x14" />
           <table name="table" top="28" row_height="18">
-            <column name="col1" left="4" width="36" allign="left" font="12x14" />
-            <column name="col2" left="40" width="60" allign="right" font="12x14" />
-            <column name="col3" left="100" width="36" allign="left" font="8x14" />
+            <column left="4" width="36" allign="left" font="12x14" />
+            <column left="40" width="60" allign="right" font="12x14" />
+            <column left="100" width="36" allign="left" font="8x14" />
           </table>
         </panel>
 
-        <panel name="vd" x="-244" y="-4" width="140" height="52" font1="12x14" font2="8x14">
+        <panel name="vd" x="-244" y="-4" width="140" height="52">
           <text name="header" rect="0x6x132x14" allign="center" font="12x14" />
           <table name="table" top="28" row_height="18">
-            <column name="col1" left="4" width="90" allign="right" font="12x14" />
-            <column name="col2" left="100" width="40" allign="left" font="8x14" />
+            <column left="4" width="90" allign="right" font="12x14" />
+            <column left="100" width="40" allign="left" font="8x14" />
           </table>
         </panel>
 
-        <panel name="cursor" x="-4" y="-4" width="236" height="60" font1="12x14" font2="8x14" >
+        <panel name="course" x="-4" y="4" width="236" height="38">
+          <table name="table" top="4" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
-        <panel name="course" x="-4" y="4" width="236" height="38" font1="12x14" font2="8x14" >
+        <panel name="position" x="-4" y="46" width="236" height="38">
+          <table name="table" top="4" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="112" allign="right" font="12x14" />
+          </table>
         </panel>
 
-        <panel name="position" x="-4" y="46" width="236" height="38" font1="12x14" font2="8x14" >
+        <panel name="blank" x="-4" y="88" width="236" height="38">
         </panel>
 
-        <panel name="blank" x="-4" y="88" width="236" height="38" >
+        <panel name="clock" x="-4" y="130" width="236" height="18">
+          <text name="label" rect="4x4x80x14" allign="center" font="12x14" />
+          <text name="time" rect="120x4x96x14" allign="center" font="12x14" />
         </panel>
 
-        <panel name="clock" x="-4" y="130" width="236" height="18" font1="12x14" >
+        <panel name="danger" x="-4" y="-330" width="236" height="20">
+          <text name="label" rect="0x0x236x20" allign="center" font="12x14" />
         </panel>
 
-        <panel name="danger" x="-4" y="-330" width="236" height="20" font1="12x14" >
+        <panel name="tails" x="-4" y="-306" width="236" height="20">
+          <table name="table" top="3" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
-        <panel name="tails" x="-4" y="-306" width="236" height="20" font1="12x14" font2="8x14" >
+        <panel name="danger-details" x="-4" y="-264" width="236" height="38">
+          <table name="table" top="3" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
-        <panel name="danger-details" x="-4" y="-264" width="236" height="38" font1="12x14" font2="8x14" >
+        <panel name="vector" x="-4" y="-240" width="236" height="20">
+          <table name="table" top="3" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
-        <panel name="vector" x="-4" y="-240" width="236" height="20" font1="12x14" font2="8x14" >
+        <panel name="targets" x="-4" y="-68" width="236" height="168">
+          <rect name="header-middle" rect="118x0x1x20" />
+          <rect name="header-bottom" rect="0x20x236x1" />
+
+          <text name="header" rect="4x4x228x14" allign="left" font="12x14" />
+          <text name="current-target" rect="4x4x110x14" allign="right" font="12x14" />
+          <text name="target-count" rect="4x4x228x14" allign="right" font="12x14" />
+
+          <table name="table" top="24" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
 
-        <panel name="targers" x="-4" y="-68" width="236" height="168" font1="12x14" font2="8x14" >
+        <panel name="cursor" x="-4" y="-4" width="236" height="60">
+          <text name="header" rect="0x4x236x14" allign="center" font="12x14" />
+          <table name="table" top="24" row_height="18">
+            <column left="4" width="116" allign="left" font="12x14" />
+            <column left="120" width="60" allign="right" font="12x14" />
+            <column left="186" width="36" allign="left" font="8x14" />
+          </table>
         </panel>
       </panels>
     </layout>

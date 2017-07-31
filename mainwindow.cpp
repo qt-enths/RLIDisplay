@@ -275,7 +275,7 @@ void MainWindow::onRLIWidgetInitialized() {
   setupInfoBlock(_tals_ctrl, layout->panels["tails"]);
   setupInfoBlock(_dgdt_ctrl, layout->panels["danger-details"]);
   setupInfoBlock(_vctr_ctrl, layout->panels["vector"]);
-  setupInfoBlock(_trgs_ctrl, layout->panels["targers"]);
+  setupInfoBlock(_trgs_ctrl, layout->panels["targets"]);
 
   setupInfoBlock(_vn_ctrl, layout->panels["vn"]);
   setupInfoBlock(_vd_ctrl, layout->panels["vd"]);
@@ -409,7 +409,7 @@ void MainWindow::resizeEvent(QResizeEvent* e) {
   _tals_ctrl->resize(curSize, layout->panels["tails"]);
   _dgdt_ctrl->resize(curSize, layout->panels["danger-details"]);
   _vctr_ctrl->resize(curSize, layout->panels["vector"]);
-  _trgs_ctrl->resize(curSize, layout->panels["targers"]);
+  _trgs_ctrl->resize(curSize, layout->panels["targets"]);
 
   _vn_ctrl->resize(curSize, layout->panels["vn"]);
   _vd_ctrl->resize(curSize, layout->panels["vd"]);

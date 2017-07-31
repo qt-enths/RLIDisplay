@@ -106,10 +106,8 @@ RLIPanelTableInfo RLIConfig::readTableInfo(QXmlStreamReader* xml) {
   while (!xml->atEnd()) {
     switch (xml->readNext()) {
     case QXmlStreamReader::StartElement:
-      if (xml->name() == "column") {
-        auto attrs = readXMLAttributes(xml);
-        tableInfo.columns.insert(attrs["name"], attrs);
-      }
+      if (xml->name() == "column")
+        tableInfo.columns.push_back(readXMLAttributes(xml));
 
       break;
     case QXmlStreamReader::EndElement:

@@ -59,7 +59,7 @@ void InfoBlockController::setInfoTextParams(InfoText& t, QMap<QString, QString> 
   t.rect = rectFromString(params["rect"]);
 }
 
-void InfoBlockController::setInfoTextParams(InfoText& t, const RLIPanelTableInfo& tblInfo, int row, const QString& col) {
+void InfoBlockController::setInfoTextParams(InfoText& t, const RLIPanelTableInfo& tblInfo, int row, int col) {
   int top = tblInfo.params["top"].toInt();
   int height = tblInfo.params["row_height"].toInt();
   int left = tblInfo.columns[col]["left"].toInt();
@@ -269,31 +269,31 @@ void CourseController::initBlock(const RLIPanelInfo& panelInfo) {
 
   InfoText t;
   t.color = INFO_TEXT_STATIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col1");
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nGiro);
   _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col1");
+  setInfoTextParams(t, tblInfo, 1, 0);
   setInfoTextStr(t, RLIStrings::nMspd);
   _block->addText(t);
 
 
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col2");
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextBts(t, QByteArray("0"));
   _crs_text_id = _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col2");
+  setInfoTextParams(t, tblInfo, 1, 1);
   setInfoTextBts(t, QByteArray("0"));
   _spd_text_id =_block->addText(t);
 
 
   t.color = INFO_TEXT_STATIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col3");
+  setInfoTextParams(t, tblInfo, 0, 2);
   setInfoTextStr(t, RLIStrings::nGrad);
   _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col3");
+  setInfoTextParams(t, tblInfo, 1, 2);
   setInfoTextStr(t, RLIStrings::nNM);
   _block->addText(t);
 }
@@ -323,21 +323,21 @@ void PositionController::initBlock(const RLIPanelInfo& panelInfo) {
 
   InfoText t;
   t.color = INFO_TEXT_STATIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col1");
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nLat);
   _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col1");
+  setInfoTextParams(t, tblInfo, 1, 0);
   setInfoTextStr(t, RLIStrings::nLon);
   _block->addText(t);
 
 
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col2");
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextStr(t, RLIStrings::nBlank);
   _lat_text_id = _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col2");
+  setInfoTextParams(t, tblInfo, 1, 1);
   setInfoTextStr(t, RLIStrings::nBlank);
   _lon_text_id =_block->addText(t);
 }
@@ -364,10 +364,8 @@ void DangerController::initBlock(const RLIPanelInfo& panelInfo) {
 
   InfoText t;
 
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_CENTER;
   t.color = INFO_BACKGRD_COLOR;
-  t.rect = QRect(1, 1, 236, 20);
+  setInfoTextParams(t, panelInfo.texts["label"]);
   setInfoTextStr(t, RLIStrings::nDng);
   //_block->addText(t);
 }
@@ -409,36 +407,30 @@ void TailsController::initBlock(const RLIPanelInfo& panelInfo) {
 
   InfoText t;
 
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
-  t.color = INFO_TEXT_STATIC_COLOR;
+  RLIPanelTableInfo tblInfo = panelInfo.tables["table"];
 
-  t.rect = QRect(4, 4, 0, 14);
+  t.color = INFO_TEXT_STATIC_COLOR;
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nTrl);
   _mode_text_id = _block->addText(t);
 
-  t.allign = INFOTEXT_ALLIGN_RIGHT;
-  t.color = INFO_TEXT_DYNAMIC_COLOR;
-
   QString mins;
-  for (int i = 0; i < RLI_LANG_COUNT; i++)
-  {
-      if(_minutes <= 0)
-          mins.sprintf("%s", RLIStrings::nOff[i]);
-      else
-          mins.sprintf("%d", _minutes);
-      minsarray[i] = mins.toLocal8Bit().data();
+  for (int i = 0; i < RLI_LANG_COUNT; i++) {
+    if(_minutes <= 0)
+       mins.sprintf("%s", RLIStrings::nOff[i]);
+    else
+       mins.sprintf("%d", _minutes);
+
+    minsarray[i] = mins.toLocal8Bit().data();
   }
-  t.rect = QRect(180, 4, 0, 14);
+
+  t.color = INFO_TEXT_DYNAMIC_COLOR;
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextStr(t, minsarray);
-  //setInfoTextStr(t, RLIStrings::nOff);
   _min_text_id =_block->addText(t);
 
-  t.font_tag = "8x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(186, 4, 0, 14);
+  setInfoTextParams(t, tblInfo, 0, 2);
   setInfoTextStr(t, RLIStrings::nMin);
   _block->addText(t);
 }
@@ -454,43 +446,36 @@ void DangerDetailsController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
+  RLIPanelTableInfo tblInfo = panelInfo.tables["table"];
+
   InfoText t;
 
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(4, 4, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nCPA);
   _block->addText(t);
 
-  t.rect = QRect(4, 21, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 1, 0);
   setInfoTextStr(t, RLIStrings::nVks);
   _block->addText(t);
 
 
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-
-  t.rect = QRect(180, 4, 0, 14);
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextBts(t, QByteArray("0"));
   _dks_text_id = _block->addText(t);
 
-  t.rect = QRect(180, 21, 0, 14);
+  setInfoTextParams(t, tblInfo, 1, 1);
   setInfoTextBts(t, QByteArray("0"));
   _vks_text_id =_block->addText(t);
 
 
-  t.font_tag = "8x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(186, 4, 32, 14);
+  setInfoTextParams(t, tblInfo, 0, 2);
   setInfoTextStr(t, RLIStrings::nNM);
   _block->addText(t);
 
-  t.rect = QRect(186, 21, 32, 14);
+  setInfoTextParams(t, tblInfo, 1, 2);
   setInfoTextStr(t, RLIStrings::nMin);
   _block->addText(t);
 }
@@ -505,28 +490,22 @@ void VectorController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
+  RLIPanelTableInfo tblInfo = panelInfo.tables["table"];
+
   InfoText t;
 
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(4, 4, 0, 14);
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nVec);
   _block->addText(t);
 
-  t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-
-  t.rect = QRect(180, 4, 0, 14);
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextBts(t, QByteArray("20"));
   _block->addText(t);
 
-  t.font_tag = "8x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(186, 4, 0, 14);
+  setInfoTextParams(t, tblInfo, 0, 2);
   setInfoTextStr(t, RLIStrings::nMin);
   _block->addText(t);
 }
@@ -575,143 +554,132 @@ void TargetsController::initBlock(const RLIPanelInfo& panelInfo) {
   _block->setBackColor(INFO_BACKGRD_COLOR);
   _block->setBorder(1, INFO_BORDER_COLOR);
 
+  // Header
   InfoRect r;
   r.col = INFO_BORDER_COLOR;
-  r.rect = QRect(0, 18, 236, 1);
+  r.rect = rectFromString(panelInfo.rects["header-bottom"]["rect"]);
   _block->addRect(r);
 
-  r.rect = QRect(118, 0, 1, 18);
+  r.rect = rectFromString(panelInfo.rects["header-middle"]["rect"]);
   _block->addRect(r);
 
   InfoText t;
-  // Header
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(4, 3, 0, 14);
+  setInfoTextParams(t, panelInfo.texts["header"]);
   setInfoTextStr(t, RLIStrings::nTrg);
   _block->addText(t);
 
-  t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-
-  t.rect = QRect(114, 3, 0, 14);
+  setInfoTextParams(t, panelInfo.texts["current-target"]);
   setInfoTextBts(t, QByteArray("1"));
   _trg_text_id = _block->addText(t);
 
-  t.rect = QRect(230, 3, 0, 14);
+  setInfoTextParams(t, panelInfo.texts["target-count"]);
   setInfoTextBts(t, QString::number(_count).toLatin1());
   _cnt_text_id = _block->addText(t);
 
-  // Table
-  t.allign = INFOTEXT_ALLIGN_LEFT;
-  t.color = INFO_TEXT_STATIC_COLOR;
 
-  t.rect = QRect(4, 18+5, 224-8, 14);
+  // Table
+  RLIPanelTableInfo tblInfo = panelInfo.tables["table"];
+
+  t.color = INFO_TEXT_STATIC_COLOR;
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nBear);
   _block->addText(t);
 
-  t.rect = QRect(4, 18+5+18, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 1, 0);
   setInfoTextStr(t, RLIStrings::nRng);
   _block->addText(t);
 
-  t.rect = QRect(4, 18+5+2*18, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 2, 0);
   setInfoTextStr(t, RLIStrings::nCrsW);
   _block->addText(t);
 
-  t.rect = QRect(4, 18+5+3*18, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 3, 0);
   setInfoTextStr(t, RLIStrings::nSpdW);
   _block->addText(t);
 
-  t.rect = QRect(4, 18+5+4*18, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 4, 0);
   setInfoTextStr(t, RLIStrings::nTcpa);
   _block->addText(t);
 
-  t.rect = QRect(4, 18+5+5*18, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 5, 0);
   setInfoTextStr(t, RLIStrings::nTtcpa);
   _block->addText(t);
 
-  t.rect = QRect(4, 18+5+6*18, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 6, 0);
   setInfoTextStr(t, RLIStrings::nDcc);
   _block->addText(t);
 
-  t.rect = QRect(4, 18+5+7*18, 224-8, 14);
+  setInfoTextParams(t, tblInfo, 7, 0);
   setInfoTextStr(t, RLIStrings::nTcc);
   _block->addText(t);
 
 
-
-  t.font_tag = "12x14";
-  t.allign = INFOTEXT_ALLIGN_RIGHT;
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-
-  t.rect = QRect(180, 18+5+0*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextBts(t, QByteArray("0"));
   _block->addText(t);
 
-  t.rect = QRect(180, 18+5+1*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 1, 1);
   setInfoTextBts(t, QByteArray("0"));
   _block->addText(t);
 
-  t.rect = QRect(180, 18+5+2*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 2, 1);
   setInfoTextBts(t, QString::number(_target.CourseOverGround).left(6).toLatin1());
   _cog_text_id = _block->addText(t);
 
-  t.rect = QRect(180, 18+5+3*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 3, 1);
   setInfoTextBts(t, QString::number(_target.SpeedOverGround).left(6).toLatin1());
   _sog_text_id =_block->addText(t);
 
-  t.rect = QRect(180, 18+5+4*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 4, 1);
   setInfoTextBts(t, QByteArray("0"));
   _block->addText(t);
 
-  t.rect = QRect(180, 18+5+5*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 5, 1);
   setInfoTextBts(t, QByteArray("0"));
   _block->addText(t);
 
-  t.rect = QRect(180, 18+5+6*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 6, 1);
   setInfoTextBts(t, QByteArray("0"));
   _block->addText(t);
 
-  t.rect = QRect(180, 18+5+7*18, 0, 14);
+  setInfoTextParams(t, tblInfo, 7, 1);
   setInfoTextBts(t, QByteArray("0"));
   _block->addText(t);
 
 
-  t.font_tag = "8x14";
-  t.allign = INFOTEXT_ALLIGN_LEFT;
   t.color = INFO_TEXT_STATIC_COLOR;
-
-  t.rect = QRect(186, 18+5+0*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 0, 2);
   setInfoTextStr(t, RLIStrings::nGrad);
   _block->addText(t);
 
-  t.rect = QRect(186, 18+5+1*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 1, 2);
   setInfoTextStr(t, RLIStrings::nNM);
   _block->addText(t);
 
-  t.rect = QRect(186, 18+5+2*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 2, 2);
   setInfoTextStr(t, RLIStrings::nGrad);
   _block->addText(t);
 
-  t.rect = QRect(186, 18+5+3*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 3, 2);
   setInfoTextStr(t, RLIStrings::nKts);
   _block->addText(t);
 
-  t.rect = QRect(186, 18+5+4*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 4, 2);
   setInfoTextStr(t, RLIStrings::nNM);
   _block->addText(t);
 
-  t.rect = QRect(186, 18+5+5*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 5, 2);
   setInfoTextStr(t, RLIStrings::nMin);
   _block->addText(t);
 
-  t.rect = QRect(186, 18+5+6*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 6, 2);
   setInfoTextStr(t, RLIStrings::nNM);
   _block->addText(t);
 
-  t.rect = QRect(186, 18+5+7*18, 32, 14);
+  setInfoTextParams(t, tblInfo, 7, 2);
   setInfoTextStr(t, RLIStrings::nMin);
   _block->addText(t);
 }
@@ -737,31 +705,31 @@ void CursorController::initBlock(const RLIPanelInfo& panelInfo) {
   RLIPanelTableInfo tblInfo = panelInfo.tables["table"];
 
   t.color = INFO_TEXT_STATIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col1");
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nBear);
   _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col1");
+  setInfoTextParams(t, tblInfo, 1, 0);
   setInfoTextStr(t, RLIStrings::nRng);
   _block->addText(t);
 
 
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col2");
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextBts(t, QByteArray("0"));
   _pel_text_id = _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col2");
+  setInfoTextParams(t, tblInfo, 1, 1);
   setInfoTextBts(t, QByteArray("0"));
   _dis_text_id = _block->addText(t);
 
 
   t.color = INFO_TEXT_STATIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col3");
+  setInfoTextParams(t, tblInfo, 0, 2);
   setInfoTextStr(t, RLIStrings::nGrad);
   _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col3");
+  setInfoTextParams(t, tblInfo, 1, 2);
   setInfoTextStr(t, RLIStrings::nNM);
   _block->addText(t);
 }
@@ -853,31 +821,31 @@ void VnController::initBlock(const RLIPanelInfo& panelInfo) {
   RLIPanelTableInfo tblInfo = panelInfo.tables["table"];
 
   t.color = INFO_TEXT_STATIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col1");
+  setInfoTextParams(t, tblInfo, 0, 0);
   setInfoTextStr(t, RLIStrings::nVN);
   _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col1");
+  setInfoTextParams(t, tblInfo, 1, 0);
   setInfoTextStr(t, RLIStrings::nCu);
   _block->addText(t);
 
 
   t.color = INFO_TEXT_DYNAMIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col2");
+  setInfoTextParams(t, tblInfo, 0, 1);
   setInfoTextBts(t, QByteArray("0.0"));
   _p_text_id = _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col2");
+  setInfoTextParams(t, tblInfo, 1, 1);
   setInfoTextBts(t, QByteArray("0.0"));
   _cu_text_id = _block->addText(t);
 
 
   t.color = INFO_TEXT_STATIC_COLOR;
-  setInfoTextParams(t, tblInfo, 0, "col3");
+  setInfoTextParams(t, tblInfo, 0, 2);
   setInfoTextStr(t, RLIStrings::nGrad);
   _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 1, "col3");
+  setInfoTextParams(t, tblInfo, 1, 2);
   setInfoTextStr(t, RLIStrings::nGradLb);
   _board_ptr_id = _block->addText(t);
 }
@@ -911,12 +879,12 @@ void VdController::initBlock(const RLIPanelInfo& panelInfo) {
 
   RLIPanelTableInfo tblInfo = panelInfo.tables["table"];
 
-  setInfoTextParams(t, tblInfo, 0, "col1");
+  setInfoTextParams(t, tblInfo, 0, 0);
   t.color = INFO_TEXT_DYNAMIC_COLOR;
   setInfoTextBts(t, QByteArray("0.00"));
   _vd_text_id = _block->addText(t);
 
-  setInfoTextParams(t, tblInfo, 0, "col2");
+  setInfoTextParams(t, tblInfo, 0, 1);
   t.color = INFO_TEXT_STATIC_COLOR;
   t.rect = QRect(4+2*12+5*12+2+6, 29, 0, 14);
   setInfoTextStr(t, RLIStrings::nNM);
