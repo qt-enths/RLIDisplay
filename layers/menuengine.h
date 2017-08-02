@@ -116,6 +116,8 @@ public:
 
   inline QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QString::number(_value).toLatin1(); }
   inline int intValue() { return _value; }
+  inline int minValue() { return _min; }
+  inline int maxValue() { return _max; }
 
   void up();
   void down();
@@ -146,6 +148,9 @@ public:
   ~RLIMenuItemFloat() { }
 
   inline QByteArray value(int lang_id) { Q_UNUSED(lang_id); return QString::number(_value).left(5).toLatin1(); }
+  inline float fltValue() { return _value; }
+  inline float minValue() { return _min; }
+  inline float maxValue() { return _max; }
 
   inline void up() { if (_value + _step < _max) _value += _step; }
   inline void down() { if (_value - _step > _min) _value -= _step; }
@@ -217,6 +222,7 @@ private:
 
   enum TextAllignement { ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT };
 
+  void drawBar();
   void drawSelection();
   void drawText(const QByteArray& text, int line, TextAllignement align, const QColor& col);
 

@@ -850,6 +850,7 @@ void MenuEngine::update() {
 
     _prog->release();
 
+    drawBar();
     drawSelection();
   }
 
@@ -874,13 +875,47 @@ void MenuEngine::drawSelection() {
   else
     glColor3f(MENU_TEXT_STATIC_COLOR.redF(), MENU_TEXT_STATIC_COLOR.greenF(), MENU_TEXT_STATIC_COLOR.blueF());
 
-
   // Left border
   glVertex2f(2.f, 2.f + _selected_line*(6+font_size.height()));
   glVertex2f(2.f, (_selected_line+1)*(6+font_size.height()));
   glVertex2f(_size.width() - 2.f, (_selected_line+1)*(6+font_size.height()));
   glVertex2f(_size.width() - 2.f, 2.f + _selected_line*(6+font_size.height()));
 
+  glEnd();
+}
+
+void MenuEngine::drawBar() {
+  if (_menu == NULL)
+    return;
+
+  QSize size = _fbo->size();
+  int bar_width = 0;
+
+  RLIMenuItem* currItem = _menu->item(_selected_line - 1);
+
+  RLIMenuItemInt* intItem = dynamic_cast<RLIMenuItemInt*>(currItem);
+  if (intItem != NULL) {
+    int val = intItem->intValue();
+    int min_val = intItem->minValue();
+    int max_val = intItem->maxValue();
+    bar_width = (size.width() - 2) * static_cast<float>(val - min_val) / (max_val - min_val);
+  }
+
+  RLIMenuItemFloat* fltItem = dynamic_cast<RLIMenuItemFloat*>(currItem);
+  if (fltItem != NULL) {
+    float val = fltItem->fltValue();
+    float min_val = fltItem->minValue();
+    float max_val = fltItem->maxValue();
+    bar_width = (size.width() - 2) * (val - min_val) / (max_val - min_val);
+  }
+
+  glShadeModel( GL_FLAT );
+
+  glBegin(GL_QUADS);
+  glVertex2f(1, size.height()-17);
+  glVertex2f(1, size.height()-3);
+  glVertex2f(1+bar_width, size.height()-3);
+  glVertex2f(1+bar_width, size.height()-17);
   glEnd();
 }
 
