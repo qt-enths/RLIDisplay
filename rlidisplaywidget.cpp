@@ -137,7 +137,7 @@ void RLIDisplayWidget::initializeGL() {
 
 
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Fonts loading start";
-  _fonts->init(context(), ":/res/fonts");
+  _fonts->init(context(), "res/fonts");
   qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss zzz") << ": " << "Fonts loading finish";
 
   // Disable depth and stencil buffers (we need only 2D)

@@ -91,7 +91,6 @@ FORMS    += \
 
 RESOURCES += \
     icons.qrc \
-    fonts.qrc \
     shaders.qrc \
     cursors.qrc
 
