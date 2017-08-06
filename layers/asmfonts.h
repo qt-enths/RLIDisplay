@@ -5,6 +5,7 @@
 #include <QVector2D>
 #include <QPixmap>
 #include <QMap>
+#include <QHash>
 
 #include <QtOpenGL/QGLContext>
 #include <QtOpenGL/QGLFunctions>
