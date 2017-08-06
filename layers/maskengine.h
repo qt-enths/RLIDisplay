@@ -57,6 +57,7 @@ private:
   QPoint    _cursor_pos;
 
   QSize     _size;
+  QString   _font;
 
   // Framebuffer vars
   QGLFramebufferObject* _fbo;

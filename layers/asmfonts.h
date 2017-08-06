@@ -22,7 +22,7 @@ public:
   GLuint getTextureId(const QString& tag);
 
 private:
-  void readFile(const QString& fName);
+  void readFile(const QString& filePath, const QString& font);
 
   QHash<QString, QSize> _font_sizes;
   QHash<QString, GLuint> _tex_ids;
