@@ -56,6 +56,7 @@ void MaskEngine::resize(const QSize& sz, const QMap<QString, QString>& params) {
     return;
 
   _size = sz;
+  _font = params["font"];
   _hole_radius = params["radius"].toInt();
   _hole_center = QPoint(params["x"].toInt(), params["y"].toInt());
   _cursor_pos = _hole_center;
@@ -137,8 +138,8 @@ void MaskEngine::update() {
 
   // Draw text mark
   // ---------------------------------------------------------------------
-  QSize font_size = _fonts->getSize("8x8");
-  GLuint tex_id = _fonts->getTextureId("8x8");
+  QSize font_size = _fonts->getSize(_font);
+  GLuint tex_id = _fonts->getTextureId(_font);
 
   bindBuffers(vbo_ids_text);
 

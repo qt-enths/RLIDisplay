@@ -21,10 +21,10 @@ void AsmFonts::init(const QGLContext* context, QString dirPath) {
   QStringList fileNames = dir.entryList();
 
   for (int i = 0; i < fileNames.size(); i++)
-    readFile(dir.absoluteFilePath(fileNames[i]));
+    readFile(dir.absoluteFilePath(fileNames[i]), fileNames[i].replace(".png", ""));
 }
 
-void AsmFonts::readFile(const QString& fName) {
+void AsmFonts::readFile(const QString& filePath, const QString& font) {
   GLuint tex_id;
   glGenTextures(1, &tex_id);
 
@@ -35,15 +35,16 @@ void AsmFonts::readFile(const QString& fName) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  QImage img(fName);
+  QImage img(filePath);
   QSize dim = img.size() / 16;
-  QString font_tag = QString::number(dim.width()) + "x" + QString::number(dim.height());
+
+  qDebug() << font;
 
   img = QGLWidget::convertToGLFormat(img);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
 
-  _font_sizes.insert(font_tag, dim);
-  _tex_ids.insert(font_tag, tex_id);
+  _font_sizes.insert(font, dim);
+  _tex_ids.insert(font, tex_id);
 }
 
 QSize AsmFonts::getSize(const QString& tag) {
